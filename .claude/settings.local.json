@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node scripts/fix-empty-plan.mjs)",
+      "Bash(cat)",
+      "Bash(npx prisma *)",
+      "Bash(npx tsx *)"
+    ]
+  }
+}

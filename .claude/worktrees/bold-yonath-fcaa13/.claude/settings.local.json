@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node scripts/fix-empty-plan.mjs)",
+      "Bash(cat)",
+      "Bash(npx prisma *)",
+      "Bash(npx tsx *)",
+      "Bash(gh pr *)",
+      "PowerShell(Get-Command gh -ErrorAction SilentlyContinue)",
+      "PowerShell($paths = @\\(\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\",\"C:\\\\Program Files \\(x86\\)\\\\GitHub CLI\\\\gh.exe\",\"$env:LOCALAPPDATA\\\\GitHubCLI\\\\gh.exe\",\"$env:LOCALAPPDATA\\\\Programs\\\\gh\\\\bin\\\\gh.exe\"\\); $paths | Where-Object { Test-Path $_ })",
+      "Bash(git credential *)",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d[0]['html_url'] if d else 'NONE'\\)\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git checkout *)",
+      "Bash(git pull *)",
+      "Bash(git merge *)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(npm i *)",
+      "Bash(git reset *)",
+      "Bash(git fetch *)",
+      "Bash(npm run *)",
+      "Bash(command -v mysql)",
+      "Bash(ls src/app/register/)",
+      "Bash(ls src/app/login/)",
+      "Bash(npm uninstall *)",
+      "Bash(tasklist)",
+      "Bash(taskkill /F /PID 65084)",
+      "Bash(taskkill //F //PID 65084)",
+      "Bash(ls planning/)",
+      "Bash(head -40 planning/backlog.md)",
+      "Bash(grep -v \"Update available\\\\|major update\\\\|guide at\\\\|Run the following\\\\|npm i\\\\|^│\\\\|^└\\\\|^┌\\\\|^$\")"
+    ]
+  }
+}
