@@ -1,7 +1,13 @@
 {
-  "buildCommand": "npm run build:double",  
-  "installCommand": "npm ci",  
+  "buildCommand": "npm run build:double",
+  "installCommand": "npm ci",
   "functions": {
-    "app/**/*.js": { "maxDuration": 30 }  
-  }
+    "app/**/*.js": { "maxDuration": 30 }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/expirar-chaves",
+      "schedule": "0 3 * * *"
+    }
+  ]
 }
