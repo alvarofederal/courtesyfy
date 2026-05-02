@@ -5,6 +5,7 @@ import { db } from "@/lib/prisma"
 import { ChevronLeft, Key, Calendar, Hash } from "lucide-react"
 import { QrGrid } from "./_components/qr-grid"
 import { ExportarCsv } from "./_components/exportar-csv"
+import { CancelarLoteBtn } from "./_components/cancelar-lote-btn"
 
 const PAGE_SIZE = 100
 
@@ -86,7 +87,10 @@ export default async function LoteDetailPage({
             </Link>
           </p>
         </div>
-        <ExportarCsv chaves={chaves} nomeLote={nomeLote} />
+        <div className="flex items-center gap-2">
+          <ExportarCsv chaves={chaves} nomeLote={nomeLote} />
+          <CancelarLoteBtn loteId={loteId} />
+        </div>
       </div>
 
       {/* Stats */}
