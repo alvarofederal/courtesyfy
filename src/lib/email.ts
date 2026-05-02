@@ -2,13 +2,16 @@ import { Resend } from "resend"
 import { render } from "@react-email/render"
 import { VerificationEmailTemplate } from "@/components/emails/verification-email-template"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
-// Domínio verificado no Resend. Configure EMAIL_FROM no .env para mudar.
 const EMAIL_FROM =
   process.env.EMAIL_FROM ?? "Courtesyfy <noreply@karollynemorais.com.br>"
 
 const isDev = process.env.NODE_ENV === "development"
+
+function getResend() {
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) throw new Error("RESEND_API_KEY não configurada")
+  return new Resend(apiKey)
+}
 
 export async function sendVerificationEmail(
   email: string,
@@ -26,11 +29,17 @@ export async function sendVerificationEmail(
     return
   }
 
+  const resendApiKey = process.env.RESEND_API_KEY
+  if (!resendApiKey) {
+    console.warn("⚠️ RESEND_API_KEY não configurada. Email não será enviado.")
+    return
+  }
+
   const emailHtml = await render(
     VerificationEmailTemplate({ code, expiresInMinutes })
   )
 
-  const { error } = await resend.emails.send({
+  const { error } = await getResend().emails.send({
     from: EMAIL_FROM,
     to: email,
     subject: "🔐 Código de Verificação - Courtesyfy",
@@ -51,6 +60,12 @@ export async function sendPasswordResetEmail(email: string, resetUrl: string) {
     console.log(`🔑 Para: ${email}`)
     console.log(`🔑 Link: ${resetUrl}`)
     console.log("🔑 ========================================\n")
+    return
+  }
+
+  const resendApiKey = process.env.RESEND_API_KEY
+  if (!resendApiKey) {
+    console.warn("⚠️ RESEND_API_KEY não configurada. Email não será enviado.")
     return
   }
 
@@ -77,7 +92,7 @@ export async function sendPasswordResetEmail(email: string, resetUrl: string) {
   </body>
 </html>`
 
-  const { error } = await resend.emails.send({
+  const { error } = await getResend().emails.send({
     from: EMAIL_FROM,
     to: email,
     subject: "🔑 Recuperação de Senha - Courtesyfy",
