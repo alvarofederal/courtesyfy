@@ -3,6 +3,7 @@
 import { QRCodeSVG } from "qrcode.react"
 import { useState } from "react"
 import { Copy, Check } from "lucide-react"
+import { CancelarChaveBtn } from "./cancelar-chave-btn"
 
 type Chave = {
   id: string
@@ -112,12 +113,15 @@ export function QrGrid({ chaves }: Props) {
                   <td className="py-2.5 px-3 hidden sm:table-cell">
                     {chave.landingUrl && (
                       <div className="flex items-center gap-1">
-                        <span className="text-xs text-gray-400 truncate max-w-[240px]">
+                        <span className="text-xs text-gray-400 truncate max-w-[200px]">
                           {chave.landingUrl}
                         </span>
                         <CopyButton text={chave.landingUrl} />
                       </div>
                     )}
+                  </td>
+                  <td className="py-2.5 px-3 text-right">
+                    <CancelarChaveBtn chaveId={chave.id} status={chave.status} />
                   </td>
                 </tr>
               ))}
