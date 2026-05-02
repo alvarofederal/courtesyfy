@@ -14,7 +14,9 @@ export function middleware(request: NextRequest) {
     "/c/",          // landing page pública das chaves
   ]
 
-  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
+  const isPublicRoute =
+    pathname === "/" ||
+    publicRoutes.some(route => pathname.startsWith(route))
 
   if (isPublicRoute) {
     return NextResponse.next()
