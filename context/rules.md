@@ -1,41 +1,56 @@
-# Basemedical - Regras e Convenções de Desenvolvimento
+# Courtesyfy — Regras e Convenções de Desenvolvimento
 
 ## Regras Fundamentais
 
-### NUNCA fazer sem pedir:
-- Alterar schema do banco de dados sem discussão prévia
-- Mudar o sistema de autenticação
+### NUNCA fazer sem confirmar com o usuário:
+- Alterar schema do banco de dados (Prisma)
+- Mudar o sistema de autenticação (NextAuth)
 - Alterar lógica de cobrança/Stripe
 - Renomear modelos Prisma existentes
 - Remover campos de modelos existentes (pode quebrar dados em produção)
+- Alterar o status de uma chave RESGATADA (é imutável)
 
 ### SEMPRE fazer:
 - Usar TypeScript strict (sem `any` desnecessário)
 - Validar inputs do usuário com Zod
 - Usar Server Actions para mutações internas
 - Usar `src/lib/prisma.ts` (singleton) — nunca instanciar Prisma diretamente
-- Verificar permissões por plano antes de criar recursos (`src/utils/permissions/`)
+- Verificar permissões por plano da loja antes de criar recursos
 - Usar `date-fns` para manipulação de datas
+- Registrar `LogEvento` em toda ação relevante sobre chaves
+- Verificar unicidade do código antes de persistir qualquer chave
+
+---
+
+## Regras de Negócio Invioláveis
+
+1. **Toda chave é única no banco** — verificar antes de salvar
+2. **Toda chave pertence a uma única campanha** — sem reatribuição
+3. **Uma chave só pode ser vinculada a um único cliente** — no momento da ativação
+4. **Uma chave RESGATADA nunca muda de estado**
+5. **O QR code deve apontar para `/c/[codigo]`** — não para o painel
+6. **Todo evento relevante deve gerar um LogEvento**
+7. **Chaves expiram automaticamente** pela data `expiraEm` da campanha
 
 ---
 
 ## Convenções de Código
 
 ### Nomenclatura
-- Componentes React: PascalCase (`UserProfileCard.tsx`)
-- Funções/variáveis: camelCase (`getUserProfile`)
-- Constantes: UPPER_SNAKE_CASE (`MAX_SERVICES_FREE`)
-- Tipos/Interfaces: PascalCase (`UserProfile`)
-- Arquivos de componentes: kebab-case (`user-profile-card.tsx`)
-- Server Actions: verbos descritivos (`createAppointment`, `updateProfile`)
+- Componentes React: PascalCase (`CampanhaCard.tsx`)
+- Funções/variáveis: camelCase (`gerarLoteChaves`)
+- Constantes: UPPER_SNAKE_CASE (`MAX_CHAVES_ESSENCIAL`)
+- Tipos/Interfaces: PascalCase (`ChaveStatus`)
+- Arquivos de componentes: kebab-case (`campanha-card.tsx`)
+- Server Actions: verbos descritivos (`criarCampanha`, `resgatarChave`)
 
-### Estrutura de Componentes
+### Estrutura de Feature
 ```
-feature/
+campanhas/
 ├── page.tsx              # Página (Server Component por padrão)
 ├── _components/          # Componentes desta feature
-│   ├── feature-form.tsx  # Formulário client-side
-│   └── feature-list.tsx  # Lista server-side
+│   ├── campanha-form.tsx # Formulário client-side
+│   └── campanha-table.tsx
 ├── _actions/             # Server Actions
 │   └── index.ts
 └── _data_access/         # Queries Prisma
@@ -46,8 +61,8 @@ feature/
 - Páginas são Server Components por padrão
 - Componentes com estado, eventos, hooks → `"use client"`
 - Formulários com React Hook Form → sempre `"use client"`
-- Busca de dados → preferencialmente no Server Component (sem React Query)
-- Mutações → Server Actions ou API Routes
+- Busca de dados → preferencialmente no Server Component
+- Mutações → Server Actions
 
 ### Importações
 - Alias `@/` para `src/` sempre (nunca `../../`)
@@ -56,7 +71,7 @@ feature/
 
 ---
 
-## Padrão de Server Actions
+## Padrão de Server Action
 
 ```typescript
 "use server"
@@ -64,22 +79,23 @@ feature/
 import { z } from "zod"
 import { db } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { revalidatePath } from "next/cache"
 
-const schema = z.object({ ... })
+const schema = z.object({ /* ... */ })
 
-export async function actionName(data: FormData) {
+export async function criarCampanha(data: unknown) {
   const session = await auth()
-  if (!session) return { error: "Não autorizado" }
+  if (!session?.user?.lojaId) return { error: "Não autorizado" }
 
-  const validated = schema.safeParse(Object.fromEntries(data))
-  if (!validated.success) return { error: "Dados inválidos" }
+  const parsed = schema.safeParse(data)
+  if (!parsed.success) return { error: "Dados inválidos" }
 
-  try {
-    // lógica
-    return { success: true }
-  } catch (error) {
-    return { error: "Erro interno" }
-  }
+  // verificar limites de plano da loja
+  // executar lógica de negócio
+  // registrar LogEvento
+
+  revalidatePath("/campanhas")
+  return { success: true }
 }
 ```
 
@@ -88,14 +104,14 @@ export async function actionName(data: FormData) {
 ## Padrão de Data Access Layer
 
 ```typescript
-// _data_access/index.ts
+// _data_access/campanhas/index.ts
 import { db } from "@/lib/prisma"
-import { auth } from "@/lib/auth"
 
-export async function getFeatureData(userId: string) {
-  return db.model.findMany({
-    where: { userId },
-    select: { ... }  // sempre usar select, nunca buscar tudo
+export async function getCampanhasByLoja(lojaId: string) {
+  return db.campanha.findMany({
+    where: { lojaId },
+    select: { id: true, nome: true, status: true, expiraEm: true },
+    orderBy: { criadoEm: "desc" },
   })
 }
 ```
@@ -104,47 +120,46 @@ export async function getFeatureData(userId: string) {
 
 ## UI e Componentes
 
-### Usar Shadcn/UI existente
-Componentes disponíveis em `src/components/ui/`:
-accordion, alert-dialog, badge, button, card, checkbox, collapsible, dialog, dropdown-menu, form, input, label, pagination, radio-group, scroll-area, select, sheet, switch, table, tabs, textarea, tooltip
+### Shadcn/UI disponível em `src/components/ui/`:
+accordion, alert-dialog, badge, button, card, checkbox, dialog, dropdown-menu,
+form, input, label, pagination, radio-group, scroll-area, select, sheet, switch,
+table, tabs, textarea, tooltip
 
-### Adicionar novos componentes Shadcn:
+### Adicionar novos:
 ```bash
 npx shadcn@latest add [component-name]
 ```
 
-### Toast Notifications
-Usar `sonner` para toasts:
+### Toast
 ```typescript
 import { toast } from "sonner"
-toast.success("Salvo com sucesso!")
-toast.error("Ocorreu um erro")
+toast.success("Campanha criada!")
+toast.error("Erro ao gerar chaves")
 ```
 
 ---
 
 ## Git Workflow
 
-Seguir Git Flow:
 - `main` → produção
 - `develop` → desenvolvimento ativo
 - `feature/nome-da-feature` → novas funcionalidades
 - `hotfix/descricao` → correções urgentes
-- `release/x.x.x` → preparação de release
 
-**Commits em português** com descrição clara do que foi feito.
+**Commits em português** com descrição clara.
 
 ---
 
 ## Checklist antes de commitar
 
 - [ ] Sem erros de TypeScript (`tsc --noEmit`)
-- [ ] Sem console.log desnecessários
+- [ ] Sem `console.log` desnecessários
 - [ ] Inputs validados com Zod
-- [ ] Permissões verificadas nas actions
-- [ ] Sem dados hardcoded que deveriam vir do banco
-- [ ] Componentes que usam hooks têm `"use client"`
+- [ ] Permissões de plano verificadas nas actions
+- [ ] `LogEvento` registrado em ações sobre chaves
+- [ ] Componentes com hooks têm `"use client"`
+- [ ] Unicidade de código verificada antes de salvar chave
 
 ---
 
-*Atualizado em: 2026-03-10*
+*Criado em: 2026-05-02 | Migrado de Basemedical para Courtesyfy*

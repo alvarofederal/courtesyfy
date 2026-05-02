@@ -57,7 +57,7 @@ export function VerificationEmailTemplate({
                       fontSize: '16px',
                       opacity: 0.95
                     }}>
-                      BaseMedical
+                      Courtesyfy
                     </p>
                   </td>
                 </tr>
@@ -81,7 +81,7 @@ export function VerificationEmailTemplate({
                       color: '#4b5563',
                       lineHeight: '1.6'
                     }}>
-                      Obrigado por se cadastrar no BaseMedical! Para continuar, precisamos verificar seu email.
+                      Obrigado por se cadastrar no Courtesyfy! Para continuar, precisamos verificar seu email.
                     </p>
 
                     {/* Card com Código */}
@@ -206,7 +206,7 @@ export function VerificationEmailTemplate({
                       lineHeight: '1.6',
                       textAlign: 'center'
                     }}>
-                      Bem-vindo ao BaseMedical!<br />
+                      Bem-vindo ao Courtesyfy!<br />
                       Estamos felizes em tê-lo conosco.
                     </p>
                   </td>
@@ -225,21 +225,21 @@ export function VerificationEmailTemplate({
                       fontSize: '14px',
                       color: '#6b7280'
                     }}>
-                      <strong style={{ color: '#10b981' }}>BaseMedical</strong>
+                      <strong style={{ color: '#10b981' }}>Courtesyfy</strong>
                     </p>
                     <p style={{
                       margin: '0 0 10px 0',
                       fontSize: '13px',
                       color: '#9ca3af'
                     }}>
-                      Sistema de Agendamento Online
+                      Gestão de Cortesias e Campanhas
                     </p>
                     <p style={{
                       margin: 0,
                       fontSize: '12px',
                       color: '#9ca3af'
                     }}>
-                      © {new Date().getFullYear()} BaseMedical. Todos os direitos reservados.
+                      © {new Date().getFullYear()} Courtesyfy. Todos os direitos reservados.
                     </p>
                   </td>
                 </tr>

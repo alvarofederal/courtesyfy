@@ -92,7 +92,7 @@ export function VerifyEmailForm({ initialEmail }: VerifyEmailFormProps) {
       })
       
       setTimeout(() => {
-        router.push("/onboarding/select-profile")
+        router.push("/login")
       }, 1500)
     } catch (error) {
       toast.error("Erro ao verificar email")

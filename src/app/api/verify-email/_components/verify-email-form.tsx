@@ -1,4 +1,3 @@
-// src/app/verify-email/_components/verify-email-form.tsx
 "use client"
 
 import { useState, useEffect } from "react"
@@ -8,14 +7,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2, CheckCircle2, Mail } from "lucide-react"
 import { toast } from "sonner"
-import { Header } from "@/app/(public)/_components/header"
-import { Footer } from "@/app/(public)/_components/footer"
 
 export function VerifyEmailForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const emailFromUrl = searchParams.get("email") || ""
-  
+
   const [loading, setLoading] = useState(false)
   const [resendLoading, setResendLoading] = useState(false)
   const [canResend, setCanResend] = useState(false)
@@ -25,7 +22,6 @@ export function VerifyEmailForm() {
     code: "",
   })
 
-  // Countdown para reenvio
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
@@ -37,7 +33,7 @@ export function VerifyEmailForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (formData.code.length !== 6) {
       toast.error("O código deve ter 6 dígitos")
       return
@@ -64,14 +60,13 @@ export function VerifyEmailForm() {
       }
 
       toast.success("Email verificado com sucesso!", {
-        icon: <CheckCircle2 className="h-5 w-5 text-green-600" />
+        icon: <CheckCircle2 className="h-5 w-5 text-green-600" />,
       })
-      
-      // Redirecionar para login
+
       setTimeout(() => {
-        router.push("/onboarding/select-profile")
+        router.push("/login")
       }, 1500)
-    } catch (error) {
+    } catch {
       toast.error("Erro ao verificar email")
       setLoading(false)
     }
@@ -98,12 +93,10 @@ export function VerifyEmailForm() {
       }
 
       toast.success("Código reenviado! Verifique seu email.")
-      
-      // Reiniciar countdown
       setCountdown(45)
       setCanResend(false)
       setResendLoading(false)
-    } catch (error) {
+    } catch {
       toast.error("Erro ao reenviar código")
       setResendLoading(false)
     }
@@ -111,9 +104,7 @@ export function VerifyEmailForm() {
 
   return (
     <div className="space-y-6">
-      <Header />
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Email (readonly) */}
         <div>
           <Label htmlFor="email" className="text-sm font-semibold text-gray-700">
             Email
@@ -131,7 +122,6 @@ export function VerifyEmailForm() {
           </div>
         </div>
 
-        {/* Código de Verificação */}
         <div>
           <Label htmlFor="code" className="text-sm font-semibold text-gray-700">
             Código de 6 dígitos
@@ -144,7 +134,7 @@ export function VerifyEmailForm() {
             pattern="[0-9]{6}"
             value={formData.code}
             onChange={(e) => {
-              const value = e.target.value.replace(/\D/g, "") // Apenas números
+              const value = e.target.value.replace(/\D/g, "")
               setFormData({ ...formData, code: value })
             }}
             placeholder="000000"
@@ -175,11 +165,8 @@ export function VerifyEmailForm() {
         </Button>
       </form>
 
-      {/* Reenviar Código */}
       <div className="text-center pt-4 border-t">
-        <p className="text-sm text-gray-600 mb-3">
-          Não recebeu o código?
-        </p>
+        <p className="text-sm text-gray-600 mb-3">Não recebeu o código?</p>
         <Button
           type="button"
           variant="outline"
@@ -199,7 +186,6 @@ export function VerifyEmailForm() {
           )}
         </Button>
       </div>
-      <Footer />
     </div>
   )
 }

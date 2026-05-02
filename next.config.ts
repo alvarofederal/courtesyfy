@@ -1,13 +1,19 @@
 import type { NextConfig } from "next";
 import path from "path";
 
+// Em git worktree, node_modules fica na raiz do projeto (3 níveis acima de .claude/worktrees/<name>)
+const projectRoot = __dirname.includes(".claude") && __dirname.includes("worktrees")
+  ? path.resolve(__dirname, "../../..")
+  : __dirname
+
 const nextConfig: NextConfig = {
-  outputFileTracingRoot: path.join(__dirname),
+  outputFileTracingRoot: projectRoot,
   output: 'standalone',
-  
-  // ✅ ADICIONE ISTO: Configura Turbopack
-  turbopack: {},
-  
+
+  turbopack: {
+    root: projectRoot,
+  },
+
   images: {
     unoptimized: false,
     qualities: [25, 50, 75, 100],
@@ -28,10 +34,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  
-  // ⚠️ OPCIONAL: Pode remover se Turbopack funcionar bem
-  // Turbopack tem source maps automáticos em dev
-  webpack: (config, { dev, isServer }) => {
+
+  webpack: (config, { dev }) => {
     if (dev) {
       config.devtool = 'cheap-module-source-map';
     }

@@ -8,330 +8,41 @@ generator client {
 
 datasource db {
   provider     = "mysql"
-  url          = env("DATABASE_URL")  
+  url          = env("DATABASE_URL")
   relationMode = "prisma"
 }
 
-// ===================================
-// MODELS DE AUTENTICAÇÃO
-// ===================================
-
-model AuthToken {
-  id           String    @id @default(cuid())
-  userId       String
-  token        String    @unique @db.VarChar(500)
-  type         TokenType
-  expiresAt    DateTime
-  used         Boolean   @default(false)
-  createdAt    DateTime  @default(now())
-  
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@index([userId])
-  @@index([token])
-  @@index([expiresAt])
-}
-
-model RefreshToken {
-  id           String   @id @default(cuid())
-  userId       String
-  token        String   @unique @db.VarChar(500)
-  expiresAt    DateTime
-  createdAt    DateTime @default(now())
-  lastUsedAt   DateTime @default(now())
-  ipAddress    String?
-  userAgent    String?  @db.Text
-  
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@index([userId])
-  @@index([token])
-  @@index([expiresAt])
-}
-
-model LoginAttempt {
-  id           String   @id @default(cuid())
-  email        String
-  ipAddress    String
-  success      Boolean
-  createdAt    DateTime @default(now())
-  
-  @@index([email])
-  @@index([ipAddress])
-  @@index([createdAt])
-}
-
-// ===================================
-// MODEL USER (ATUALIZADO)
-// ===================================
+// ─────────────────────────────────────────
+// AUTH
+// ─────────────────────────────────────────
 
 model User {
-  id                  String          @id @default(cuid())
-  name                String?
-  email               String          @unique
-  emailVerified       DateTime?
-  image               String?
-  phone               String?
-  status              Boolean         @default(true)
-  timezone            String?         @default("America/Sao_Paulo")
-  stripeCustomerId    String?
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
-  cpf                 String?         @unique 
-  password            String?
-  professionId        String?
-  role                String?         @default("USER")
-  specialty           String?         
-  registration        String?         @db.VarChar(30)
-  termsAccepted       Boolean         @default(false)
-  presentation        String?         @db.VarChar(600)
-  urlNameProfessional String?         @unique @db.VarChar(100)
-  typeProfile         TypeProfile?
-  teleConsultation    Boolean         @default(false)
-  
-  // ✅ Relacionamentos de autenticação
-  authTokens          AuthToken[]
-  refreshTokens       RefreshToken[]
-  
-  // ✅ Relacionamentos existentes
-  refunds             Refund[]
-  reviews             Review[]        @relation("ProfessionalReviews")
-  times               UserTime[]
-  addresses           UserAddress[]
-  accounts            Account[]
-  appointments        Appointment[]
-  availableSlots      AvailableSlot[]
-  Authenticator       Authenticator[]
-  reminders           Reminder[]
-  sessions            Session[]
-  subscription        Subscription?
-  redeemedCourtesy    CourtesyKey?    @relation("UserCourtesy")
-  waitlist            Waitlist[]
-  notification        Notification[]
-  profession          Profession?     @relation(fields: [professionId], references: [id])
-  
-  // 🔥 NOVO: Relação many-to-many com TypeService
-  userTypeServices    UserTypeService[]
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role      @default(LOJISTA)
+  ativo         Boolean   @default(true)
+  ultimoAcesso  DateTime?
+  lojaId        String?
 
-  // Chamados (suporte)
-  supportTickets         SupportTicket[]
-  supportTicketMessages  SupportTicketMessage[] @relation("TicketAuthor")
+  loja          Loja?       @relation(fields: [lojaId], references: [id])
+  accounts      Account[]
+  sessions      Session[]
+  authTokens    AuthToken[]
+  resgates      Resgate[]
+  logsEventos   LogEvento[]
+  chavesCancel  Chave[]     @relation("CanceladoPor")
+  campanhasCria Campanha[]  @relation("CriadoPor")
+  lotesGerados  LoteChave[] @relation("GeradoPor")
 
-  // Cortesia condicional vinda da landing page
-  courtesyEligibility    CourtesyEligibility?
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
 
-  @@index([professionId])
-}
-
-// ===================================
-// 🔥 NOVA TABELA INTERMEDIÁRIA
-// ===================================
-
-model UserTypeService {
-  id            String      @id @default(cuid())
-  userId        String
-  typeServiceId String
-  active        Boolean     @default(true)
-  createdAt     DateTime    @default(now())
-  
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  typeService   TypeService @relation(fields: [typeServiceId], references: [id], onDelete: Cascade)
-  
-  @@unique([userId, typeServiceId])
-  @@index([userId])
-  @@index([typeServiceId])
-}
-
-// ===================================
-// MODELS EXISTENTES
-// ===================================
-
-model Appointment {
-  id                    String       @id @default(cuid())
-  name                  String       @db.VarChar(100)
-  email                 String       @db.VarChar(100)
-  phone                 String
-  address               String       @db.VarChar(100)
-  time                  String
-  appointmentDate       DateTime
-  confirmed             Boolean      @default(false)
-  confirmationToken     String       @unique @default(cuid())
-  createdAt             DateTime     @default(now())
-  updatedAt             DateTime     @updatedAt
-  typeServiceId         String
-  userId                String
-  source                AppointmentSource @default(PUBLIC)
-  review                Review?
-  typeService           TypeService  @relation(fields: [typeServiceId], references: [id])
-  user                  User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reminders             Reminder[]
-
-  @@index([userId])
-  @@index([appointmentDate])
-  @@index([confirmationToken])
-  @@index([typeServiceId])
-  @@index([source])
-}
-
-model AvailableSlot {
-  id            String                  @id @default(cuid())
-  userId        String
-  address       String                  @db.VarChar(100)
-  typeServiceId String?
-  date          DateTime
-  status        SlotStatus              @default(AVAILABLE)
-  createdAt     DateTime                @default(now())
-  updatedAt     DateTime                @updatedAt
-  times         AvailableSlotTime[]
-  typeService   TypeService?            @relation(fields: [typeServiceId], references: [id])
-  user          User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, address, date, typeServiceId])
-  @@index([userId])
-  @@index([typeServiceId])
-}
-
-model AvailableSlotTime {
-  id              String        @id @default(cuid())
-  time            String
-  availableSlotId String
-  createdAt       DateTime      @default(now())
-  availableSlot   AvailableSlot @relation(fields: [availableSlotId], references: [id], onDelete: Cascade)
-
-  @@index([availableSlotId])
-}
-
-model Reminder {
-  id            String      @id @default(uuid())
-  title         String      @db.VarChar(120)
-  description   String      @db.VarChar(500)
-  images        Json?
-  expiresAt     DateTime
-  archived      Boolean     @default(false)
-  appointmentId String
-  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
-  userId        String
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-
-  @@index([userId])
-  @@index([appointmentId])
-  @@index([archived])
-}
-
-model Refund {
-  id             String   @id @default(cuid())
-  stripeRefundId String   @unique
-  amount         Int
-  reason         String   @default("Não especificado")
-  userId         String
-  createdAt      DateTime @default(now())
-  
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@index([userId])
-  @@index([stripeRefundId])
-}
-
-// 🔥 ATUALIZADO: TypeService agora é tabela de domínio
-model TypeService {
-  id                 String              @id @default(uuid())
-  name               String              @db.VarChar(100)
-  description        String?             @db.VarChar(250)
-  duration           Int                 @default(60)
-  status             Boolean             @default(true)
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-  
-  // 🔥 NOVO: Many-to-many com User
-  userTypeServices   UserTypeService[]
-  
-  // Relacionamentos existentes
-  appointments       Appointment[]
-  availableSlots     AvailableSlot[]
-}
-
-model Subscription {
-  id                     String             @id @default(cuid())
-  userId                 String             @unique
-  stripeCustomerId       String             @unique
-  stripeSubscriptionId   String             @unique
-  stripePriceId          String?
-  stripeCurrentPeriodEnd DateTime?
-  plan                   Plan               @default(FREE)
-  status                 SubscriptionStatus @default(active)
-  cancelAtPeriodEnd      Boolean?           @default(false)
-  canceledAt             DateTime?
-  pastDueAt              DateTime?
-  createdAt              DateTime           @default(now())
-  updatedAt              DateTime           @updatedAt
-
-  user                   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([stripeCustomerId])
-  @@index([stripeSubscriptionId])
-}
-
-// ===================================
-// MODEL CORTESIA (chave única com validade, gerada pelo admin)
-// ===================================
-
-model CourtesyKey {
-  id               String    @id @default(cuid())
-  code             String    @unique @db.VarChar(19)
-  validUntil       DateTime
-  batchId          String?
-  createdByAdminId String
-  printedAt        DateTime?
-  redeemedAt       DateTime?
-  redeemedByUserId String?   @unique
-  redemptionSource String?   @db.VarChar(20)
-  archivedAt       DateTime?
-  createdAt        DateTime  @default(now())
-
-  redeemedBy       User?     @relation("UserCourtesy", fields: [redeemedByUserId], references: [id])
-
-  @@index([code])
-  @@index([batchId])
-  @@index([redeemedByUserId])
-  @@index([validUntil])
-  @@index([printedAt])
-}
-
-model Waitlist {
-  id             String   @id @default(cuid())
-  professionalId String
-  name           String   @db.VarChar(100)
-  email          String   @db.VarChar(100)
-  phone          String
-  createdAt      DateTime @default(now())
-  professional   User     @relation(fields: [professionalId], references: [id], onDelete: Cascade)
-
-  @@index([professionalId])
-}
-
-model UserTime {
-  id        String   @id @default(cuid())
-  time      String
-  userId    String
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}
-
-model UserAddress {
-  id        String   @id @default(cuid())
-  address   String   @db.VarChar(100)
-  userId    String
-  contact   String?  
-  createdAt DateTime @default(now())
-  phone     String?
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
+  @@index([lojaId])
+  @@map("users")
 }
 
 model Account {
@@ -348,10 +59,12 @@ model Account {
   session_state     String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([provider, providerAccountId])
   @@index([userId])
+  @@map("accounts")
 }
 
 model Session {
@@ -360,9 +73,11 @@ model Session {
   expires      DateTime
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@map("sessions")
 }
 
 model VerificationToken {
@@ -371,365 +86,354 @@ model VerificationToken {
   expires    DateTime
 
   @@id([identifier, token])
+  @@map("verification_tokens")
 }
 
-model Authenticator {
-  credentialID         String  @unique
-  userId               String
-  providerAccountId    String
-  credentialPublicKey  String  @db.Text
-  counter              Int
-  credentialDeviceType String
-  credentialBackedUp   Boolean
-  transports           String?
-  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+model AuthToken {
+  id        String    @id @default(cuid())
+  userId    String
+  token     String    @unique @db.VarChar(500)
+  type      TokenType
+  expiresAt DateTime
+  used      Boolean   @default(false)
+  createdAt DateTime  @default(now())
 
-  @@id([userId, credentialID])
-}
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-model Specialty {
-  id          String       @id @default(uuid())
-  name        String       @db.VarChar(100)
-  description String?      @db.VarChar(250)
-  status      Boolean      @default(true)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  specialists Specialist[]
-}
-
-model Specialist {
-  id          String                 @id @default(uuid())
-  name        String
-  cpf         String
-  registro    String?
-  specialtyId String
-  createdAt   DateTime               @default(now())
-  updatedAt   DateTime               @updatedAt
-  locations   SpecialistLocation[]
-  attendances SpecialistAttendance[]
-  specialty   Specialty              @relation(fields: [specialtyId], references: [id])
-
-  @@index([specialtyId])
-}
-
-model SpecialistLocation {
-  id           String     @id @default(cuid())
-  location     String     @db.VarChar(100)
-  specialistId String
-  createdAt    DateTime   @default(now())
-  specialist   Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
-
-  @@index([specialistId])
-}
-
-model SpecialistAttendance {
-  id           String     @id @default(cuid())
-  attendance   String
-  specialistId String
-  createdAt    DateTime   @default(now())
-  specialist   Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
-
-  @@index([specialistId])
-}
-
-model Profession {
-  id          String   @id @default(uuid())
-  name        String   @db.VarChar(100)
-  description String?  @db.VarChar(250)
-  status      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  users       User[]
-}
-
-model LandingPage {
-  id           String   @id @default(cuid())
-  heroTitle    String   @default("Encontre os melhores profissionais em um único local!")
-  heroSubtitle String   @default("Nós somos uma plataforma para profissionais da saúde com foco em agilizar seu atendimento de forma simplificada e organizada.")
-  heroImage    String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-
-model Review {
-  id                String       @id @default(cuid())
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
-  professionalId    String
-  patientName       String
-  patientEmail      String
-  patientPhone      String?
-  rating            Int          @default(5)
-  comment           String       @db.Text
-  status            ReviewStatus @default(PENDING)
-  professionalReply String?      @db.Text
-  repliedAt         DateTime?
-  appointmentId     String?      @unique
-  professional      User         @relation("ProfessionalReviews", fields: [professionalId], references: [id], onDelete: Cascade)
-  appointment       Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
-  likes             ReviewLike[]
-
-  @@index([professionalId])
-  @@index([status])
-  @@index([rating])
-  @@index([createdAt])
-}
-
-model ReviewLike {
-  id           String   @id @default(cuid())
-  createdAt    DateTime @default(now())
-  reviewId     String
-  likedByEmail String?
-  likedByIp    String?
-  review       Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-
-  @@unique([reviewId, likedByEmail])
-  @@unique([reviewId, likedByIp])
-  @@index([reviewId])
-}
-
-model Notification {
-  id          String   @id @default(cuid())
-  userId      String
-  type        NotificationType
-  title       String
-  message     String   @db.Text
-  link        String?
-  read        Boolean  @default(false)
-  priority    NotificationPriority @default(NORMAL)
-  createdAt   DateTime @default(now())
-  
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
   @@index([userId])
-  @@index([read])
+  @@index([token])
+  @@index([expiresAt])
+  @@map("auth_tokens")
+}
+
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  email     String
+  ipAddress String
+  success   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([ipAddress])
   @@index([createdAt])
+  @@map("login_attempts")
 }
 
-// ===================================
+// ─────────────────────────────────────────
+// DOMÍNIO COURTESYFY
+// ─────────────────────────────────────────
+
+model Loja {
+  id           String     @id @default(cuid())
+  nome         String
+  razaoSocial  String?
+  cnpjCpf      String?    @unique
+  email        String     @unique
+  telefone     String?
+  logradouro   String?
+  numero       String?
+  complemento  String?
+  bairro       String?
+  cidade       String?
+  estado       String?    @db.Char(2)
+  cep          String?
+  logoUrl      String?    @db.Text
+  corPrimaria  String     @default("#c8a96e")
+  nomeExibicao String?
+  siteUrl      String?    @db.Text
+  status       LojaStatus @default(ATIVA)
+  plano        Plano      @default(ESSENCIAL)
+
+  stripeCustomerId       String?   @unique
+  stripeSubscriptionId   String?   @unique
+  stripePriceId          String?
+  stripeCurrentPeriodEnd DateTime?
+
+  usuarios    User[]
+  campanhas   Campanha[]
+  lotes       LoteChave[]
+  chaves      Chave[]
+  resgates    Resgate[]
+  logsEventos LogEvento[]
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@map("lojas")
+}
+
+model Campanha {
+  id               String         @id @default(cuid())
+  lojaId           String
+  nome             String
+  descricao        String?        @db.Text
+  tipoBeneficio    TipoBeneficio
+  valorBeneficio   Decimal?       @db.Decimal(10, 2)
+  descricaoPremio  String?        @db.Text
+  regrasUso        String?        @db.Text
+  quantidadeChaves Int
+  inicioEm         DateTime
+  expiraEm         DateTime
+  status           CampanhaStatus @default(RASCUNHO)
+  landingPageSlug  String?        @unique
+  criadoPorId      String?
+
+  loja        Loja        @relation(fields: [lojaId], references: [id])
+  criadoPor   User?       @relation("CriadoPor", fields: [criadoPorId], references: [id])
+  lotes       LoteChave[]
+  chaves      Chave[]
+  resgates    Resgate[]
+  logsEventos LogEvento[]
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@index([lojaId])
+  @@index([criadoPorId])
+  @@index([status])
+  @@index([expiraEm])
+  @@map("campanhas")
+}
+
+model LoteChave {
+  id           String       @id @default(cuid())
+  campanhaId   String
+  lojaId       String
+  descricao    String?
+  quantidade   Int
+  geradoPorId  String?
+  formatoSaida FormatoSaida @default(A4)
+  arquivoUrl   String?      @db.Text
+  status       LoteStatus   @default(GERADO)
+
+  campanha  Campanha @relation(fields: [campanhaId], references: [id])
+  loja      Loja     @relation(fields: [lojaId], references: [id])
+  geradoPor User?    @relation("GeradoPor", fields: [geradoPorId], references: [id])
+  chaves    Chave[]
+
+  criadoEm DateTime @default(now())
+
+  @@index([campanhaId])
+  @@index([lojaId])
+  @@index([geradoPorId])
+  @@map("lotes_chaves")
+}
+
+model Chave {
+  id             String      @id @default(cuid())
+  codigo         String      @unique
+  loteId         String
+  campanhaId     String
+  lojaId         String
+  clienteId      String?
+  status         ChaveStatus @default(GERADA)
+  qrcodeUrl      String?     @db.Text
+  landingUrl     String?     @db.Text
+  ativadaEm      DateTime?
+  resgatadaEm    DateTime?
+  expiradaEm     DateTime?
+  canceladaEm    DateTime?
+  canceladoPorId String?
+
+  lote         LoteChave @relation(fields: [loteId], references: [id])
+  campanha     Campanha  @relation(fields: [campanhaId], references: [id])
+  loja         Loja      @relation(fields: [lojaId], references: [id])
+  cliente      Cliente?  @relation(fields: [clienteId], references: [id])
+  canceladoPor User?     @relation("CanceladoPor", fields: [canceladoPorId], references: [id])
+  resgate      Resgate?
+  logsEventos  LogEvento[]
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@index([loteId])
+  @@index([campanhaId])
+  @@index([lojaId])
+  @@index([clienteId])
+  @@index([canceladoPorId])
+  @@index([status])
+  @@map("chaves")
+}
+
+model Cliente {
+  id          String      @id @default(cuid())
+  telefone    String?
+  email       String?
+  nome        String?
+  documento   String?
+  ipCadastro  String?
+  canalOrigem CanalOrigem @default(WEB)
+
+  chaves      Chave[]
+  resgates    Resgate[]
+  logsEventos LogEvento[]
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@map("clientes")
+}
+
+model Resgate {
+  id                String        @id @default(cuid())
+  chaveId           String        @unique
+  campanhaId        String
+  lojaId            String
+  clienteId         String?
+  operadorId        String?
+  canal             CanalResgate  @default(BALCAO)
+  statusResgate     StatusResgate @default(CONFIRMADO)
+  beneficioEntregue String?       @db.Text
+  observacao        String?       @db.Text
+  ipOrigem          String?
+
+  chave    Chave    @relation(fields: [chaveId], references: [id])
+  campanha Campanha @relation(fields: [campanhaId], references: [id])
+  loja     Loja     @relation(fields: [lojaId], references: [id])
+  cliente  Cliente? @relation(fields: [clienteId], references: [id])
+  operador User?    @relation(fields: [operadorId], references: [id])
+
+  resgatadoEm DateTime @default(now())
+
+  @@index([campanhaId])
+  @@index([lojaId])
+  @@index([clienteId])
+  @@index([operadorId])
+  @@map("resgates")
+}
+
+model LogEvento {
+  id         String     @id @default(cuid())
+  tipoEvento TipoEvento
+  chaveId    String?
+  campanhaId String?
+  lojaId     String?
+  clienteId  String?
+  operadorId String?
+  canal      String?
+  ipOrigem   String?
+  userAgent  String?    @db.Text
+  payload    Json?
+
+  chave    Chave?    @relation(fields: [chaveId], references: [id])
+  campanha Campanha? @relation(fields: [campanhaId], references: [id])
+  loja     Loja?     @relation(fields: [lojaId], references: [id])
+  cliente  Cliente?  @relation(fields: [clienteId], references: [id])
+  operador User?     @relation(fields: [operadorId], references: [id])
+
+  criadoEm DateTime @default(now())
+
+  @@index([chaveId])
+  @@index([campanhaId])
+  @@index([lojaId])
+  @@index([clienteId])
+  @@index([operadorId])
+  @@index([tipoEvento])
+  @@index([criadoEm])
+  @@map("logs_eventos")
+}
+
+// ─────────────────────────────────────────
 // ENUMS
-// ===================================
-
-enum NotificationType {
-  APPOINTMENT_SOON
-  APPOINTMENT_VERY_SOON
-  NEW_APPOINTMENT
-  APPOINTMENT_CONFIRMED
-  APPOINTMENT_CANCELLED
-  NEW_REVIEW
-  DAILY_SUMMARY
-}
-
-enum NotificationPriority {
-  LOW
-  NORMAL
-  HIGH
-  URGENT
-}
+// ─────────────────────────────────────────
 
 enum TokenType {
   EMAIL_VERIFICATION
   PASSWORD_RESET
 }
 
-enum ReviewStatus {
-  PENDING
-  APPROVED
-  REJECTED
+enum Role {
+  SUPER_ADMIN
+  LOJISTA
+  CLIENTE
 }
 
-enum SlotStatus {
-  AVAILABLE
-  BOOKED
-  CANCELLED
+enum LojaStatus {
+  ATIVA
+  SUSPENSA
+  CANCELADA
 }
 
-enum Plan {
-  FREE
-  PROFESSIONAL
-  COURTESY
+enum Plano {
+  ESSENCIAL
+  PROFISSIONAL
+  EMPRESARIAL
 }
 
-enum TypeProfile {
-  TOTAL
-  INFO
-  WAITLIST
+enum TipoBeneficio {
+  DESCONTO_PERCENTUAL
+  DESCONTO_FIXO
+  BRINDE
+  SORTEIO
+  FRETE_GRATIS
+  CASHBACK
 }
 
-enum SubscriptionStatus {
-  active
-  canceled
-  incomplete
-  incomplete_expired
-  past_due
-  trialing
-  unpaid
+enum CampanhaStatus {
+  RASCUNHO
+  ATIVA
+  PAUSADA
+  ENCERRADA
+  CANCELADA
 }
 
-// ===================================
-// CHAMADOS / SUPORTE
-// ===================================
-
-model SupportTicket {
-  id          String                 @id @default(cuid())
-  userId      String
-  user        User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title       String                 @db.VarChar(120)
-  description String                 @db.Text
-  status      TicketStatus           @default(OPEN)
-  category    TicketCategory         @default(ACCESS_LOGIN)
-  priority    TicketPriority         @default(NORMAL)
-  metadata    Json?
-  images      SupportTicketImage[]
-  messages    SupportTicketMessage[]
-  createdAt   DateTime               @default(now())
-  updatedAt   DateTime               @updatedAt
-  closedAt    DateTime?
-
-  @@index([userId])
-  @@index([status, createdAt])
-  @@index([category])
+enum FormatoSaida {
+  A4
+  ETIQUETA
+  ADESIVO
+  CSV
+  DIGITAL
 }
 
-model SupportTicketImage {
-  id        String        @id @default(cuid())
-  ticketId  String
-  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  url       String        @db.VarChar(500)
-  publicId  String?       @db.VarChar(200)
-  order     Int           @default(0)
-  createdAt DateTime      @default(now())
-
-  @@index([ticketId])
+enum LoteStatus {
+  GERADO
+  EXPORTADO
+  DISTRIBUIDO
 }
 
-model SupportTicketMessage {
-  id        String        @id @default(cuid())
-  ticketId  String
-  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  authorId  String
-  author    User          @relation("TicketAuthor", fields: [authorId], references: [id], onDelete: Cascade)
-  body      String        @db.Text
-  isAdmin   Boolean       @default(false)
-  createdAt DateTime      @default(now())
-
-  @@index([ticketId])
-  @@index([authorId])
+enum ChaveStatus {
+  GERADA
+  CONSULTADA
+  ATIVADA
+  RESGATADA
+  EXPIRADA
+  CANCELADA
 }
 
-enum TicketStatus {
-  OPEN
-  IN_PROGRESS
-  WAITING_USER
-  RESOLVED
-  CLOSED
+enum CanalOrigem {
+  WEB
+  QRCODE
+  MANUAL
 }
 
-enum TicketCategory {
-  ACCESS_LOGIN
-  ACCESS_PERMISSION
-  SCHEDULING_CREATE
-  SCHEDULING_EDIT
-  SCHEDULING_VIEW
-  SCHEDULING_NOTIFICATION
-  OTHER
+enum CanalResgate {
+  BALCAO
+  QRCODE
+  WEB
+  APP
+  MANUAL
 }
 
-enum TicketPriority {
-  LOW
-  NORMAL
-  HIGH
-  URGENT
+enum StatusResgate {
+  CONFIRMADO
+  RECUSADO
+  ESTORNADO
 }
 
-// ===================================
-// TRACKING + ELEGIBILIDADE DE CORTESIA
-// ===================================
-
-/// Eventos de tracking proprietarios (substitui Vercel Analytics).
-/// Portavel: roda em qualquer cloud, dados sao seus.
-model TrackingEvent {
-  id        String   @id @default(cuid())
-  event     String   @db.VarChar(60)   // landing_view | landing_cta_click | landing_conversion
-  landing   String?  @db.VarChar(40)   // medicos, dentistas, ...
-  cta       String?  @db.VarChar(40)   // hero, offer, final
-  method    String?  @db.VarChar(20)   // email, google
-  sessionId String?  @db.VarChar(64)   // anonimo, cookie 30d, liga view->click->conversion
-  userId    String?  @db.VarChar(40)   // preenchido na conversao
-  referrer  String?  @db.VarChar(500)
-  userAgent String?  @db.Text
-  createdAt DateTime @default(now())
-
-  @@index([event, landing, createdAt])
-  @@index([sessionId])
-  @@index([userId])
-}
-
-/// Motor de elegibilidade da cortesia condicional.
-/// Profissional vem da landing -> registra -> tem 48h pra ter 1 agendamento publico.
-/// Admin aprova manualmente quando vira ELIGIBLE.
-///
-/// Anti-fraude: email e unique e o registro persiste mesmo apos exclusao do
-/// User (userId vira null via SetNull). Mesmo email nunca consegue 2 cortesias.
-model CourtesyEligibility {
-  id                  String                    @id @default(cuid())
-  userId              String?                   @unique
-  user                User?                     @relation(fields: [userId], references: [id], onDelete: SetNull)
-  email               String?                   @unique @db.VarChar(190)
-
-  landing             String                    @db.VarChar(40)
-  cta                 String?                   @db.VarChar(40)
-  sessionId           String?                   @db.VarChar(64)
-  registeredAt        DateTime                  @default(now())
-  eligibilityDeadline DateTime
-  firstAppointmentAt  DateTime?
-  firstAppointmentId  String?                   @db.VarChar(40)
-
-  status              CourtesyEligibilityStatus @default(PENDING_APPOINTMENT)
-
-  approvedByUserId    String?                   @db.VarChar(40)
-  approvedAt          DateTime?
-  courtesyKeyId       String?                   @db.VarChar(40)
-  rejectedReason      String?                   @db.VarChar(500)
-
-  createdAt           DateTime                  @default(now())
-  updatedAt           DateTime                  @updatedAt
-
-  @@index([status, eligibilityDeadline])
-  @@index([userId])
-  @@index([email])
-}
-
-enum AppointmentSource {
-  PUBLIC      // criado via /profissional/[id] (link publico)
-  DASHBOARD   // criado pelo profissional no painel
-  IMPORT      // futuro: importacao em lote
-}
-
-enum CourtesyEligibilityStatus {
-  PENDING_APPOINTMENT  // aguardando 1o agendamento (contando 48h)
-  ELIGIBLE             // 1o agendamento aconteceu, aguarda aprovacao do admin
-  APPROVED             // cortesia liberada
-  EXPIRED              // 48h passaram sem agendamento publico
-  REJECTED             // admin negou
-}
-
-/// Trilha de auditoria de TODO evento do fluxo de cortesia.
-/// Eventos: eligibility.created | eligibility.blocked_by_email |
-/// eligibility.first_appointment | eligibility.expired |
-/// approval.started | approval.key_created | approval.email_attempt |
-/// approval.email_sent | approval.email_failed | approval.completed |
-/// rejection.completed | redemption.attempted | redemption.completed
-model CourtesyAuditLog {
-  id            String   @id @default(cuid())
-  eligibilityId String?  @db.VarChar(40)
-  email         String?  @db.VarChar(190)
-  event         String   @db.VarChar(60)
-  message       String?  @db.VarChar(500)
-  payload       Json?
-  createdAt     DateTime @default(now())
-
-  @@index([eligibilityId])
-  @@index([email])
-  @@index([event, createdAt])
+enum TipoEvento {
+  CHAVE_GERADA
+  CHAVE_CONSULTADA
+  CHAVE_ATIVADA
+  CHAVE_RESGATADA
+  CHAVE_EXPIRADA
+  CHAVE_CANCELADA
+  TENTATIVA_INVALIDA
+  TENTATIVA_REUSO
+  RESGATE_RECUSADO
+  CAMPANHA_CRIADA
+  CAMPANHA_ENCERRADA
+  LOTE_GERADO
+  LOTE_EXPORTADO
+  USUARIO_LOGIN
+  USUARIO_LOGOUT
 }

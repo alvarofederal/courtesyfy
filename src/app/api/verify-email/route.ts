@@ -56,7 +56,6 @@ export async function POST(request: NextRequest) {
       where: { id: user.id },
       data: {
         emailVerified: new Date(),
-        status: true,
       }
     })
 
