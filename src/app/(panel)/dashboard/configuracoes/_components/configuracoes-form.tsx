@@ -40,12 +40,10 @@ type LojaData = {
   cep: string | null
   siteUrl: string | null
   logoUrl: string | null
-  corPrimaria: string
 }
 
 export function ConfiguracoesForm({ loja }: { loja: LojaData }) {
   const [state, formAction] = useActionState<ConfiguracaoLojaState, FormData>(atualizarLoja, {})
-  const [cor, setCor] = useState(loja.corPrimaria)
   const [logoUrl, setLogoUrl] = useState(loja.logoUrl ?? "")
   const fe = state.fieldErrors ?? {}
 
@@ -220,70 +218,40 @@ export function ConfiguracoesForm({ loja }: { loja: LojaData }) {
         </div>
       </section>
 
-      {/* Identidade visual */}
+      {/* Logo URL — ainda usada na landing page e totem */}
       <section>
-        <h2 className="text-base font-semibold text-gray-900 mb-1">Identidade visual</h2>
+        <h2 className="text-base font-semibold text-gray-900 mb-1">Logo da loja</h2>
         <p className="text-sm text-gray-500 mb-4">
-          Aparece na landing page das suas chaves (/c/[codigo]).
+          Aparece na landing page das chaves e no totem de resgate.{" "}
+          <a href="/dashboard/layout" className="text-emerald-600 hover:underline">
+            Cores e imagens dos cards → Layout
+          </a>
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Cor primária */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Cor primária
-            </label>
-            <div className="flex items-center gap-3">
-              <input
-                type="color"
-                value={cor}
-                onChange={(e) => setCor(e.target.value)}
-                className="w-10 h-10 rounded-lg cursor-pointer border border-gray-200 p-0.5 flex-shrink-0"
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            URL do logo{" "}
+            <span className="text-gray-400 font-normal text-xs">(link de imagem)</span>
+          </label>
+          <div className="flex items-center gap-3">
+            <input
+              name="logoUrl"
+              type="url"
+              value={logoUrl}
+              onChange={(e) => setLogoUrl(e.target.value)}
+              placeholder="https://sualoja.com.br/logo.png"
+              className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+            {logoUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={logoUrl}
+                alt="Preview do logo"
+                className="w-10 h-10 rounded-xl object-cover border border-gray-200 flex-shrink-0"
+                onError={(e) => (e.currentTarget.style.display = "none")}
               />
-              <input
-                name="corPrimaria"
-                type="text"
-                value={cor}
-                onChange={(e) => setCor(e.target.value)}
-                placeholder="#10b981"
-                className="w-32 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-              <div
-                className="flex-1 h-10 rounded-xl border border-gray-100"
-                style={{ backgroundColor: cor }}
-              />
-            </div>
-            {fe.corPrimaria && (
-              <p className="text-red-500 text-xs mt-1">{fe.corPrimaria[0]}</p>
             )}
           </div>
-
-          {/* Logo URL */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              URL do logo{" "}
-              <span className="text-gray-400 font-normal text-xs">(link de imagem)</span>
-            </label>
-            <div className="flex items-center gap-3">
-              <input
-                name="logoUrl"
-                type="url"
-                value={logoUrl}
-                onChange={(e) => setLogoUrl(e.target.value)}
-                placeholder="https://sualoja.com.br/logo.png"
-                className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-              {logoUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={logoUrl}
-                  alt="Preview do logo"
-                  className="w-10 h-10 rounded-xl object-cover border border-gray-200 flex-shrink-0"
-                  onError={(e) => (e.currentTarget.style.display = "none")}
-                />
-              )}
-            </div>
-            {fe.logoUrl && <p className="text-red-500 text-xs mt-1">{fe.logoUrl[0]}</p>}
-          </div>
+          {fe.logoUrl && <p className="text-red-500 text-xs mt-1">{fe.logoUrl[0]}</p>}
         </div>
       </section>
 

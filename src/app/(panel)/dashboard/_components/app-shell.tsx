@@ -15,6 +15,7 @@ import {
   Building2,
   X,
   LogOut,
+  Layers,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { TopNavbar } from "./top-navbar"
@@ -25,6 +26,7 @@ const lojistaNav: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/dashboard/chaves",        label: "Chaves",        icon: Key },
   { href: "/dashboard/resgates",      label: "Resgates",      icon: ShoppingBag },
   { href: "/dashboard/relatorios",    label: "Relatórios",    icon: BarChart3 },
+  { href: "/dashboard/layout",        label: "Layout",        icon: Layers },
   { href: "/dashboard/configuracoes", label: "Configurações", icon: Settings },
 ]
 

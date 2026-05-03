@@ -31,7 +31,6 @@ export default async function ConfiguracoesPage() {
       cep: true,
       siteUrl: true,
       logoUrl: true,
-      corPrimaria: true,
       plano: true,
       status: true,
       criadoEm: true,

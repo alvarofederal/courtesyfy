@@ -21,6 +21,8 @@ interface Loja {
   nome: string
   logoUrl: string | null
   corPrimaria: string
+  imagemFundoUrl?: string | null
+  opacidadeFundo?: number
 }
 
 interface Props {
@@ -90,6 +92,24 @@ function CartaoCard({ chave, campanha, loja }: { chave: Chave; campanha: Campanh
         pageBreakInside: "avoid",
       }}
     >
+      {/* Background image */}
+      {loja.imagemFundoUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={loja.imagemFundoUrl}
+          alt=""
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            opacity: (loja.opacidadeFundo ?? 20) / 100,
+            pointerEvents: "none",
+          }}
+        />
+      )}
+
       {/* Left accent strip */}
       <div
         style={{
@@ -309,6 +329,24 @@ function MdfCard({ chave, campanha, loja }: { chave: Chave; campanha: Campanha; 
         boxSizing: "border-box",
       }}
     >
+      {/* Background image */}
+      {loja.imagemFundoUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={loja.imagemFundoUrl}
+          alt=""
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            opacity: (loja.opacidadeFundo ?? 20) / 100,
+            pointerEvents: "none",
+          }}
+        />
+      )}
+
       {/* Top accent bar */}
       <div
         style={{
