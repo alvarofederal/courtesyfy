@@ -90,8 +90,6 @@ export function CampanhaForm({ action, defaultValues = {}, isEditing = false }: 
 
   return (
     <form action={formAction} className="space-y-6">
-      {/* Fallback: garante que publicar sempre chega como "rascunho" se nenhum botão for clicado (ex: Enter) */}
-      <input type="hidden" name="publicar" value="rascunho" />
       {state.error && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm">
           {state.error}
