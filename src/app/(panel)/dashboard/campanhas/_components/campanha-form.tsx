@@ -20,6 +20,13 @@ function toDatetimeLocal(date: Date): string {
   return new Date(date.getTime() - offset).toISOString().slice(0, 16)
 }
 
+type LayoutOption = {
+  id: string
+  nome: string
+  corPrimaria: string
+  padrao: boolean
+}
+
 type DefaultValues = {
   nome?: string
   descricao?: string
@@ -30,6 +37,7 @@ type DefaultValues = {
   inicioEm?: Date
   expiraEm?: Date
   quantidadeChaves?: number
+  layoutId?: string
 }
 
 type Action = (prev: CampanhaFormState, formData: FormData) => Promise<CampanhaFormState>
@@ -38,6 +46,7 @@ interface Props {
   action: Action
   defaultValues?: DefaultValues
   isEditing?: boolean
+  layouts?: LayoutOption[]
 }
 
 function SubmitButtons({ isEditing }: { isEditing: boolean }) {
@@ -77,7 +86,7 @@ function SubmitButtons({ isEditing }: { isEditing: boolean }) {
   )
 }
 
-export function CampanhaForm({ action, defaultValues = {}, isEditing = false }: Props) {
+export function CampanhaForm({ action, defaultValues = {}, isEditing = false, layouts = [] }: Props) {
   const [state, formAction] = useActionState(action, {})
   const [tipoBeneficio, setTipoBeneficio] = useState<TipoBeneficio>(
     defaultValues.tipoBeneficio ?? "DESCONTO_PERCENTUAL",
@@ -256,6 +265,31 @@ export function CampanhaForm({ action, defaultValues = {}, isEditing = false }: 
           <p className="text-gray-400 text-xs mt-1">Geradas separadamente após criar</p>
         </div>
       </div>
+
+      {/* Layout de impressão */}
+      {layouts.length > 0 && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Layout de impressão{" "}
+            <span className="text-gray-400 font-normal">(opcional)</span>
+          </label>
+          <select
+            name="layoutId"
+            defaultValue={defaultValues.layoutId ?? ""}
+            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white"
+          >
+            <option value="">Usar layout padrão da loja</option>
+            {layouts.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.nome}{l.padrao ? " (padrão)" : ""}
+              </option>
+            ))}
+          </select>
+          <p className="text-gray-400 text-xs mt-1">
+            Define o visual dos cards impressos para esta campanha
+          </p>
+        </div>
+      )}
 
       {/* Botões */}
       <div className="pt-2 flex items-center justify-end">

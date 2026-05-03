@@ -32,6 +32,7 @@ const schema = z.object({
   inicioEm: z.string().min(1, "Data de início obrigatória"),
   expiraEm: z.string().min(1, "Data de expiração obrigatória"),
   quantidadeChaves: z.coerce.number().int().min(1).max(10000),
+  layoutId: nullableStr(),
 })
 
 export async function atualizarCampanha(
@@ -65,6 +66,7 @@ export async function atualizarCampanha(
     inicioEm: formData.get("inicioEm"),
     expiraEm: formData.get("expiraEm"),
     quantidadeChaves: formData.get("quantidadeChaves"),
+    layoutId: formData.get("layoutId"),
   })
 
   if (!result.success) {
@@ -94,6 +96,7 @@ export async function atualizarCampanha(
       inicioEm: inicio,
       expiraEm: expira,
       quantidadeChaves: data.quantidadeChaves,
+      layoutId: data.layoutId || null,
     },
   })
 

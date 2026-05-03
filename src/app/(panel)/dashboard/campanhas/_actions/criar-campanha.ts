@@ -36,6 +36,7 @@ const schema = z.object({
     .int()
     .min(1, "Mínimo 1 chave")
     .max(10000, "Máximo 10.000 chaves por campanha"),
+  layoutId: nullableStr(),
   publicar: z
     .string()
     .nullable()
@@ -76,6 +77,7 @@ export async function criarCampanha(
     inicioEm: formData.get("inicioEm"),
     expiraEm: formData.get("expiraEm"),
     quantidadeChaves: formData.get("quantidadeChaves"),
+    layoutId: formData.get("layoutId"),
     publicar: formData.get("publicar"),
   }
   console.log("[criarCampanha] formData:", JSON.stringify(rawData))
@@ -136,6 +138,7 @@ export async function criarCampanha(
     inicioEm: inicio,
     expiraEm: expira,
     quantidadeChaves: data.quantidadeChaves,
+    layoutId: data.layoutId || null,
     status: data.publicar === "ativa" ? ("ATIVA" as const) : ("RASCUNHO" as const),
   }
   console.log("[criarCampanha] tentando criar:", JSON.stringify({ ...insertData, inicioEm: inicio.toISOString(), expiraEm: expira.toISOString() }))
