@@ -37,13 +37,6 @@ export async function ativarChave(
     return { fieldErrors: { telefone: ["Informe telefone ou e-mail para ativar"] } }
   }
 
-  const chave = await db.chave.findUnique({
-    where: { codigo },
-    select: { id: true, status: true, campanhaId: true, lojaId: true, expiraEm: false as never },
-    // reselect with campanha expiraEm
-  })
-
-  // Re-fetch with campanha to check expiration
   const chaveCompleta = await db.chave.findUnique({
     where: { codigo },
     include: {
