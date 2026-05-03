@@ -507,28 +507,27 @@ export function PrintGrid({
         gridTemplateColumns: "repeat(2, 1fr)",
         gridTemplateRows: "repeat(5, 1fr)",
         gap: "5mm",
-        width: "190mm",
-        height: "277mm",
-        padding: 0,
       }
     : {
         display: "grid",
-        gridTemplateColumns: "repeat(2, 90mm)",
+        gridTemplateColumns: "repeat(2, 1fr)",
         gap: "5mm",
-        justifyContent: "center",
       }
 
-  const pageStyles = isCartao
-    ? `@page { size: A4 portrait; margin: 10mm; }`
-    : `@page { size: A4 portrait; margin: 15mm; }`
+  const pageMargin = isCartao ? "10mm" : "15mm"
 
   return (
     <>
       <style>{`
-        ${pageStyles}
+        @page { size: A4 portrait; margin: ${pageMargin}; }
         body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .no-print { display: none !important; }
-        @media print { .no-print { display: none !important; } }
+        @media print {
+          .no-print   { display: none !important; }
+          .screen-bg  { background: transparent !important; padding: 0 !important; min-height: 0 !important; }
+          .a4-sheet   { box-shadow: none !important; margin: 0 !important; padding: 0 !important;
+                        width: auto !important; min-height: 0 !important; }
+        }
       `}</style>
 
       {/* Toolbar */}
@@ -568,34 +567,24 @@ export function PrintGrid({
         </button>
       </div>
 
-      {/* Printable area */}
+      {/* Single render tree:
+          - screen: gray bg + A4 white card with shadow
+          - print:  .screen-bg and .a4-sheet classes strip decoration via @media print above */}
       <div
-        style={{
-          paddingTop: 64,
-          paddingBottom: 32,
-          background: "#f0f0f0",
-          minHeight: "100vh",
-        }}
-        className="print:p-0 print:bg-white print:min-h-0"
+        className="screen-bg"
+        style={{ paddingTop: 80, paddingBottom: 32, background: "#f0f0f0", minHeight: "100vh" }}
       >
-        {/* Screen preview wrapper — simulates A4 sheet */}
         <div
-          className="no-print mx-auto mb-6 bg-white shadow-2xl"
-          style={{ width: "210mm", minHeight: "297mm", padding: "10mm" }}
+          className="a4-sheet"
+          style={{
+            width: "210mm",
+            minHeight: "297mm",
+            padding: "10mm",
+            background: "#fff",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.18)",
+            margin: "0 auto 24px",
+          }}
         >
-          <div style={gridStyle}>
-            {chaves.map((chave) =>
-              isCartao ? (
-                <CartaoCard key={chave.codigo} chave={chave} campanha={campanha} loja={loja} />
-              ) : (
-                <MdfCard key={chave.codigo} chave={chave} campanha={campanha} loja={loja} />
-              ),
-            )}
-          </div>
-        </div>
-
-        {/* Print-only output — no wrapper div, cards render directly */}
-        <div className="hidden print:block">
           <div style={gridStyle}>
             {chaves.map((chave) =>
               isCartao ? (
