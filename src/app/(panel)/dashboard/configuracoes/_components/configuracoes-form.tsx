@@ -226,7 +226,7 @@ export function ConfiguracoesForm({ loja }: { loja: LojaData }) {
         <p className="text-sm text-gray-500 mb-4">
           Aparece na landing page das suas chaves (/c/[codigo]).
         </p>
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Cor primária */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -237,7 +237,7 @@ export function ConfiguracoesForm({ loja }: { loja: LojaData }) {
                 type="color"
                 value={cor}
                 onChange={(e) => setCor(e.target.value)}
-                className="w-10 h-10 rounded-lg cursor-pointer border border-gray-200 p-0.5"
+                className="w-10 h-10 rounded-lg cursor-pointer border border-gray-200 p-0.5 flex-shrink-0"
               />
               <input
                 name="corPrimaria"
@@ -248,7 +248,7 @@ export function ConfiguracoesForm({ loja }: { loja: LojaData }) {
                 className="w-32 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
               <div
-                className="flex-1 h-10 rounded-xl"
+                className="flex-1 h-10 rounded-xl border border-gray-100"
                 style={{ backgroundColor: cor }}
               />
             </div>
@@ -263,32 +263,32 @@ export function ConfiguracoesForm({ loja }: { loja: LojaData }) {
               URL do logo{" "}
               <span className="text-gray-400 font-normal text-xs">(link de imagem)</span>
             </label>
-            <input
-              name="logoUrl"
-              type="url"
-              value={logoUrl}
-              onChange={(e) => setLogoUrl(e.target.value)}
-              placeholder="https://sualoja.com.br/logo.png"
-              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-            {fe.logoUrl && <p className="text-red-500 text-xs mt-1">{fe.logoUrl[0]}</p>}
-            {logoUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={logoUrl}
-                alt="Preview do logo"
-                className="mt-2 h-12 w-12 rounded-xl object-cover border border-gray-200"
-                onError={(e) => (e.currentTarget.style.display = "none")}
+            <div className="flex items-center gap-3">
+              <input
+                name="logoUrl"
+                type="url"
+                value={logoUrl}
+                onChange={(e) => setLogoUrl(e.target.value)}
+                placeholder="https://sualoja.com.br/logo.png"
+                className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
-            )}
+              {logoUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={logoUrl}
+                  alt="Preview do logo"
+                  className="w-10 h-10 rounded-xl object-cover border border-gray-200 flex-shrink-0"
+                  onError={(e) => (e.currentTarget.style.display = "none")}
+                />
+              )}
+            </div>
+            {fe.logoUrl && <p className="text-red-500 text-xs mt-1">{fe.logoUrl[0]}</p>}
           </div>
         </div>
       </section>
 
       <div className="flex justify-end pt-2">
-        <div className="w-full sm:w-auto">
-          <SaveButton />
-        </div>
+        <SaveButton />
       </div>
     </form>
   )

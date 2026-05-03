@@ -65,7 +65,7 @@ export default async function CampanhaDetailPage({
     ativadas + resgatadas > 0 ? Math.round((resgatadas / (ativadas + resgatadas)) * 100) : 0
 
   return (
-    <div className="max-w-3xl">
+    <div className="w-full max-w-5xl">
       {/* Breadcrumb */}
       <Link
         href="/dashboard/campanhas"
@@ -79,7 +79,7 @@ export default async function CampanhaDetailPage({
       <div className="flex items-start justify-between gap-4 mb-6">
         <div className="min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <h1 className="text-2xl font-bold text-gray-900 truncate">{campanha.nome}</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{campanha.nome}</h1>
             <StatusBadge status={campanha.status} />
           </div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -107,7 +107,7 @@ export default async function CampanhaDetailPage({
       </div>
 
       {/* Stats de chaves */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           { label: "Geradas", value: geradas, color: "bg-gray-200" },
           { label: "Ativadas", value: ativadas, color: "bg-blue-400" },
@@ -125,7 +125,7 @@ export default async function CampanhaDetailPage({
       </div>
 
       {/* Métricas */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
+      <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-5 mb-6">
         <h2 className="font-semibold text-gray-900 mb-4">Métricas</h2>
         <div className="space-y-5">
           <div>
@@ -156,46 +156,10 @@ export default async function CampanhaDetailPage({
       </div>
 
       {/* Detalhes da campanha */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
+      <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-5 mb-6">
         <h2 className="font-semibold text-gray-900 mb-4">Detalhes</h2>
         <dl className="space-y-3">
-          {campanha.descricao && (
-            <div>
-              <dt className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">
-                Descrição
-              </dt>
-              <dd className="text-sm text-gray-700">{campanha.descricao}</dd>
-            </div>
-          )}
-          {campanha.valorBeneficio !== null && (
-            <div>
-              <dt className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">
-                Valor do benefício
-              </dt>
-              <dd className="text-sm text-gray-700">
-                {campanha.tipoBeneficio === "DESCONTO_PERCENTUAL"
-                  ? `${campanha.valorBeneficio}%`
-                  : `R$ ${Number(campanha.valorBeneficio).toFixed(2)}`}
-              </dd>
-            </div>
-          )}
-          {campanha.descricaoPremio && (
-            <div>
-              <dt className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">
-                Prêmio
-              </dt>
-              <dd className="text-sm text-gray-700">{campanha.descricaoPremio}</dd>
-            </div>
-          )}
-          {campanha.regrasUso && (
-            <div>
-              <dt className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">
-                Regras de uso
-              </dt>
-              <dd className="text-sm text-gray-700 whitespace-pre-line">{campanha.regrasUso}</dd>
-            </div>
-          )}
-          <div className="grid grid-cols-3 gap-4 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
               <dt className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5 flex items-center gap-1">
                 <Calendar className="w-3 h-3" /> Início
@@ -219,12 +183,48 @@ export default async function CampanhaDetailPage({
               <dd className="text-sm text-gray-700">{campanha._count.lotes}</dd>
             </div>
           </div>
+          {campanha.valorBeneficio !== null && (
+            <div>
+              <dt className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">
+                Valor do benefício
+              </dt>
+              <dd className="text-sm text-gray-700">
+                {campanha.tipoBeneficio === "DESCONTO_PERCENTUAL"
+                  ? `${campanha.valorBeneficio}%`
+                  : `R$ ${Number(campanha.valorBeneficio).toFixed(2)}`}
+              </dd>
+            </div>
+          )}
+          {campanha.descricaoPremio && (
+            <div>
+              <dt className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">
+                Prêmio
+              </dt>
+              <dd className="text-sm text-gray-700">{campanha.descricaoPremio}</dd>
+            </div>
+          )}
+          {campanha.descricao && (
+            <div>
+              <dt className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">
+                Descrição
+              </dt>
+              <dd className="text-sm text-gray-700">{campanha.descricao}</dd>
+            </div>
+          )}
+          {campanha.regrasUso && (
+            <div>
+              <dt className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">
+                Regras de uso
+              </dt>
+              <dd className="text-sm text-gray-700 whitespace-pre-line">{campanha.regrasUso}</dd>
+            </div>
+          )}
         </dl>
       </div>
 
       {/* Ação de gerar chaves */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-5">
-        <div className="flex items-center justify-between">
+      <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h2 className="font-semibold text-gray-900">Chaves</h2>
             <p className="text-sm text-gray-500 mt-0.5">
@@ -235,7 +235,7 @@ export default async function CampanhaDetailPage({
           </div>
           <Link
             href={`/dashboard/chaves?campanhaId=${id}`}
-            className="inline-flex items-center gap-2 bg-black hover:bg-gray-800 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
+            className="inline-flex items-center justify-center gap-2 bg-black hover:bg-gray-800 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors w-full sm:w-auto"
           >
             <Key className="w-4 h-4" />
             {totalGeradas === 0 ? "Gerar chaves" : "Ver chaves"}
