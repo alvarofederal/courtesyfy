@@ -17,24 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BaseMedical",
-  description: "Plataforma de Agendamentos OnLine",
-  robots: "index, follow, nocache",
-  openGraph: {
-    title: "BaseMedical",
-    description: "Plataforma de Agendamentos OnLine",
-    images: [
-      {
-        url: "http://localhost:3000/logo-odonto.png",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "BaseMedical",
-    description: "Plataforma de Agendamentos OnLine",
-    images: ["http://localhost:3000/logo-odonto.png"],
-  },
+  title: "Courtesyfy",
+  description: "Gestão de campanhas com chaves únicas",
 };
 
 export default function RootLayout({

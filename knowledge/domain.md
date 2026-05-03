@@ -1,86 +1,124 @@
-# Basemedical - Conhecimento de Domínio
+# Courtesyfy — Conhecimento de Domínio
 
 ## Vocabulário do Domínio
 
-### Entidades Principais
-
 | Termo no Sistema | Significado no Mundo Real |
 |-----------------|--------------------------|
-| `User` | Profissional de saúde cadastrado na plataforma |
-| `Profession` | Área de atuação (Medicina, Odontologia, Fisioterapia...) |
-| `Specialty` | Especialidade dentro da profissão (Cardiologia, Ortopedia...) |
-| `Specialist` | Especialista vinculado a um profissional (pode ser um assistente/sócio) |
-| `TypeService` | Tipo de atendimento (Consulta, Retorno, Avaliação...) |
-| `UserTypeService` | Relacionamento entre profissional e seus tipos de serviço com preços |
-| `AvailableSlot` | Bloco de disponibilidade do profissional (um dia ou período) |
-| `AvailableSlotTime` | Horário específico dentro de um bloco (ex: 09:00, 09:30) |
-| `Appointment` | Consulta agendada por um paciente |
-| `Review` | Avaliação deixada por um paciente |
-| `Waitlist` | Lista de espera de pacientes para profissional sem disponibilidade imediata |
-| `LandingPage` | Página personalizada do profissional acessível publicamente |
-| `Subscription` | Assinatura do plano (FREE/PROFESSIONAL/COURTESY) via Stripe ou admin |
-| `Courtesy` | Cortesia do plano Profissional concedida por admin a parceiros/divulgadores (com expiração) |
-| `Reminder` | Lembrete configurado pelo profissional |
-| `Notification` | Notificação interna do sistema para o profissional |
+| `Loja` | Empresa ou lojista que usa a plataforma para criar campanhas |
+| `Campanha` | Ação promocional com tipo de benefício, validade e quantidade de chaves |
+| `LoteChave` | Conjunto de chaves geradas de uma vez para uma campanha |
+| `Chave` | Código único (`XXXX-XXXX-XXXX-XXXX`) que dá direito a um benefício |
+| `QR Code` | Imagem vinculada à chave que aponta para `/c/[codigo]` |
+| `Landing page` | Página pública da chave — exibida ao cliente ao escanear o QR |
+| `Cliente` | Pessoa que recebeu e ativou uma chave (portador) |
+| `Ativação` | Momento em que o cliente vincula a chave ao seu tel/email |
+| `Resgate` | Momento em que o operador valida a chave e entrega o benefício |
+| `Operador` | Funcionário da loja que valida chaves no balcão |
+| `Benefício` | O que o cliente recebe: desconto, brinde, sorteio, etc. |
+| `Expiração` | Chave que passou da data de validade da campanha (automático) |
+| `LogEvento` | Registro imutável de cada ação relevante no sistema |
 
 ---
 
-## Fluxo de Agendamento
+## Estados da Chave e Transições
 
-### Perspectiva do Profissional
 ```
-1. Configurar TypeServices (tipos de atendimento e preços)
-2. Configurar UserAddress (endereços de atendimento)
-3. Criar AvailableSlot (dia disponível)
-   → Gera AvailableSlotTime (horários específicos)
-4. Gerenciar Appointments (confirmar, cancelar)
-5. Ver Reviews dos pacientes
-```
+         GERADA  ──► (cliente acessa landing) ──► CONSULTADA
+            │                                           │
+            │         (cliente informa tel/email)       │
+            └──────────────────────────────────►  ATIVADA
+                                                        │
+                                         (operador valida)
+                                                        │
+                                                   RESGATADA  ← IMUTÁVEL
 
-### Perspectiva do Paciente (sem login)
-```
-1. Buscar profissional em /buscar (por nome, profissão, localidade)
-2. Acessar perfil em /profissional/[id]
-3. Ver disponibilidade e serviços
-4. Escolher horário → Preencher dados → Confirmar agendamento
-5. Receber confirmação por email/WhatsApp
-6. Cancelar em /profissional/[id]/cancelar/[token]
-7. Confirmar em /profissional/[id]/confirmar/[token]
+Transições paralelas:
+  GERADA   ──► EXPIRADA   (quando expiraEm < hoje)
+  GERADA   ──► CANCELADA  (lojista cancela manualmente)
+  ATIVADA  ──► EXPIRADA   (quando expiraEm < hoje)
+  ATIVADA  ──► CANCELADA  (lojista cancela manualmente)
+
+RESGATADA e CANCELADA nunca transitam para outro estado.
 ```
 
 ---
 
-## Regras de Negócio
+## Fluxo Completo
 
-### Planos
-- **FREE:** Número limitado de serviços, endereços e funcionalidades
-- **PROFESSIONAL:** Acesso completo (pago via Stripe)
-- **COURTESY:** Acesso equivalente ao PROFESSIONAL concedido por admin a parceiros/divulgadores, com expiração
-- Trial disponível ao criar conta (definido em `src/utils/permissions/trial-limits.ts`)
-- Verificação de plano em toda ação que cria recurso: `canCreateService()`, `canAddAddress()`
-- Helper `isPremiumPlan(plan)` em `src/utils/permissions/isPremiumPlan.ts` → `true` para PROFESSIONAL ou COURTESY
+### Perspectiva do Lojista
+```
+1. Cadastra a loja e configura identidade visual
+2. Cria uma campanha com tipo de benefício e validade
+3. Gera lote de chaves com QR codes
+4. Exporta para impressão (A4, etiqueta, adesivo) ou digital (CSV, WhatsApp)
+5. Distribui as chaves aos clientes
+6. Acompanha métricas no dashboard
+```
 
-### Perfis de Acesso
-- `TypeProfile.TOTAL` → Perfil completo com todos os recursos
-- `TypeProfile.INFO` → Apenas informações, sem agendamento
-- `TypeProfile.WAITLIST` → Apenas lista de espera, sem agendamento
+### Perspectiva do Cliente
+```
+1. Recebe chave física (embalagem, cartão) ou digital (WhatsApp, email)
+2. Escaneia o QR code ou acessa /c/[codigo] manualmente
+3. Vê o benefício disponível, regras e validade
+4. Clica "Ativar minha chave" → informa telefone ou e-mail
+5. Chave fica vinculada ao seu identificador
+6. No momento do uso, apresenta a chave ao operador (QR ou código)
+```
 
-### Reviews
-- Criadas por pacientes após consulta
-- Status inicial: `PENDING` (aguarda moderação)
-- Profissional pode ver todas; público vê apenas `APPROVED`
-- Limite de likes por IP (anti-spam via `ReviewLike`)
+### Perspectiva do Operador
+```
+1. Acessa a tela de validação rápida (/chaves/validar)
+2. Digita o código ou escaneia o QR da chave do cliente
+3. Sistema exibe: benefício, portador, validade, status
+4. Operador confirma a entrega do benefício
+5. Sistema registra o resgate e bloqueia reutilização
+```
 
-### Disponibilidade
-- Profissional define blocos de horário (`AvailableSlot`)
-- Sistema gera slots individuais (`AvailableSlotTime`)
-- Status: `AVAILABLE` → `BOOKED` (quando agendado) → `CANCELLED`
+### Perspectiva do Sistema
+```
+1. Verifica existência e unicidade da chave
+2. Valida status: gerada, ativada, resgatada, expirada ou cancelada
+3. Se cliente não existe, cria registro básico na ativação
+4. No resgate, registra data, hora, operador, IP e resultado
+5. Impede reutilização de chaves já resgatadas
+6. Registra LogEvento em toda ação relevante
+7. Job de cron expira chaves automaticamente após a validade
+```
 
-### Autenticação
-- Email deve ser verificado antes de acessar o dashboard
-- Onboarding obrigatório na primeira entrada (selecionar tipo de perfil)
-- OAuth (Google/GitHub) cria usuário automaticamente
-- Login tradicional requer senha bcrypt
+---
+
+## Regras de Negócio Críticas
+
+1. **Toda chave é única no banco** — gerada com entropia segura, sem chars ambíguos (O, 0, I, 1, S, 5)
+2. **Toda chave pertence a uma única campanha** — não pode ser reatribuída
+3. **Uma chave só pode ser vinculada a um único cliente** — no momento da ativação
+4. **Uma chave RESGATADA nunca muda de estado** — imutável
+5. **O QR code aponta para `/c/[codigo]`** — URL pública, não o painel
+6. **Ações relevantes geram LogEvento** — auditoria completa
+7. **Chaves expiram automaticamente** — via cron job comparando `expiraEm` da campanha
+
+---
+
+## Planos da Loja
+
+| Plano | Funcionalidades |
+|-------|----------------|
+| **ESSENCIAL** | Campanhas básicas, limite de chaves/mês, exportação A4 |
+| **PROFISSIONAL** | Campanhas ilimitadas, landing page personalizada, todos os formatos de exportação |
+| **EMPRESARIAL** | White-label, multi-unidade, API de integração, domínio customizado |
+
+---
+
+## Hierarquia de Usuários
+
+```
+Super Admin da Plataforma (acesso total via /admin)
+    └── Admin da Loja (gerencia campanhas, usuários, configurações)
+        └── Operador (valida chaves no balcão)
+            └── Visualizador (apenas leitura de métricas)
+
+Cliente / Portador (sem login — acessa /c/[codigo])
+```
 
 ---
 
@@ -88,54 +126,22 @@
 
 - **Idioma:** Português Brasileiro (pt-BR)
 - **Moeda:** Real (BRL)
-- **Fuso horário:** A definir (importante para agendamentos)
 - **Formatação de datas:** `date-fns` com locale `pt-BR`
-- **Formatação de moeda:** `src/utils/formatCurrency.ts`
-- **Formatação de telefone:** `src/utils/formatPhone.ts` (padrão brasileiro)
+- **Telefone:** formato brasileiro `(XX) XXXXX-XXXX`
 
 ---
 
-## Hierarquia de Usuários
+## Terminologia em Português (UI)
 
-```
-SuperAdmin (acesso total via /admin)
-    └── Admin (acesso ao painel /administration)
-        └── Professional (acesso ao /dashboard)
-            └── Patient (sem login, acessa /profissional/[id])
-```
-
----
-
-## Conceitos Técnicos do Domínio
-
-### Slug do Profissional
-- URL amigável gerada automaticamente: `dr-joao-silva-cardiologista`
-- Função: `src/utils/slug/generateSlug.ts`
-- Usado em: `/profissional/[slug]`
-
-### Registro Profissional (CRM/CRO)
-- Campo `crm` no `User` model
-- Identifica o profissional pela entidade reguladora
-- Médicos: CRM | Dentistas: CRO | Fisios: CREFITO
-
-### Endereços Múltiplos
-- Profissional pode atender em múltiplos locais (`UserAddress`)
-- Cada endereço pode ter horários específicos
-- Limitado por plano (FREE tem menos endereços)
+- `campanha` (não "campaign")
+- `chave` (não "key" ou "code")
+- `resgate` (não "redemption")
+- `portador` (não "holder")
+- `lojista` (não "merchant")
+- `lote` (não "batch")
+- `benefício` (não "benefit")
+- `validade` (não "expiration")
 
 ---
 
-## Terminologia em Português
-
-Quando comunicar com o usuário e nomear variáveis UI:
-- `profissional` (não "professional")
-- `agendamento` ou `consulta` (não "appointment")
-- `avaliação` (não "review")
-- `plano` (não "plan")
-- `assinatura` (não "subscription")
-- `disponibilidade` (não "availability")
-- `lista de espera` (não "waitlist")
-
----
-
-*Atualizado em: 2026-03-10*
+*Criado em: 2026-05-02 | Baseado na especificação técnica do Courtesyfy*

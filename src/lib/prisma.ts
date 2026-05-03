@@ -1,18 +1,14 @@
-import { PrismaClient } from '@/generated/prisma'; // Fix: Path correto
+import { PrismaClient } from "@/generated/prisma"
 
-let prisma: PrismaClient;
+const globalForPrisma = global as typeof globalThis & { prisma: PrismaClient }
 
-if (process.env.NODE_ENV === 'production') {
-  prisma = new PrismaClient();
-}  else {
-  let globalWithPrisma = global as typeof globalThis & {
-    prisma: PrismaClient;
-  }
+const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+  })
 
-  if (!globalWithPrisma.prisma) {
-    globalWithPrisma.prisma = new PrismaClient();
-  }
-  prisma = globalWithPrisma.prisma;
-}
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma
 
-export default prisma;
+export default prisma
+export { prisma as db }

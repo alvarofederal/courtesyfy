@@ -1,0 +1,185 @@
+import { notFound, redirect } from "next/navigation"
+import Link from "next/link"
+import { auth } from "@/lib/auth"
+import { db } from "@/lib/prisma"
+import { ChevronLeft, Key, Calendar, Hash } from "lucide-react"
+import { QrGrid } from "./_components/qr-grid"
+import { ExportarCsv } from "./_components/exportar-csv"
+import { CancelarLoteBtn } from "./_components/cancelar-lote-btn"
+
+const PAGE_SIZE = 100
+
+type SearchParams = { page?: string }
+
+export default async function LoteDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ loteId: string }>
+  searchParams: Promise<SearchParams>
+}) {
+  const session = await auth()
+  if (!session?.user?.lojaId) redirect("/login")
+
+  const { loteId } = await params
+  const sp = await searchParams
+  const page = Math.max(1, parseInt(sp.page ?? "1", 10))
+
+  const lote = await db.loteChave.findUnique({
+    where: { id: loteId },
+    include: {
+      campanha: { select: { id: true, nome: true, status: true } },
+      geradoPor: { select: { name: true } },
+    },
+  })
+
+  if (!lote || lote.lojaId !== session.user.lojaId) notFound()
+
+  const totalChaves = await db.chave.count({ where: { loteId } })
+  const totalPages = Math.ceil(totalChaves / PAGE_SIZE)
+
+  const chaves = await db.chave.findMany({
+    where: { loteId },
+    orderBy: { criadoEm: "asc" },
+    skip: (page - 1) * PAGE_SIZE,
+    take: PAGE_SIZE,
+    select: {
+      id: true,
+      codigo: true,
+      status: true,
+      landingUrl: true,
+    },
+  })
+
+  // stats do lote inteiro
+  const statsRaw = await db.chave.groupBy({
+    by: ["status"],
+    where: { loteId },
+    _count: true,
+  })
+  const stats: Record<string, number> = {}
+  for (const s of statsRaw) stats[s.status] = s._count
+
+  const nomeLote = lote.descricao ?? `Lote de ${totalChaves} chaves`
+
+  return (
+    <div>
+      {/* Breadcrumb */}
+      <Link
+        href={`/dashboard/chaves?campanhaId=${lote.campanhaId}`}
+        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors"
+      >
+        <ChevronLeft className="w-4 h-4" />
+        Chaves — {lote.campanha.nome}
+      </Link>
+
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{nomeLote}</h1>
+          <p className="text-gray-500 text-sm mt-0.5">
+            Campanha:{" "}
+            <Link
+              href={`/dashboard/campanhas/${lote.campanha.id}`}
+              className="text-emerald-600 hover:underline"
+            >
+              {lote.campanha.nome}
+            </Link>
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <ExportarCsv chaves={chaves} nomeLote={nomeLote} />
+          <CancelarLoteBtn loteId={loteId} />
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        {[
+          { label: "Total",      value: totalChaves,          color: "text-gray-900" },
+          { label: "Disponíveis", value: stats.GERADA ?? 0,   color: "text-gray-600" },
+          { label: "Ativadas",   value: stats.ATIVADA ?? 0,   color: "text-amber-600" },
+          { label: "Resgatadas", value: stats.RESGATADA ?? 0, color: "text-emerald-600" },
+        ].map((s) => (
+          <div
+            key={s.label}
+            className="bg-white rounded-2xl border border-gray-100 p-4 text-center"
+          >
+            <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Meta do lote */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
+        <div className="flex flex-wrap gap-6 text-sm">
+          <div className="flex items-center gap-2 text-gray-500">
+            <Calendar className="w-4 h-4" />
+            Gerado em {new Date(lote.criadoEm).toLocaleString("pt-BR")}
+          </div>
+          {lote.geradoPor && (
+            <div className="flex items-center gap-2 text-gray-500">
+              <Hash className="w-4 h-4" />
+              Por {lote.geradoPor.name}
+            </div>
+          )}
+          <div className="flex items-center gap-2 text-gray-500">
+            <Key className="w-4 h-4" />
+            {totalChaves} chaves
+          </div>
+        </div>
+      </div>
+
+      {/* Grid de chaves / QR codes */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-semibold text-gray-900">
+            Chaves{totalPages > 1 ? ` — página ${page} de ${totalPages}` : ""}
+          </h2>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1 text-sm">
+              {page > 1 && (
+                <Link
+                  href={`/dashboard/chaves/lote/${loteId}?page=${page - 1}`}
+                  className="px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600 transition-colors"
+                >
+                  ← Anterior
+                </Link>
+              )}
+              {page < totalPages && (
+                <Link
+                  href={`/dashboard/chaves/lote/${loteId}?page=${page + 1}`}
+                  className="px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600 transition-colors"
+                >
+                  Próxima →
+                </Link>
+              )}
+            </div>
+          )}
+        </div>
+
+        <QrGrid chaves={chaves} />
+
+        {/* Paginação inferior */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-6">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <Link
+                key={p}
+                href={`/dashboard/chaves/lote/${loteId}?page=${p}`}
+                className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${
+                  p === page
+                    ? "bg-black text-white"
+                    : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                {p}
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

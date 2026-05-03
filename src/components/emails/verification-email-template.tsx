@@ -29,17 +29,17 @@ export const VerificationEmailTemplate = ({
   return (
     <Html>
       <Head />
-      <Preview>Seu código de verificação BaseMedical: {code}</Preview>
+      <Preview>Seu código de verificação Courtesyfy: {code}</Preview>
       <Body style={main}>
         <Container style={container}>
           {/* Header com gradiente */}
           <Section style={header}>
-            <Heading style={headerTitle}>🏥 BaseMedical</Heading>
+            <Heading style={headerTitle}>🏥 Courtesyfy</Heading>
           </Section>
 
           {/* Conteúdo */}
           <Section style={content}>
-            <Heading style={title}>Bem-vindo ao BaseMedical!</Heading>
+            <Heading style={title}>Bem-vindo ao Courtesyfy!</Heading>
             
             <Text style={paragraph}>
               Obrigado por se cadastrar. Para ativar sua conta, use o código de verificação abaixo:
@@ -66,7 +66,7 @@ export const VerificationEmailTemplate = ({
           {/* Footer */}
           <Section style={footer}>
             <Text style={footerText}>
-              © {new Date().getFullYear()} BaseMedical. Todos os direitos reservados.
+              © {new Date().getFullYear()} Courtesyfy. Todos os direitos reservados.
             </Text>
           </Section>
         </Container>

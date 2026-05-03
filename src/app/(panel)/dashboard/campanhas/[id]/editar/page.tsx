@@ -1,0 +1,82 @@
+import { notFound, redirect } from "next/navigation"
+import Link from "next/link"
+import { auth } from "@/lib/auth"
+import { db } from "@/lib/prisma"
+import { ChevronLeft } from "lucide-react"
+import { CampanhaForm } from "../../_components/campanha-form"
+import { atualizarCampanha } from "../../_actions/atualizar-campanha"
+
+export default async function EditarCampanhaPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const session = await auth()
+  if (!session?.user?.lojaId) redirect("/login")
+
+  const { id } = await params
+
+  const campanha = await db.campanha.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      lojaId: true,
+      nome: true,
+      descricao: true,
+      tipoBeneficio: true,
+      valorBeneficio: true,
+      descricaoPremio: true,
+      regrasUso: true,
+      inicioEm: true,
+      expiraEm: true,
+      quantidadeChaves: true,
+      status: true,
+    },
+  })
+
+  if (!campanha || campanha.lojaId !== session.user.lojaId) notFound()
+
+  if (campanha.status === "ENCERRADA" || campanha.status === "CANCELADA") {
+    redirect(`/dashboard/campanhas/${id}`)
+  }
+
+  const action = atualizarCampanha.bind(null, id)
+
+  return (
+    <div className="max-w-2xl">
+      {/* Breadcrumb */}
+      <Link
+        href={`/dashboard/campanhas/${id}`}
+        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors"
+      >
+        <ChevronLeft className="w-4 h-4" />
+        {campanha.nome}
+      </Link>
+
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-900">Editar campanha</h1>
+        <p className="text-gray-500 text-sm mt-0.5">Altere os detalhes desta campanha</p>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+        <CampanhaForm
+          action={action}
+          isEditing
+          defaultValues={{
+            nome: campanha.nome,
+            descricao: campanha.descricao ?? undefined,
+            tipoBeneficio: campanha.tipoBeneficio as never,
+            valorBeneficio: campanha.valorBeneficio
+              ? String(campanha.valorBeneficio)
+              : undefined,
+            descricaoPremio: campanha.descricaoPremio ?? undefined,
+            regrasUso: campanha.regrasUso ?? undefined,
+            inicioEm: campanha.inicioEm,
+            expiraEm: campanha.expiraEm,
+            quantidadeChaves: campanha.quantidadeChaves,
+          }}
+        />
+      </div>
+    </div>
+  )
+}

@@ -1,94 +1,90 @@
-# Basemedical - Roadmap do Produto
+# Courtesyfy — Roadmap do Produto
 
 ## Visão de Longo Prazo
 
-Tornar o Basemedical a principal plataforma de gestão de agenda para profissionais de saúde autônomos no Brasil, com presença digital completa e automações inteligentes.
+Tornar o Courtesyfy a plataforma de referência para gestão de campanhas promocionais com chaves únicas no Brasil — do pequeno lojista ao grande varejista com múltiplas unidades.
 
 ---
 
-## Status Atual (v1.0.2 - Março 2026)
+## MVP (v1.0.0 — Em desenvolvimento, maio 2026)
 
-### Funcionalidades Implementadas ✅
+### P0 — Essenciais para o MVP
 
-**Core:**
-- [x] Autenticação (email, Google, GitHub)
+**Infraestrutura:**
+- [x] Autenticação (email, Google, GitHub) — herdado do Basemedical
 - [x] Verificação de email
-- [x] Onboarding de novos profissionais
-- [x] Perfil completo do profissional
-- [x] Sistema de agendamento
-- [x] Disponibilidade e slots de horário
-- [x] Tipos de serviço/atendimento
-- [x] Múltiplos endereços por profissional
+- [ ] Limpar código do domínio médico (Basemedical)
+- [ ] Novo schema Prisma para o domínio Courtesyfy
 
-**Planos e Assinaturas:**
-- [x] Integração Stripe (FREE + PROFESSIONAL)
-- [x] Controle de permissões por plano
-- [x] Trial period
+**Loja:**
+- [ ] Cadastro de loja com dados básicos e logo
+- [ ] Cadastro de usuários operadores da loja
+- [ ] Configuração de identidade visual (cor primária, logo)
 
-**Presença Online:**
-- [x] Página pública do profissional (`/profissional/[id]`)
-- [x] Editor de landing page customizável
-- [x] Sistema de busca de profissionais
-- [x] Waitlist para profissionais
+**Campanhas:**
+- [ ] Criação de campanha (nome, tipo de benefício, validade, quantidade de chaves)
+- [ ] Tipos: desconto percentual, desconto fixo, brinde, sorteio, frete grátis, cashback
+- [ ] Listagem e gestão de campanhas
 
-**Avaliações:**
-- [x] Sistema de reviews com moderação
-- [x] Likes em reviews
-- [x] Star rating
+**Chaves:**
+- [ ] Geração de lote de chaves únicas (formato `XXXX-XXXX-XXXX-XXXX`)
+- [ ] Geração de QR Code por chave apontando para `/c/[codigo]`
+- [ ] Exportação para impressão em A4
+- [ ] Exportação CSV com chaves e URLs
 
-**Comunicação:**
-- [x] Email transacional (Resend)
-- [x] SMS via Twilio
-- [x] WhatsApp via Twilio
-- [x] Sistema de notificações internas
+**Landing page pública:**
+- [ ] Página `/c/[codigo]` com identidade visual da loja
+- [ ] Exibição do benefício, regras e validade
+- [ ] Formulário de ativação (coleta tel/email do cliente)
 
-**Relatórios:**
-- [x] Tela de relatórios com Recharts
-- [ ] Filtros por data (Em andamento - ver TODO.md)
-- [ ] Export CSV (Em andamento)
+**Validação e Resgate:**
+- [ ] Tela de validação rápida para operador (digitar ou escanear QR)
+- [ ] Ciclo completo: GERADA → ATIVADA → RESGATADA
+- [ ] Histórico de resgates com data, hora e operador
 
-**Administrativo:**
-- [x] Painel admin
-- [x] Gestão de usuários (admin)
-- [x] Gestão de profissões
-- [x] Gestão de especialidades
-- [x] Métricas do sistema
+**Sistema:**
+- [ ] Transições de status da chave
+- [ ] Logs de eventos em todas as ações relevantes
+- [ ] API pública `/api/chaves/validar` para QR externos
 
 ---
 
-## Fase 2 - Q2 2026 (Planejado)
+## P1 — Logo após o MVP (Q3 2026)
 
-### Alta Prioridade
-- [ ] **Relatórios completos** - Filtros, gráficos e exportação CSV (em andamento)
-- [ ] **Notificações push** - Web push notifications
-- [ ] **Lembretes automáticos** - Lembrete 24h antes de consulta
-- [ ] **Cancelamento com motivo** - Fluxo de cancelamento melhorado
-
-### Média Prioridade
-- [ ] **Multi-profissional** - Clínicas com múltiplos profissionais
-- [ ] **Pagamento online** - Cobrar consultas pelo app
-- [ ] **Prontuário simplificado** - Histórico de pacientes
+- [ ] Dashboard com métricas por campanha (taxa de ativação, conversão)
+- [ ] Filtros por status, campanha, período e lote
+- [ ] Cancelamento manual de chaves pelo lojista
+- [ ] Expiração automática via cron job (`/api/cron/expirar-chaves`)
+- [ ] Landing page personalizada com logo e cores da loja
+- [ ] Layouts de impressão para adesivo, cartão e etiqueta
+- [ ] Importação e exportação CSV de lotes de chaves
+- [ ] Painel super admin da plataforma
 
 ---
 
-## Fase 3 - Q3-Q4 2026 (Backlog)
+## P2 — Expansão comercial (Q4 2026+)
 
-- [ ] App mobile (React Native)
-- [ ] Telemedicina (videochamada integrada)
-- [ ] Integração com planos de saúde
-- [ ] API pública para integrações
-- [ ] IA para sugestão de horários
+- [ ] White-label por loja (domínio customizado)
+- [ ] Múltiplos benefícios por campanha
+- [ ] API para integração com ecommerce e PDV
+- [ ] Sorteio automatizado no fechamento do período
+- [ ] Área do cliente com histórico de chaves
+- [ ] Regras avançadas (produto, categoria, valor mínimo, período)
+- [ ] Multi-unidade e franquias
+- [ ] Cobrança recorrente por plano (Stripe)
+- [ ] App mobile para operadores
 
 ---
 
 ## KPIs a Monitorar
 
-- Número de profissionais cadastrados
-- Taxa de conversão FREE → PROFESSIONAL
-- Número de agendamentos por mês
-- Churn rate de assinaturas
-- NPS dos profissionais
+- Número de lojas cadastradas
+- Campanhas ativas no período
+- Taxa de ativação: chaves ativadas / geradas
+- Taxa de conversão: chaves resgatadas / ativadas
+- Churn de assinaturas
+- NPS dos lojistas
 
 ---
 
-*Atualizado em: 2026-03-10*
+*Criado em: 2026-05-02 | Migrado de Basemedical para Courtesyfy*

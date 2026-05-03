@@ -1,4 +1,4 @@
-# Basemedical - Guia para Claude Code
+# Courtesyfy — Guia para Claude Code
 
 > Este arquivo é carregado automaticamente pelo Claude Code em toda sessão.
 > Leia-o completamente antes de fazer qualquer alteração no projeto.
@@ -7,9 +7,10 @@
 
 ## O que é este projeto?
 
-**Basemedical** é um SaaS B2B de agendamento para profissionais de saúde no Brasil.
-Stack: Next.js 16 (App Router) + TypeScript + MySQL (Prisma) + Stripe + Vercel.
-**Versão atual:** 1.0.2 | **Branch ativo:** develop
+**Courtesyfy** é um SaaS B2B para gestão de campanhas promocionais com chaves únicas (cortesias).
+Lojistas criam campanhas, geram chaves com QR Code, distribuem para clientes e validam resgates.
+Stack: Next.js 15 (App Router) + TypeScript + MySQL (Prisma) + Stripe + Vercel.
+**Versão atual:** 1.0.0-mvp | **Branch ativo:** develop
 
 ---
 
@@ -19,30 +20,32 @@ Consulte estes arquivos para entender o projeto em profundidade:
 
 | Arquivo | Quando ler |
 |---------|-----------|
-| `context/system.md` | Visão geral, stack, planos, infraestrutura |
-| `context/architecture.md` | Estrutura de pastas, padrões, integrações |
+| `context/system.md` | Visão geral, atores, stack, planos, integrações |
+| `context/architecture.md` | Estrutura de pastas, padrões de código |
 | `context/rules.md` | Convenções, checklist, o que nunca fazer |
-| `planning/roadmap.md` | O que já foi feito e o que está planejado |
+| `planning/roadmap.md` | MVP, P0, P1, P2 — o que foi feito e o que está planejado |
 | `planning/backlog.md` | Funcionalidades priorizadas |
 | `planning/releases.md` | Histórico de versões |
 | `development/features.md` | Features em andamento agora |
 | `development/bugs.md` | Bugs conhecidos |
 | `development/improvements.md` | Melhorias técnicas planejadas |
-| `knowledge/database.md` | Schema, queries comuns, cuidados com banco |
+| `knowledge/database.md` | Schema Prisma completo, enums, queries comuns |
 | `knowledge/api.md` | Endpoints, padrões de Server Actions |
-| `knowledge/domain.md` | Vocabulário, regras de negócio, fluxos |
+| `knowledge/domain.md` | Vocabulário, regras de negócio, fluxos, estados da chave |
 
 ---
 
 ## Regras Críticas - NUNCA ignore
 
-1. **Não alterar schema Prisma** sem confirmar com o usuário — `db push --accept-data-loss` pode apagar dados em produção
+1. **Não alterar schema Prisma** sem confirmar com o usuário — `db push --accept-data-loss` pode apagar dados
 2. **Não mudar sistema de autenticação** (NextAuth) sem discussão
 3. **Não mexer em lógica de cobrança/Stripe** sem entender o impacto
 4. **Sempre usar** `import { db } from "@/lib/prisma"` para Prisma
 5. **Sempre usar** `import { auth } from "@/lib/auth"` para sessão
 6. **Sempre validar** inputs com Zod nas Server Actions e API Routes
-7. **Sempre verificar permissões** por plano antes de criar recursos
+7. **Sempre verificar permissões** por plano da loja antes de criar recursos
+8. **Chave resgatada é imutável** — nunca alterar status de RESGATADA para outro
+9. **Código da chave é único global** — sempre verificar duplicata antes de persistir
 
 ---
 
@@ -53,7 +56,7 @@ Consulte estes arquivos para entender o projeto em profundidade:
 "use server"
 const session = await auth()
 if (!session?.user) return { error: "Não autorizado" }
-// valida com Zod → executa → revalidatePath
+// valida com Zod → verifica permissão de plano → executa → revalidatePath
 ```
 
 ### Componente com dados
@@ -93,9 +96,10 @@ npm run build  # Verifica antes de enviar
 
 Ver `development/features.md` para o status atual.
 
-**Resumo rápido (atualizado 2026-04-22):**
-- Sistema de Cortesias (plano COURTESY) implementado — admin concede via `/admin/courtesies`
-- Relatórios dinâmicos com filtros e export CSV em `/dashboard/reports/` (em andamento)
+**Resumo rápido (atualizado 2026-05-02):**
+- Projeto em transição de Basemedical → Courtesyfy
+- Limpeza de tudo que é domínio médico (manter apenas auth)
+- Início do desenvolvimento do sistema de cortesias do zero
 
 ---
 
@@ -106,8 +110,6 @@ Em uma nova sessão, para carregar todo o contexto do projeto, rode:
 ```
 /iniciar-contexto
 ```
-
-Esse slash command (`.claude/commands/iniciar-contexto.md`) lê em paralelo todos os `.md` de `context/`, `planning/`, `development/`, `knowledge/` e me retorna um resumo curto do estado atual antes de eu começar a trabalhar.
 
 ---
 
@@ -123,4 +125,4 @@ Quando houver mudanças significativas, atualize os arquivos relevantes:
 
 ---
 
-*Criado em: 2026-03-10 | Atualizar quando houver mudanças relevantes*
+*Criado em: 2026-05-02 | Migrado de Basemedical para Courtesyfy*
