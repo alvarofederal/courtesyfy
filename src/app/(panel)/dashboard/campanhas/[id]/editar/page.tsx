@@ -43,7 +43,7 @@ export default async function EditarCampanhaPage({
   const action = atualizarCampanha.bind(null, id)
 
   return (
-    <div className="max-w-2xl">
+    <div className="w-full max-w-4xl">
       {/* Breadcrumb */}
       <Link
         href={`/dashboard/campanhas/${id}`}
@@ -54,11 +54,11 @@ export default async function EditarCampanhaPage({
       </Link>
 
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Editar campanha</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Editar campanha</h1>
         <p className="text-gray-500 text-sm mt-0.5">Altere os detalhes desta campanha</p>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+      <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6">
         <CampanhaForm
           action={action}
           isEditing
