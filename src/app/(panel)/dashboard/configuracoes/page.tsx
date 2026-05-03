@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/prisma"
 import { ConfiguracoesForm } from "./_components/configuracoes-form"
+import { TotemLinkCard } from "./_components/totem-link-card"
 
 const PLANO_LABELS = {
   ESSENCIAL:     { label: "Essencial",     className: "bg-gray-100 text-gray-600" },
@@ -60,6 +61,9 @@ export default async function ConfiguracoesPage() {
           {planoCfg.label}
         </span>
       </div>
+
+      {/* Link do Totem */}
+      <TotemLinkCard lojaId={session.user.lojaId!} />
 
       <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6">
         <ConfiguracoesForm loja={loja} />
