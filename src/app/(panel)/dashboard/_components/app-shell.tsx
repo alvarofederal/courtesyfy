@@ -13,11 +13,12 @@ import {
   Settings,
   Users,
   Building2,
-  Menu,
   X,
   LogOut,
+  Layers,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
+import { TopNavbar } from "./top-navbar"
 
 const lojistaNav: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/dashboard",               label: "Visão Geral",   icon: LayoutDashboard },
@@ -25,6 +26,7 @@ const lojistaNav: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/dashboard/chaves",        label: "Chaves",        icon: Key },
   { href: "/dashboard/resgates",      label: "Resgates",      icon: ShoppingBag },
   { href: "/dashboard/relatorios",    label: "Relatórios",    icon: BarChart3 },
+  { href: "/dashboard/layout",        label: "Layout",        icon: Layers },
   { href: "/dashboard/configuracoes", label: "Configurações", icon: Settings },
 ]
 
@@ -211,22 +213,12 @@ export function AppShell({ role, userName, userEmail, children }: AppShellProps)
 
       {/* ─── Content area ─── */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Mobile top bar */}
-        <header className="lg:hidden flex items-center gap-3 px-4 h-14 bg-white border-b border-gray-200 flex-shrink-0 z-30">
-          <button
-            onClick={() => setOpen(true)}
-            className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-            aria-label="Abrir menu"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-emerald-500 rounded-md flex items-center justify-center flex-shrink-0">
-              <Key className="w-3 h-3 text-white" strokeWidth={2.5} />
-            </div>
-            <span className="font-bold text-sm text-gray-900">Courtesyfy</span>
-          </Link>
-        </header>
+        <TopNavbar
+          userName={userName}
+          userEmail={userEmail}
+          role={role}
+          onMenuClick={() => setOpen(true)}
+        />
 
         {/* Main scrollable content */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">

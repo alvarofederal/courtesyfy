@@ -16,23 +16,31 @@ export default async function EditarCampanhaPage({
 
   const { id } = await params
 
-  const campanha = await db.campanha.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      lojaId: true,
-      nome: true,
-      descricao: true,
-      tipoBeneficio: true,
-      valorBeneficio: true,
-      descricaoPremio: true,
-      regrasUso: true,
-      inicioEm: true,
-      expiraEm: true,
-      quantidadeChaves: true,
-      status: true,
-    },
-  })
+  const [campanha, layouts] = await Promise.all([
+    db.campanha.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        lojaId: true,
+        nome: true,
+        descricao: true,
+        tipoBeneficio: true,
+        valorBeneficio: true,
+        descricaoPremio: true,
+        regrasUso: true,
+        inicioEm: true,
+        expiraEm: true,
+        quantidadeChaves: true,
+        layoutId: true,
+        status: true,
+      },
+    }),
+    db.layout.findMany({
+      where: { lojaId: session.user.lojaId! },
+      select: { id: true, nome: true, corPrimaria: true, padrao: true },
+      orderBy: [{ padrao: "desc" }, { nome: "asc" }],
+    }),
+  ])
 
   if (!campanha || campanha.lojaId !== session.user.lojaId) notFound()
 
@@ -43,7 +51,7 @@ export default async function EditarCampanhaPage({
   const action = atualizarCampanha.bind(null, id)
 
   return (
-    <div className="max-w-2xl">
+    <div className="w-full">
       {/* Breadcrumb */}
       <Link
         href={`/dashboard/campanhas/${id}`}
@@ -54,14 +62,15 @@ export default async function EditarCampanhaPage({
       </Link>
 
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Editar campanha</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Editar campanha</h1>
         <p className="text-gray-500 text-sm mt-0.5">Altere os detalhes desta campanha</p>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+      <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6">
         <CampanhaForm
           action={action}
           isEditing
+          layouts={layouts}
           defaultValues={{
             nome: campanha.nome,
             descricao: campanha.descricao ?? undefined,
@@ -74,6 +83,7 @@ export default async function EditarCampanhaPage({
             inicioEm: campanha.inicioEm,
             expiraEm: campanha.expiraEm,
             quantidadeChaves: campanha.quantidadeChaves,
+            layoutId: campanha.layoutId ?? undefined,
           }}
         />
       </div>

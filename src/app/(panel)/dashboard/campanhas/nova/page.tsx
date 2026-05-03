@@ -10,19 +10,25 @@ export default async function NovaCampanhaPage() {
   const session = await auth()
   if (!session?.user?.lojaId) redirect("/login")
 
-  const loja = await db.loja.findUnique({
-    where: { id: session.user.lojaId! },
-    select: { plano: true },
-  })
-
-  const totalCampanhas = await db.campanha.count({
-    where: { lojaId: session.user.lojaId!, status: { not: "CANCELADA" } },
-  })
+  const [loja, totalCampanhas, layouts] = await Promise.all([
+    db.loja.findUnique({
+      where: { id: session.user.lojaId! },
+      select: { plano: true },
+    }),
+    db.campanha.count({
+      where: { lojaId: session.user.lojaId!, status: { not: "CANCELADA" } },
+    }),
+    db.layout.findMany({
+      where: { lojaId: session.user.lojaId! },
+      select: { id: true, nome: true, corPrimaria: true, padrao: true },
+      orderBy: [{ padrao: "desc" }, { nome: "asc" }],
+    }),
+  ])
 
   const limiteBloqueado = loja?.plano === "ESSENCIAL" && totalCampanhas >= 3
 
   return (
-    <div className="max-w-2xl">
+    <div className="w-full">
       {/* Breadcrumb */}
       <Link
         href="/dashboard/campanhas"
@@ -33,7 +39,7 @@ export default async function NovaCampanhaPage() {
       </Link>
 
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Nova campanha</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Nova campanha</h1>
         <p className="text-gray-500 text-sm mt-0.5">
           Configure os detalhes da sua campanha promocional
         </p>
@@ -55,13 +61,13 @@ export default async function NovaCampanhaPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+      <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6">
         {limiteBloqueado ? (
           <p className="text-gray-500 text-sm text-center py-8">
             Faça upgrade do seu plano para criar mais campanhas.
           </p>
         ) : (
-          <CampanhaForm action={criarCampanha} />
+          <CampanhaForm action={criarCampanha} layouts={layouts} />
         )}
       </div>
     </div>

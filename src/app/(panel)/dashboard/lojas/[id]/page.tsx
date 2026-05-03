@@ -47,7 +47,7 @@ export default async function LojaAdminDetailPage({
   }
 
   return (
-    <div className="max-w-3xl">
+    <div className="w-full">
       <Link
         href="/dashboard/lojas"
         className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors"
@@ -83,7 +83,7 @@ export default async function LojaAdminDetailPage({
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           { label: "Usuários",   value: loja.usuarios.length,  icon: Users,      color: "text-blue-600 bg-blue-50" },
           { label: "Campanhas",  value: loja.campanhas.length, icon: Megaphone,  color: "text-emerald-600 bg-emerald-50" },
@@ -100,54 +100,55 @@ export default async function LojaAdminDetailPage({
         ))}
       </div>
 
-      {/* Usuários */}
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-4">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-900">Usuários</h2>
-        </div>
-        {loja.usuarios.length === 0 ? (
-          <p className="px-5 py-6 text-sm text-gray-400 text-center">Nenhum usuário.</p>
-        ) : (
-          <div className="divide-y divide-gray-50">
-            {loja.usuarios.map((u) => (
-              <div key={u.id} className="px-5 py-3 flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{u.name ?? u.email}</p>
-                  <p className="text-xs text-gray-400">{u.email}</p>
-                </div>
-                <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
-                  {u.role}
-                </span>
-              </div>
-            ))}
+      {/* Usuários + Campanhas recentes */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100">
+            <h2 className="font-semibold text-gray-900">Usuários</h2>
           </div>
-        )}
-      </div>
+          {loja.usuarios.length === 0 ? (
+            <p className="px-5 py-6 text-sm text-gray-400 text-center">Nenhum usuário.</p>
+          ) : (
+            <div className="divide-y divide-gray-50">
+              {loja.usuarios.map((u) => (
+                <div key={u.id} className="px-5 py-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{u.name ?? u.email}</p>
+                    <p className="text-xs text-gray-400 truncate">{u.email}</p>
+                  </div>
+                  <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full flex-shrink-0">
+                    {u.role}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-      {/* Campanhas recentes */}
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-900">Campanhas recentes</h2>
-        </div>
-        {loja.campanhas.length === 0 ? (
-          <p className="px-5 py-6 text-sm text-gray-400 text-center">Nenhuma campanha.</p>
-        ) : (
-          <div className="divide-y divide-gray-50">
-            {loja.campanhas.map((c) => (
-              <div key={c.id} className="px-5 py-3 flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{c.nome}</p>
-                  <p className="text-xs text-gray-400">
-                    {c.quantidadeChaves} chaves · {new Date(c.criadoEm).toLocaleDateString("pt-BR")}
-                  </p>
-                </div>
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_CAMPANHA[c.status]?.className}`}>
-                  {STATUS_CAMPANHA[c.status]?.label}
-                </span>
-              </div>
-            ))}
+        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100">
+            <h2 className="font-semibold text-gray-900">Campanhas recentes</h2>
           </div>
-        )}
+          {loja.campanhas.length === 0 ? (
+            <p className="px-5 py-6 text-sm text-gray-400 text-center">Nenhuma campanha.</p>
+          ) : (
+            <div className="divide-y divide-gray-50">
+              {loja.campanhas.map((c) => (
+                <div key={c.id} className="px-5 py-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{c.nome}</p>
+                    <p className="text-xs text-gray-400">
+                      {c.quantidadeChaves} chaves · {new Date(c.criadoEm).toLocaleDateString("pt-BR")}
+                    </p>
+                  </div>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${STATUS_CAMPANHA[c.status]?.className}`}>
+                    {STATUS_CAMPANHA[c.status]?.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

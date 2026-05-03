@@ -20,6 +20,13 @@ function toDatetimeLocal(date: Date): string {
   return new Date(date.getTime() - offset).toISOString().slice(0, 16)
 }
 
+type LayoutOption = {
+  id: string
+  nome: string
+  corPrimaria: string
+  padrao: boolean
+}
+
 type DefaultValues = {
   nome?: string
   descricao?: string
@@ -30,6 +37,7 @@ type DefaultValues = {
   inicioEm?: Date
   expiraEm?: Date
   quantidadeChaves?: number
+  layoutId?: string
 }
 
 type Action = (prev: CampanhaFormState, formData: FormData) => Promise<CampanhaFormState>
@@ -38,6 +46,7 @@ interface Props {
   action: Action
   defaultValues?: DefaultValues
   isEditing?: boolean
+  layouts?: LayoutOption[]
 }
 
 function SubmitButtons({ isEditing }: { isEditing: boolean }) {
@@ -77,7 +86,7 @@ function SubmitButtons({ isEditing }: { isEditing: boolean }) {
   )
 }
 
-export function CampanhaForm({ action, defaultValues = {}, isEditing = false }: Props) {
+export function CampanhaForm({ action, defaultValues = {}, isEditing = false, layouts = [] }: Props) {
   const [state, formAction] = useActionState(action, {})
   const [tipoBeneficio, setTipoBeneficio] = useState<TipoBeneficio>(
     defaultValues.tipoBeneficio ?? "DESCONTO_PERCENTUAL",
@@ -96,120 +105,124 @@ export function CampanhaForm({ action, defaultValues = {}, isEditing = false }: 
         </div>
       )}
 
-      {/* Nome */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-          Nome da campanha <span className="text-red-500">*</span>
-        </label>
-        <input
-          name="nome"
-          type="text"
-          defaultValue={defaultValues.nome}
-          placeholder="Ex: Desconto de Aniversário"
-          className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-        />
-        {fe.nome && <p className="text-red-500 text-xs mt-1">{fe.nome[0]}</p>}
-      </div>
-
-      {/* Descrição */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-          Descrição <span className="text-gray-400 font-normal">(opcional)</span>
-        </label>
-        <textarea
-          name="descricao"
-          defaultValue={defaultValues.descricao}
-          rows={3}
-          placeholder="Descreva brevemente a campanha para seus clientes..."
-          className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
-        />
-        {fe.descricao && <p className="text-red-500 text-xs mt-1">{fe.descricao[0]}</p>}
-      </div>
-
-      {/* Tipo de benefício */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-          Tipo de benefício <span className="text-red-500">*</span>
-        </label>
-        <select
-          name="tipoBeneficio"
-          value={tipoBeneficio}
-          onChange={(e) => setTipoBeneficio(e.target.value as TipoBeneficio)}
-          className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white"
-        >
-          {TIPOS_BENEFICIO.map((t) => (
-            <option key={t.value} value={t.value}>
-              {t.label}
-            </option>
-          ))}
-        </select>
-        {fe.tipoBeneficio && (
-          <p className="text-red-500 text-xs mt-1">{fe.tipoBeneficio[0]}</p>
-        )}
-      </div>
-
-      {/* Valor — só para desconto */}
-      {showValor && (
+      {/* Nome + Tipo de benefício */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            {tipoBeneficio === "DESCONTO_PERCENTUAL" ? "Percentual de desconto (%)" : "Valor do desconto (R$)"}
-            <span className="text-red-500"> *</span>
+            Nome da campanha <span className="text-red-500">*</span>
           </label>
           <input
-            name="valorBeneficio"
-            type="number"
-            step="0.01"
-            min="0"
-            defaultValue={defaultValues.valorBeneficio}
-            placeholder={tipoBeneficio === "DESCONTO_PERCENTUAL" ? "Ex: 20" : "Ex: 50.00"}
-            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-          />
-          {fe.valorBeneficio && (
-            <p className="text-red-500 text-xs mt-1">{fe.valorBeneficio[0]}</p>
-          )}
-        </div>
-      )}
-
-      {/* Descrição do prêmio — brinde/sorteio */}
-      {showPremio && (
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Descrição do prêmio <span className="text-red-500">*</span>
-          </label>
-          <input
-            name="descricaoPremio"
+            name="nome"
             type="text"
-            defaultValue={defaultValues.descricaoPremio}
-            placeholder={
-              tipoBeneficio === "SORTEIO"
-                ? "Ex: Smart TV 55\" Samsung"
-                : "Ex: Camiseta exclusiva da marca"
-            }
+            defaultValue={defaultValues.nome}
+            placeholder="Ex: Desconto de Aniversário"
             className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           />
-          {fe.descricaoPremio && (
-            <p className="text-red-500 text-xs mt-1">{fe.descricaoPremio[0]}</p>
+          {fe.nome && <p className="text-red-500 text-xs mt-1">{fe.nome[0]}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Tipo de benefício <span className="text-red-500">*</span>
+          </label>
+          <select
+            name="tipoBeneficio"
+            value={tipoBeneficio}
+            onChange={(e) => setTipoBeneficio(e.target.value as TipoBeneficio)}
+            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white"
+          >
+            {TIPOS_BENEFICIO.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+          {fe.tipoBeneficio && (
+            <p className="text-red-500 text-xs mt-1">{fe.tipoBeneficio[0]}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Valor (desconto) / Descrição do prêmio (brinde/sorteio) */}
+      {(showValor || showPremio) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {showValor && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                {tipoBeneficio === "DESCONTO_PERCENTUAL" ? "Percentual de desconto (%)" : "Valor do desconto (R$)"}
+                <span className="text-red-500"> *</span>
+              </label>
+              <input
+                name="valorBeneficio"
+                type="number"
+                step="0.01"
+                min="0"
+                defaultValue={defaultValues.valorBeneficio}
+                placeholder={tipoBeneficio === "DESCONTO_PERCENTUAL" ? "Ex: 20" : "Ex: 50.00"}
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              />
+              {fe.valorBeneficio && (
+                <p className="text-red-500 text-xs mt-1">{fe.valorBeneficio[0]}</p>
+              )}
+            </div>
+          )}
+          {showPremio && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Descrição do prêmio <span className="text-red-500">*</span>
+              </label>
+              <input
+                name="descricaoPremio"
+                type="text"
+                defaultValue={defaultValues.descricaoPremio}
+                placeholder={
+                  tipoBeneficio === "SORTEIO"
+                    ? "Ex: Smart TV 55\" Samsung"
+                    : "Ex: Camiseta exclusiva da marca"
+                }
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              />
+              {fe.descricaoPremio && (
+                <p className="text-red-500 text-xs mt-1">{fe.descricaoPremio[0]}</p>
+              )}
+            </div>
           )}
         </div>
       )}
 
-      {/* Regras de uso */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-          Regras de uso <span className="text-gray-400 font-normal">(opcional)</span>
-        </label>
-        <textarea
-          name="regrasUso"
-          defaultValue={defaultValues.regrasUso}
-          rows={3}
-          placeholder="Ex: Válido apenas para compras acima de R$ 100. Não cumulativo com outras promoções."
-          className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
-        />
-        {fe.regrasUso && <p className="text-red-500 text-xs mt-1">{fe.regrasUso[0]}</p>}
+      {/* Descrição + Regras de uso */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Descrição <span className="text-gray-400 font-normal">(opcional)</span>
+          </label>
+          <textarea
+            name="descricao"
+            defaultValue={defaultValues.descricao}
+            rows={3}
+            placeholder="Descreva brevemente a campanha para seus clientes..."
+            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+          />
+          {fe.descricao && <p className="text-red-500 text-xs mt-1">{fe.descricao[0]}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Regras de uso <span className="text-gray-400 font-normal">(opcional)</span>
+          </label>
+          <textarea
+            name="regrasUso"
+            defaultValue={defaultValues.regrasUso}
+            rows={3}
+            placeholder="Ex: Válido apenas para compras acima de R$ 100. Não cumulativo com outras promoções."
+            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+          />
+          {fe.regrasUso && <p className="text-red-500 text-xs mt-1">{fe.regrasUso[0]}</p>}
+        </div>
       </div>
 
-      {/* Datas */}
-      <div className="grid sm:grid-cols-2 gap-4">
+      {/* Datas + Quantidade */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
             Data de início <span className="text-red-500">*</span>
@@ -234,28 +247,49 @@ export function CampanhaForm({ action, defaultValues = {}, isEditing = false }: 
           />
           {fe.expiraEm && <p className="text-red-500 text-xs mt-1">{fe.expiraEm[0]}</p>}
         </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Limite de chaves <span className="text-red-500">*</span>
+          </label>
+          <input
+            name="quantidadeChaves"
+            type="number"
+            min="1"
+            max="10000"
+            defaultValue={defaultValues.quantidadeChaves ?? 100}
+            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+          />
+          {fe.quantidadeChaves && (
+            <p className="text-red-500 text-xs mt-1">{fe.quantidadeChaves[0]}</p>
+          )}
+          <p className="text-gray-400 text-xs mt-1">Geradas separadamente após criar</p>
+        </div>
       </div>
 
-      {/* Quantidade de chaves */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-          Limite de chaves <span className="text-red-500">*</span>
-        </label>
-        <input
-          name="quantidadeChaves"
-          type="number"
-          min="1"
-          max="10000"
-          defaultValue={defaultValues.quantidadeChaves ?? 100}
-          className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-        />
-        <p className="text-gray-400 text-xs mt-1">
-          Quantidade máxima planejada — as chaves são geradas separadamente após criar a campanha
-        </p>
-        {fe.quantidadeChaves && (
-          <p className="text-red-500 text-xs mt-1">{fe.quantidadeChaves[0]}</p>
-        )}
-      </div>
+      {/* Layout de impressão */}
+      {layouts.length > 0 && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Layout de impressão{" "}
+            <span className="text-gray-400 font-normal">(opcional)</span>
+          </label>
+          <select
+            name="layoutId"
+            defaultValue={defaultValues.layoutId ?? ""}
+            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white"
+          >
+            <option value="">Usar layout padrão da loja</option>
+            {layouts.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.nome}{l.padrao ? " (padrão)" : ""}
+              </option>
+            ))}
+          </select>
+          <p className="text-gray-400 text-xs mt-1">
+            Define o visual dos cards impressos para esta campanha
+          </p>
+        </div>
+      )}
 
       {/* Botões */}
       <div className="pt-2 flex items-center justify-end">

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/prisma"
 import { ConfiguracoesForm } from "./_components/configuracoes-form"
+import { TotemLinkCard } from "./_components/totem-link-card"
 
 const PLANO_LABELS = {
   ESSENCIAL:     { label: "Essencial",     className: "bg-gray-100 text-gray-600" },
@@ -30,7 +31,6 @@ export default async function ConfiguracoesPage() {
       cep: true,
       siteUrl: true,
       logoUrl: true,
-      corPrimaria: true,
       plano: true,
       status: true,
       criadoEm: true,
@@ -42,26 +42,29 @@ export default async function ConfiguracoesPage() {
   const planoCfg = PLANO_LABELS[loja.plano]
 
   return (
-    <div className="max-w-2xl">
+    <div className="w-full">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Configurações</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Configurações</h1>
         <p className="text-gray-500 text-sm mt-0.5">Dados e identidade visual da sua loja</p>
       </div>
 
       {/* Plano atual */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-6 flex items-center justify-between">
+      <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-5 mb-6 flex items-center justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-gray-700">Plano atual</p>
           <p className="text-xs text-gray-400 mt-0.5">
             Loja criada em {new Date(loja.criadoEm).toLocaleDateString("pt-BR")}
           </p>
         </div>
-        <span className={`text-sm font-semibold px-3 py-1.5 rounded-full ${planoCfg.className}`}>
+        <span className={`text-sm font-semibold px-3 py-1.5 rounded-full flex-shrink-0 ${planoCfg.className}`}>
           {planoCfg.label}
         </span>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+      {/* Link do Totem */}
+      <TotemLinkCard lojaId={session.user.lojaId!} />
+
+      <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6">
         <ConfiguracoesForm loja={loja} />
       </div>
     </div>

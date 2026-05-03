@@ -6,6 +6,7 @@ import { ChevronLeft, Key, Calendar, Hash } from "lucide-react"
 import { QrGrid } from "./_components/qr-grid"
 import { ExportarCsv } from "./_components/exportar-csv"
 import { CancelarLoteBtn } from "./_components/cancelar-lote-btn"
+import { ImprimirBtn } from "./_components/imprimir-btn"
 
 const PAGE_SIZE = 100
 
@@ -87,8 +88,9 @@ export default async function LoteDetailPage({
             </Link>
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <ExportarCsv chaves={chaves} nomeLote={nomeLote} />
+        <div className="flex flex-wrap items-center gap-2">
+          <ExportarCsv loteId={loteId} />
+          <ImprimirBtn loteId={loteId} />
           <CancelarLoteBtn loteId={loteId} />
         </div>
       </div>
