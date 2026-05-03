@@ -16,23 +16,31 @@ export default async function EditarCampanhaPage({
 
   const { id } = await params
 
-  const campanha = await db.campanha.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      lojaId: true,
-      nome: true,
-      descricao: true,
-      tipoBeneficio: true,
-      valorBeneficio: true,
-      descricaoPremio: true,
-      regrasUso: true,
-      inicioEm: true,
-      expiraEm: true,
-      quantidadeChaves: true,
-      status: true,
-    },
-  })
+  const [campanha, layouts] = await Promise.all([
+    db.campanha.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        lojaId: true,
+        nome: true,
+        descricao: true,
+        tipoBeneficio: true,
+        valorBeneficio: true,
+        descricaoPremio: true,
+        regrasUso: true,
+        inicioEm: true,
+        expiraEm: true,
+        quantidadeChaves: true,
+        layoutId: true,
+        status: true,
+      },
+    }),
+    db.layout.findMany({
+      where: { lojaId: session.user.lojaId! },
+      select: { id: true, nome: true, corPrimaria: true, padrao: true },
+      orderBy: [{ padrao: "desc" }, { nome: "asc" }],
+    }),
+  ])
 
   if (!campanha || campanha.lojaId !== session.user.lojaId) notFound()
 
@@ -62,6 +70,7 @@ export default async function EditarCampanhaPage({
         <CampanhaForm
           action={action}
           isEditing
+          layouts={layouts}
           defaultValues={{
             nome: campanha.nome,
             descricao: campanha.descricao ?? undefined,
@@ -74,6 +83,7 @@ export default async function EditarCampanhaPage({
             inicioEm: campanha.inicioEm,
             expiraEm: campanha.expiraEm,
             quantidadeChaves: campanha.quantidadeChaves,
+            layoutId: campanha.layoutId ?? undefined,
           }}
         />
       </div>

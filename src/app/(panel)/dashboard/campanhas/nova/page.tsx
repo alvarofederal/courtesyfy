@@ -10,14 +10,20 @@ export default async function NovaCampanhaPage() {
   const session = await auth()
   if (!session?.user?.lojaId) redirect("/login")
 
-  const loja = await db.loja.findUnique({
-    where: { id: session.user.lojaId! },
-    select: { plano: true },
-  })
-
-  const totalCampanhas = await db.campanha.count({
-    where: { lojaId: session.user.lojaId!, status: { not: "CANCELADA" } },
-  })
+  const [loja, totalCampanhas, layouts] = await Promise.all([
+    db.loja.findUnique({
+      where: { id: session.user.lojaId! },
+      select: { plano: true },
+    }),
+    db.campanha.count({
+      where: { lojaId: session.user.lojaId!, status: { not: "CANCELADA" } },
+    }),
+    db.layout.findMany({
+      where: { lojaId: session.user.lojaId! },
+      select: { id: true, nome: true, corPrimaria: true, padrao: true },
+      orderBy: [{ padrao: "desc" }, { nome: "asc" }],
+    }),
+  ])
 
   const limiteBloqueado = loja?.plano === "ESSENCIAL" && totalCampanhas >= 3
 
@@ -61,7 +67,7 @@ export default async function NovaCampanhaPage() {
             Faça upgrade do seu plano para criar mais campanhas.
           </p>
         ) : (
-          <CampanhaForm action={criarCampanha} />
+          <CampanhaForm action={criarCampanha} layouts={layouts} />
         )}
       </div>
     </div>
