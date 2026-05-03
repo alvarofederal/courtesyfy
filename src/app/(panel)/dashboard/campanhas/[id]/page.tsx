@@ -65,7 +65,7 @@ export default async function CampanhaDetailPage({
     ativadas + resgatadas > 0 ? Math.round((resgatadas / (ativadas + resgatadas)) * 100) : 0
 
   return (
-    <div className="w-full max-w-5xl">
+    <div className="w-full">
       {/* Breadcrumb */}
       <Link
         href="/dashboard/campanhas"

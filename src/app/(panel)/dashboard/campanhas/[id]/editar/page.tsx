@@ -43,7 +43,7 @@ export default async function EditarCampanhaPage({
   const action = atualizarCampanha.bind(null, id)
 
   return (
-    <div className="w-full max-w-4xl">
+    <div className="w-full">
       {/* Breadcrumb */}
       <Link
         href={`/dashboard/campanhas/${id}`}
