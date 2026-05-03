@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build:double",
+  "buildCommand": "npm run build",
   "installCommand": "npm ci",
   "functions": {
     "app/**/*.js": { "maxDuration": 30 }
