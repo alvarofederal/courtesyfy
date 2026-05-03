@@ -90,6 +90,8 @@ export function CampanhaForm({ action, defaultValues = {}, isEditing = false }: 
 
   return (
     <form action={formAction} className="space-y-6">
+      {/* Fallback: garante que publicar sempre chega como "rascunho" se nenhum botão for clicado (ex: Enter) */}
+      <input type="hidden" name="publicar" value="rascunho" />
       {state.error && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm">
           {state.error}
@@ -239,7 +241,7 @@ export function CampanhaForm({ action, defaultValues = {}, isEditing = false }: 
       {/* Quantidade de chaves */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">
-          Quantidade de chaves <span className="text-red-500">*</span>
+          Limite de chaves <span className="text-red-500">*</span>
         </label>
         <input
           name="quantidadeChaves"
@@ -249,7 +251,9 @@ export function CampanhaForm({ action, defaultValues = {}, isEditing = false }: 
           defaultValue={defaultValues.quantidadeChaves ?? 100}
           className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
         />
-        <p className="text-gray-400 text-xs mt-1">Máximo 10.000 chaves por campanha</p>
+        <p className="text-gray-400 text-xs mt-1">
+          Quantidade máxima planejada — as chaves são geradas separadamente após criar a campanha
+        </p>
         {fe.quantidadeChaves && (
           <p className="text-red-500 text-xs mt-1">{fe.quantidadeChaves[0]}</p>
         )}
