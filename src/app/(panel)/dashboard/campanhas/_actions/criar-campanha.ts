@@ -27,7 +27,12 @@ const schema = z.object({
     .int()
     .min(1, "Mínimo 1 chave")
     .max(10000, "Máximo 10.000 chaves por campanha"),
-  publicar: z.enum(["rascunho", "ativa"]).default("rascunho"),
+  publicar: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((v) => v ?? "rascunho")
+    .pipe(z.enum(["rascunho", "ativa"])),
 })
 
 export type CampanhaFormState = {
@@ -84,25 +89,32 @@ export async function criarCampanha(
     }
   }
 
-  const campanha = await db.campanha.create({
-    data: {
-      lojaId: session.user.lojaId!,
-      criadoPorId: session.user.id,
-      nome: data.nome,
-      descricao: data.descricao || null,
-      tipoBeneficio: data.tipoBeneficio,
-      valorBeneficio:
-        data.valorBeneficio && data.valorBeneficio.trim() !== ""
-          ? parseFloat(data.valorBeneficio)
-          : null,
-      descricaoPremio: data.descricaoPremio || null,
-      regrasUso: data.regrasUso || null,
-      inicioEm: inicio,
-      expiraEm: expira,
-      quantidadeChaves: data.quantidadeChaves,
-      status: data.publicar === "ativa" ? "ATIVA" : "RASCUNHO",
-    },
-  })
+  let campanha: { id: string }
+  try {
+    campanha = await db.campanha.create({
+      data: {
+        lojaId: session.user.lojaId!,
+        criadoPorId: session.user.id,
+        nome: data.nome,
+        descricao: data.descricao || null,
+        tipoBeneficio: data.tipoBeneficio,
+        valorBeneficio:
+          data.valorBeneficio && data.valorBeneficio.trim() !== ""
+            ? parseFloat(data.valorBeneficio)
+            : null,
+        descricaoPremio: data.descricaoPremio || null,
+        regrasUso: data.regrasUso || null,
+        inicioEm: inicio,
+        expiraEm: expira,
+        quantidadeChaves: data.quantidadeChaves,
+        status: data.publicar === "ativa" ? "ATIVA" : "RASCUNHO",
+      },
+      select: { id: true },
+    })
+  } catch (e) {
+    console.error("[criarCampanha]", e)
+    return { error: "Erro ao salvar campanha. Tente novamente." }
+  }
 
   revalidatePath("/dashboard/campanhas")
   redirect(`/dashboard/campanhas/${campanha.id}`)
