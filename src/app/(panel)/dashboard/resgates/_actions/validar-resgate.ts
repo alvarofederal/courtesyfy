@@ -7,7 +7,7 @@ import { db } from "@/lib/prisma"
 
 const schema = z.object({
   codigo: z.string().min(1, "Informe o código"),
-  observacao: z.string().max(500).optional(),
+  observacao: z.string().nullable().optional().transform((v) => (v == null || v === "" ? undefined : v)).pipe(z.string().max(500).optional()),
 })
 
 export type ValidarResgateState = {

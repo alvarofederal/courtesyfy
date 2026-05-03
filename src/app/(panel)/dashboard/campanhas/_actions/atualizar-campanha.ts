@@ -7,9 +7,17 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/prisma"
 import type { CampanhaFormState } from "./criar-campanha"
 
+const nullableStr = (max?: number) =>
+  z
+    .string()
+    .nullable()
+    .optional()
+    .transform((v) => (v == null || v === "" ? undefined : v))
+    .pipe(max ? z.string().max(max).optional() : z.string().optional())
+
 const schema = z.object({
   nome: z.string().min(3, "Mínimo 3 caracteres").max(100),
-  descricao: z.string().max(500).optional(),
+  descricao: nullableStr(500),
   tipoBeneficio: z.enum([
     "DESCONTO_PERCENTUAL",
     "DESCONTO_FIXO",
@@ -18,9 +26,9 @@ const schema = z.object({
     "FRETE_GRATIS",
     "CASHBACK",
   ]),
-  valorBeneficio: z.string().optional(),
-  descricaoPremio: z.string().max(300).optional(),
-  regrasUso: z.string().max(1000).optional(),
+  valorBeneficio: nullableStr(),
+  descricaoPremio: nullableStr(300),
+  regrasUso: nullableStr(1000),
   inicioEm: z.string().min(1, "Data de início obrigatória"),
   expiraEm: z.string().min(1, "Data de expiração obrigatória"),
   quantidadeChaves: z.coerce.number().int().min(1).max(10000),

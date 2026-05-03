@@ -29,7 +29,7 @@ const schema = z.object({
     .int()
     .min(1, "Mínimo 1 chave")
     .max(2000, "Máximo 2.000 chaves por lote"),
-  descricao: z.string().max(200).optional(),
+  descricao: z.string().nullable().optional().transform((v) => (v == null || v === "" ? undefined : v)).pipe(z.string().max(200).optional()),
 })
 
 export type GerarLoteState = {

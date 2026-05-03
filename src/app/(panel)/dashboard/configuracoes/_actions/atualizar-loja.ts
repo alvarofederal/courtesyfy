@@ -5,25 +5,41 @@ import { revalidatePath } from "next/cache"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/prisma"
 
+const nullableStr = (opts?: { max?: number; min?: number }) =>
+  z
+    .string()
+    .nullable()
+    .optional()
+    .transform((v) => (v == null || v === "" ? undefined : v))
+    .pipe(
+      opts?.min
+        ? z.string().min(opts.min).max(opts.max ?? 9999).optional()
+        : opts?.max
+        ? z.string().max(opts.max).optional()
+        : z.string().optional(),
+    )
+
 const schema = z.object({
   nome: z.string().min(2, "Mínimo 2 caracteres").max(100),
-  nomeExibicao: z.string().max(100).optional(),
+  nomeExibicao: nullableStr({ max: 100 }),
   email: z.string().email("E-mail inválido"),
-  telefone: z.string().max(20).optional(),
-  cnpjCpf: z.string().max(18).optional(),
-  logradouro: z.string().max(200).optional(),
-  numero: z.string().max(10).optional(),
-  complemento: z.string().max(100).optional(),
-  bairro: z.string().max(100).optional(),
-  cidade: z.string().max(100).optional(),
-  estado: z.string().length(2).optional().or(z.literal("")),
-  cep: z.string().max(9).optional(),
-  siteUrl: z.string().url("URL inválida").optional().or(z.literal("")),
-  logoUrl: z.string().url("URL inválida").optional().or(z.literal("")),
+  telefone: nullableStr({ max: 20 }),
+  cnpjCpf: nullableStr({ max: 18 }),
+  logradouro: nullableStr({ max: 200 }),
+  numero: nullableStr({ max: 10 }),
+  complemento: nullableStr({ max: 100 }),
+  bairro: nullableStr({ max: 100 }),
+  cidade: nullableStr({ max: 100 }),
+  estado: z.string().nullable().optional().transform((v) => (v == null || v === "" ? undefined : v)).pipe(z.string().length(2).optional()),
+  cep: nullableStr({ max: 9 }),
+  siteUrl: z.string().nullable().optional().transform((v) => (v == null || v === "" ? undefined : v)).pipe(z.string().url("URL inválida").optional()),
+  logoUrl: z.string().nullable().optional().transform((v) => (v == null || v === "" ? undefined : v)).pipe(z.string().url("URL inválida").optional()),
   corPrimaria: z
     .string()
-    .regex(/^#[0-9A-Fa-f]{6}$/, "Cor inválida (use HEX, ex: #10b981)")
-    .default("#10b981"),
+    .nullable()
+    .optional()
+    .transform((v) => v ?? "#10b981")
+    .pipe(z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Cor inválida (use HEX, ex: #10b981)")),
 })
 
 export type ConfiguracaoLojaState = {
