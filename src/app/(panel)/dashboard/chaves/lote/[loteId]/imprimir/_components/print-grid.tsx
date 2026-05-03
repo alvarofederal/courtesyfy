@@ -559,64 +559,52 @@ export function PrintGrid({
       <style>{`
         @page { size: A4 portrait; margin: ${pageMargin}; }
         body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .no-print { display: none !important; }
         @media print {
-          .no-print   { display: none !important; }
-          .screen-bg  { background: transparent !important; padding: 0 !important; min-height: 0 !important; }
-          .a4-sheet   { box-shadow: none !important; margin: 0 !important; padding: 0 !important;
-                        width: auto !important; min-height: 0 !important; }
+          .no-print            { display: none !important; }
+          aside                { display: none !important; }
+          header               { display: none !important; }
+          body, body > div,
+          body > div > div,
+          main                 { overflow: visible !important; height: auto !important; }
+          .screen-bg           { background: transparent !important; padding: 0 !important; min-height: 0 !important; }
+          .a4-sheet            { box-shadow: none !important; margin: 0 !important; padding: 0 !important;
+                                 width: auto !important; min-height: 0 !important; }
         }
       `}</style>
-
-      {/* Toolbar */}
-      <div className="no-print fixed top-0 inset-x-0 z-50 bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => window.history.back()}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Voltar
-          </button>
-          <span className="text-gray-300">|</span>
-          <span className="text-sm font-medium text-gray-700">{nomeLote}</span>
-          <span className="text-xs text-gray-400">
-            · {totalChaves} chaves · Gerado em {geradoEm}
-          </span>
-          <span className="text-xs bg-amber-100 text-amber-700 font-semibold px-2 py-0.5 rounded-full">
-            {isCartao ? "Cartão 3,5×7 cm" : "MDF 9×9 cm"}
-          </span>
-        </div>
-        <button
-          onClick={() => window.print()}
-          className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white text-sm font-semibold px-5 py-2 rounded-xl transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-            />
-          </svg>
-          Imprimir / Salvar PDF
-        </button>
-      </div>
 
       {/* Single render tree:
           - screen: gray bg + A4 white card with shadow
           - print:  .screen-bg and .a4-sheet classes strip decoration via @media print above */}
       <div
         className="screen-bg"
-        style={{ paddingTop: 80, paddingBottom: 32, background: "#f0f0f0", minHeight: "100vh" }}
+        style={{ paddingTop: 32, paddingBottom: 32, background: "#f0f0f0", minHeight: "100vh" }}
       >
-        {/* Botão acima da folha — some ao imprimir */}
+        {/* Barra acima da folha — some ao imprimir */}
         <div
           className="no-print"
-          style={{ width: "210mm", margin: "0 auto 12px", display: "flex", justifyContent: "flex-end" }}
+          style={{ width: "210mm", margin: "0 auto 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}
         >
+          <button
+            onClick={() => window.history.back()}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              background: "#fff",
+              color: "#374151",
+              fontWeight: 600,
+              fontSize: 14,
+              padding: "10px 20px",
+              borderRadius: 12,
+              border: "1.5px solid #e5e7eb",
+              cursor: "pointer",
+            }}
+          >
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Voltar
+          </button>
           <button
             onClick={() => window.print()}
             style={{
