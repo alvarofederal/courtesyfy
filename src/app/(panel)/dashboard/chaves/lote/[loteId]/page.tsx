@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/prisma"
-import { ChevronLeft, Key, Calendar, Hash } from "lucide-react"
+import { ChevronLeft, Key, Calendar, Hash, Printer } from "lucide-react"
 import { QrGrid } from "./_components/qr-grid"
 import { ExportarCsv } from "./_components/exportar-csv"
 import { CancelarLoteBtn } from "./_components/cancelar-lote-btn"
@@ -87,8 +87,15 @@ export default async function LoteDetailPage({
             </Link>
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <ExportarCsv chaves={chaves} nomeLote={nomeLote} />
+        <div className="flex flex-wrap items-center gap-2">
+          <ExportarCsv loteId={loteId} />
+          <Link
+            href={`/dashboard/chaves/lote/${loteId}/imprimir`}
+            className="inline-flex items-center gap-2 border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-xl transition-colors"
+          >
+            <Printer className="w-4 h-4" />
+            Imprimir PDF
+          </Link>
           <CancelarLoteBtn loteId={loteId} />
         </div>
       </div>
