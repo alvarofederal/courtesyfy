@@ -50,37 +50,39 @@ export default async function CampanhasPage({
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Campanhas</h1>
+      <div className="flex items-start justify-between gap-4 mb-6">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Campanhas</h1>
           <p className="text-gray-500 text-sm mt-0.5">
             Gerencie suas campanhas promocionais com chaves únicas
           </p>
         </div>
         <Link
           href="/dashboard/campanhas/nova"
-          className="inline-flex items-center gap-2 bg-black hover:bg-gray-800 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
+          className="flex-shrink-0 inline-flex items-center gap-2 bg-black hover:bg-gray-800 text-white text-sm font-semibold px-3 sm:px-4 py-2.5 rounded-xl transition-colors"
         >
           <Plus className="w-4 h-4" />
-          Nova campanha
+          <span>Nova campanha</span>
         </Link>
       </div>
 
-      {/* Tabs de filtro */}
-      <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit">
-        {STATUS_TABS.map((tab) => (
-          <Link
-            key={tab.value}
-            href={tab.value ? `/dashboard/campanhas?status=${tab.value}` : "/dashboard/campanhas"}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              statusFilter === tab.value
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            {tab.label}
-          </Link>
-        ))}
+      {/* Tabs de filtro — scroll horizontal no mobile */}
+      <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0 mb-6">
+        <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-max">
+          {STATUS_TABS.map((tab) => (
+            <Link
+              key={tab.value}
+              href={tab.value ? `/dashboard/campanhas?status=${tab.value}` : "/dashboard/campanhas"}
+              className={`whitespace-nowrap px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                statusFilter === tab.value
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {tab.label}
+            </Link>
+          ))}
+        </div>
       </div>
 
       {/* Lista */}

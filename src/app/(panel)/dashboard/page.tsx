@@ -58,19 +58,20 @@ export default async function DashboardPage() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+      <div className="flex items-start justify-between gap-4 mb-8">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
             Olá, {session.user.name?.split(" ")[0] ?? "Lojista"} 👋
           </h1>
-          <p className="text-gray-500 mt-0.5">{loja?.nome}</p>
+          <p className="text-gray-500 mt-0.5 text-sm truncate">{loja?.nome}</p>
         </div>
         <Link
           href="/dashboard/campanhas/nova"
-          className="inline-flex items-center gap-2 bg-black hover:bg-gray-800 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
+          className="flex-shrink-0 inline-flex items-center gap-2 bg-black hover:bg-gray-800 text-white text-sm font-semibold px-3 sm:px-4 py-2.5 rounded-xl transition-colors"
         >
           <Plus className="w-4 h-4" />
-          Nova campanha
+          <span className="hidden xs:inline">Nova campanha</span>
+          <span className="xs:hidden sr-only">Nova</span>
         </Link>
       </div>
 
@@ -243,9 +244,9 @@ async function SuperAdminDashboard() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Painel Super Admin</h1>
-        <p className="text-gray-500 mt-0.5">Visão geral de toda a plataforma</p>
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Painel Super Admin</h1>
+        <p className="text-gray-500 mt-0.5 text-sm">Visão geral de toda a plataforma</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

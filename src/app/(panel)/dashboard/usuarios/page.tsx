@@ -47,24 +47,26 @@ export default async function UsuariosAdminPage({
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit">
-        {[
-          { value: "", label: "Todos" },
-          { value: "SUPER_ADMIN", label: "Super Admin" },
-          { value: "LOJISTA", label: "Lojistas" },
-        ].map((tab) => (
-          <a
-            key={tab.value}
-            href={tab.value ? `/dashboard/usuarios?role=${tab.value}` : "/dashboard/usuarios"}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              roleFiltro === tab.value
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            {tab.label}
-          </a>
-        ))}
+      <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0 mb-6">
+        <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-max">
+          {[
+            { value: "", label: "Todos" },
+            { value: "SUPER_ADMIN", label: "Super Admin" },
+            { value: "LOJISTA", label: "Lojistas" },
+          ].map((tab) => (
+            <a
+              key={tab.value}
+              href={tab.value ? `/dashboard/usuarios?role=${tab.value}` : "/dashboard/usuarios"}
+              className={`whitespace-nowrap px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                roleFiltro === tab.value
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {tab.label}
+            </a>
+          ))}
+        </div>
       </div>
 
       {usuarios.length === 0 ? (

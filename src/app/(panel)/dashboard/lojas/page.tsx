@@ -51,8 +51,8 @@ export default async function LojasAdminPage({
       </div>
 
       {/* Filtros */}
-      <div className="flex gap-3 mb-6 flex-wrap">
-        <form className="flex-1 min-w-[200px] max-w-sm relative">
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <form className="flex-1 sm:max-w-sm relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             name="q"
@@ -62,24 +62,26 @@ export default async function LojasAdminPage({
           />
           {statusFiltro && <input type="hidden" name="status" value={statusFiltro} />}
         </form>
-        <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
-          {[
-            { value: "", label: "Todas" },
-            { value: "ATIVA", label: "Ativas" },
-            { value: "SUSPENSA", label: "Suspensas" },
-          ].map((tab) => (
-            <Link
-              key={tab.value}
-              href={tab.value ? `/dashboard/lojas?status=${tab.value}${q ? `&q=${q}` : ""}` : `/dashboard/lojas${q ? `?q=${q}` : ""}`}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                statusFiltro === tab.value
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {tab.label}
-            </Link>
-          ))}
+        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+          <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-max">
+            {[
+              { value: "", label: "Todas" },
+              { value: "ATIVA", label: "Ativas" },
+              { value: "SUSPENSA", label: "Suspensas" },
+            ].map((tab) => (
+              <Link
+                key={tab.value}
+                href={tab.value ? `/dashboard/lojas?status=${tab.value}${q ? `&q=${q}` : ""}` : `/dashboard/lojas${q ? `?q=${q}` : ""}`}
+                className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  statusFiltro === tab.value
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                {tab.label}
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
 

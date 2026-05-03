@@ -61,30 +61,30 @@ export default async function ChavesPage({
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Chaves</h1>
-          <p className="text-gray-500 text-sm mt-0.5">
+      <div className="flex items-start justify-between gap-4 mb-6">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Chaves</h1>
+          <p className="text-gray-500 text-sm mt-0.5 truncate">
             {campanhaFiltro
               ? `Lotes da campanha: ${campanhaFiltro.nome}`
               : "Todos os lotes de chaves gerados"}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {campanhaId && (
             <Link
               href="/dashboard/chaves"
-              className="text-sm text-gray-500 hover:text-gray-700 border border-gray-200 px-3 py-2 rounded-xl"
+              className="text-sm text-gray-500 hover:text-gray-700 border border-gray-200 px-3 py-2 rounded-xl hidden sm:inline-flex"
             >
               Ver todos
             </Link>
           )}
           <Link
             href={campanhaId ? `/dashboard/chaves/gerar?campanhaId=${campanhaId}` : "/dashboard/chaves/gerar"}
-            className="inline-flex items-center gap-2 bg-black hover:bg-gray-800 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
+            className="inline-flex items-center gap-2 bg-black hover:bg-gray-800 text-white text-sm font-semibold px-3 sm:px-4 py-2.5 rounded-xl transition-colors"
           >
             <Plus className="w-4 h-4" />
-            Gerar lote
+            <span>Gerar lote</span>
           </Link>
         </div>
       </div>
