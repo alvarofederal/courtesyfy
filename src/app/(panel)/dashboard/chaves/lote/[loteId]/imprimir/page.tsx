@@ -30,6 +30,14 @@ export default async function ImprimirLotePage({
           descricaoPremio: true,
           descricao: true,
           expiraEm: true,
+          layout: {
+            select: {
+              corPrimaria: true,
+              imagem1Url: true,
+              imagem2Url: true,
+              opacidadeFundo: true,
+            },
+          },
         },
       },
     },
@@ -43,6 +51,9 @@ export default async function ImprimirLotePage({
   })
 
   if (!loja) notFound()
+
+  // layout da campanha tem prioridade; fallback para dados da loja
+  const layoutAtivo = lote.campanha.layout
 
   const chaves = await db.chave.findMany({
     where: { loteId },
@@ -66,8 +77,10 @@ export default async function ImprimirLotePage({
       }}
       loja={{
         nome: loja.nomeExibicao ?? loja.nome,
-        logoUrl: loja.logoUrl ?? null,
-        corPrimaria: loja.corPrimaria,
+        logoUrl: layoutAtivo?.imagem2Url ?? loja.logoUrl ?? null,
+        corPrimaria: layoutAtivo?.corPrimaria ?? loja.corPrimaria,
+        imagemFundoUrl: layoutAtivo?.imagem1Url ?? null,
+        opacidadeFundo: layoutAtivo?.opacidadeFundo ?? 20,
       }}
       nomeLote={nomeLote}
       totalChaves={chaves.length}
