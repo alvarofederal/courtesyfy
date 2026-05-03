@@ -8,43 +8,530 @@ type Chave = {
   landingUrl: string | null
 }
 
+interface Campanha {
+  nome: string
+  tipoBeneficio: string
+  valorBeneficio: string | null
+  descricaoPremio: string | null
+  descricao: string | null
+  expiraEm: string
+}
+
+interface Loja {
+  nome: string
+  logoUrl: string | null
+  corPrimaria: string
+}
+
 interface Props {
   chaves: Chave[]
-  campanhaNome: string
+  campanha: Campanha
+  loja: Loja
   nomeLote: string
   totalChaves: number
   geradoEm: string
+  formato: "cartao" | "mdf"
   autoPrint?: boolean
 }
 
+function buildBenefitLabel(campanha: Campanha): { main: string; sub: string } {
+  const val = campanha.valorBeneficio ? parseFloat(campanha.valorBeneficio) : null
+
+  switch (campanha.tipoBeneficio) {
+    case "DESCONTO_PERCENTUAL":
+      return { main: val ? `${val}% OFF` : "Desconto", sub: campanha.descricao ?? "" }
+    case "DESCONTO_FIXO":
+      return {
+        main: val
+          ? `R$ ${val.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} OFF`
+          : "Desconto",
+        sub: campanha.descricao ?? "",
+      }
+    case "BRINDE":
+      return { main: campanha.descricaoPremio ?? "Brinde", sub: campanha.descricao ?? "" }
+    case "SORTEIO":
+      return { main: campanha.descricaoPremio ?? "Sorteio", sub: campanha.descricao ?? "" }
+    case "FRETE_GRATIS":
+      return { main: "Frete Grátis", sub: campanha.descricao ?? "" }
+    default:
+      return { main: campanha.nome, sub: campanha.descricao ?? "" }
+  }
+}
+
+function initials(name: string): string {
+  return name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+}
+
+// ── Cartão 3,5 × 7 cm ─────────────────────────────────────────────────────────
+function CartaoCard({ chave, campanha, loja }: { chave: Chave; campanha: Campanha; loja: Loja }) {
+  const { main, sub } = buildBenefitLabel(campanha)
+  const brand = loja.corPrimaria
+
+  return (
+    <div
+      className="cartao"
+      style={{
+        border: `1.5px dashed ${brand}`,
+        borderRadius: 8,
+        padding: "6px 8px",
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+        background: "linear-gradient(135deg, #fffdf7 60%, #fdf3e3 100%)",
+        position: "relative",
+        overflow: "hidden",
+        breakInside: "avoid",
+        pageBreakInside: "avoid",
+      }}
+    >
+      {/* Left accent strip */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: 5,
+          height: "100%",
+          background: `linear-gradient(180deg, ${brand}, ${brand}aa)`,
+          borderRadius: "8px 0 0 8px",
+        }}
+      />
+
+      {/* Col — store */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minWidth: 60,
+          paddingLeft: 6,
+        }}
+      >
+        {loja.logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={loja.logoUrl}
+            alt={loja.nome}
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: "50%",
+              objectFit: "cover",
+              border: `2px solid ${brand}`,
+              marginBottom: 3,
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: "50%",
+              background: `linear-gradient(135deg, ${brand}cc, ${brand})`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#fff",
+              fontSize: 10,
+              fontWeight: "bold",
+              marginBottom: 3,
+              border: `2px solid ${brand}`,
+            }}
+          >
+            {initials(loja.nome)}
+          </div>
+        )}
+        <span
+          style={{
+            fontSize: 6.5,
+            color: brand,
+            fontWeight: "bold",
+            textAlign: "center",
+            textTransform: "uppercase",
+            letterSpacing: 0.4,
+            lineHeight: 1.2,
+          }}
+        >
+          {loja.nome}
+        </span>
+      </div>
+
+      {/* Col — campaign info */}
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          gap: 2,
+          paddingLeft: 4,
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            fontSize: 7.5,
+            fontWeight: "bold",
+            color: "#5a3e28",
+            textTransform: "uppercase",
+            letterSpacing: 0.7,
+          }}
+        >
+          {campanha.nome}
+        </div>
+        <div style={{ fontSize: 13, fontWeight: "bold", color: brand, lineHeight: 1.1 }}>
+          {main}
+        </div>
+        {sub && (
+          <div style={{ fontSize: 7, color: "#777", lineHeight: 1.3 }}>
+            {sub.length > 60 ? sub.slice(0, 58) + "…" : sub}
+          </div>
+        )}
+        <code
+          style={{
+            fontFamily: "'Courier New', monospace",
+            fontSize: 8.5,
+            fontWeight: "bold",
+            color: "#3a2510",
+            background: "#fdf3e3",
+            border: `1px solid ${brand}`,
+            borderRadius: 3,
+            padding: "2px 4px",
+            letterSpacing: 1,
+            display: "inline-block",
+            marginTop: 2,
+          }}
+        >
+          {chave.codigo}
+        </code>
+        <div style={{ fontSize: 6, color: "#aaa", marginTop: 1 }}>
+          Válido até: {campanha.expiraEm}
+        </div>
+      </div>
+
+      {/* Col — QR */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 3,
+          minWidth: 68,
+        }}
+      >
+        <div
+          style={{
+            border: `1.5px solid ${brand}`,
+            borderRadius: 4,
+            padding: 3,
+            background: "#fff",
+          }}
+        >
+          {chave.landingUrl ? (
+            <QRCodeSVG
+              value={chave.landingUrl}
+              size={56}
+              bgColor="#ffffff"
+              fgColor="#111827"
+              level="M"
+              marginSize={0}
+            />
+          ) : (
+            <div
+              style={{
+                width: 56,
+                height: 56,
+                background: "#f3f4f6",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 7,
+                color: "#9ca3af",
+              }}
+            >
+              sem URL
+            </div>
+          )}
+        </div>
+        <span style={{ fontSize: 6, color: "#aaa", textAlign: "center", lineHeight: 1.3 }}>
+          Escaneie
+          <br />e ative
+        </span>
+      </div>
+
+      {/* Footer watermark */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 3,
+          right: 7,
+          fontSize: 5.5,
+          color: "#ddd",
+          letterSpacing: 0.4,
+        }}
+      >
+        courtesyfy.com
+      </div>
+    </div>
+  )
+}
+
+// ── MDF 9 × 9 cm ──────────────────────────────────────────────────────────────
+function MdfCard({ chave, campanha, loja }: { chave: Chave; campanha: Campanha; loja: Loja }) {
+  const { main, sub } = buildBenefitLabel(campanha)
+  const brand = loja.corPrimaria
+
+  return (
+    <div
+      style={{
+        width: "90mm",
+        height: "90mm",
+        border: `2px solid ${brand}`,
+        borderRadius: 12,
+        padding: "6mm",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "space-between",
+        background: "linear-gradient(160deg, #fffdf7 40%, #fdf3e3 100%)",
+        position: "relative",
+        overflow: "hidden",
+        breakInside: "avoid",
+        pageBreakInside: "avoid",
+        boxSizing: "border-box",
+      }}
+    >
+      {/* Top accent bar */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 6,
+          background: `linear-gradient(90deg, ${brand}, ${brand}99)`,
+          borderRadius: "10px 10px 0 0",
+        }}
+      />
+
+      {/* Store header */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 4,
+          marginTop: 4,
+        }}
+      >
+        {loja.logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={loja.logoUrl}
+            alt={loja.nome}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: "50%",
+              objectFit: "cover",
+              border: `2px solid ${brand}`,
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: "50%",
+              background: `linear-gradient(135deg, ${brand}cc, ${brand})`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#fff",
+              fontSize: 11,
+              fontWeight: "bold",
+              border: `2px solid ${brand}`,
+            }}
+          >
+            {initials(loja.nome)}
+          </div>
+        )}
+        <span
+          style={{
+            fontSize: 8,
+            color: brand,
+            fontWeight: "bold",
+            textTransform: "uppercase",
+            letterSpacing: 0.8,
+            textAlign: "center",
+          }}
+        >
+          {loja.nome}
+        </span>
+      </div>
+
+      {/* Benefit */}
+      <div style={{ textAlign: "center" }}>
+        <div
+          style={{
+            fontSize: 9,
+            fontWeight: "bold",
+            color: "#5a3e28",
+            textTransform: "uppercase",
+            letterSpacing: 1,
+            marginBottom: 2,
+          }}
+        >
+          {campanha.nome}
+        </div>
+        <div
+          style={{
+            fontSize: 22,
+            fontWeight: "bold",
+            color: brand,
+            lineHeight: 1,
+            marginBottom: 3,
+          }}
+        >
+          {main}
+        </div>
+        {sub && (
+          <div style={{ fontSize: 8, color: "#777", lineHeight: 1.3 }}>
+            {sub.length > 70 ? sub.slice(0, 68) + "…" : sub}
+          </div>
+        )}
+      </div>
+
+      {/* QR code */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+        <div
+          style={{
+            border: `2px solid ${brand}`,
+            borderRadius: 6,
+            padding: 4,
+            background: "#fff",
+          }}
+        >
+          {chave.landingUrl ? (
+            <QRCodeSVG
+              value={chave.landingUrl}
+              size={80}
+              bgColor="#ffffff"
+              fgColor="#111827"
+              level="M"
+              marginSize={0}
+            />
+          ) : (
+            <div
+              style={{
+                width: 80,
+                height: 80,
+                background: "#f3f4f6",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 8,
+                color: "#9ca3af",
+              }}
+            >
+              sem URL
+            </div>
+          )}
+        </div>
+        <code
+          style={{
+            fontFamily: "'Courier New', monospace",
+            fontSize: 9,
+            fontWeight: "bold",
+            color: "#3a2510",
+            background: "#fdf3e3",
+            border: `1px solid ${brand}`,
+            borderRadius: 3,
+            padding: "2px 5px",
+            letterSpacing: 1.2,
+          }}
+        >
+          {chave.codigo}
+        </code>
+        <span style={{ fontSize: 6.5, color: "#aaa" }}>Válido até: {campanha.expiraEm}</span>
+      </div>
+
+      {/* Watermark */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 4,
+          right: 8,
+          fontSize: 6,
+          color: "#ddd",
+          letterSpacing: 0.4,
+        }}
+      >
+        courtesyfy.com
+      </div>
+    </div>
+  )
+}
+
+// ── Main component ─────────────────────────────────────────────────────────────
 export function PrintGrid({
   chaves,
-  campanhaNome,
+  campanha,
+  loja,
   nomeLote,
   totalChaves,
   geradoEm,
+  formato,
   autoPrint,
 }: Props) {
   useEffect(() => {
     if (autoPrint) {
-      const t = setTimeout(() => window.print(), 600)
+      const t = setTimeout(() => window.print(), 800)
       return () => clearTimeout(t)
     }
   }, [autoPrint])
 
+  const isCartao = formato === "cartao"
+
+  const gridStyle: React.CSSProperties = isCartao
+    ? {
+        display: "grid",
+        gridTemplateColumns: "repeat(2, 1fr)",
+        gridTemplateRows: "repeat(5, 1fr)",
+        gap: "5mm",
+        width: "190mm",
+        height: "277mm",
+        padding: 0,
+      }
+    : {
+        display: "grid",
+        gridTemplateColumns: "repeat(2, 90mm)",
+        gap: "5mm",
+        justifyContent: "center",
+      }
+
+  const pageStyles = isCartao
+    ? `@page { size: A4 portrait; margin: 10mm; }`
+    : `@page { size: A4 portrait; margin: 15mm; }`
+
   return (
     <>
-      {/* ── Estilos de impressão ── */}
       <style>{`
-        @media print {
-          @page { size: A4; margin: 10mm; }
-          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .no-print { display: none !important; }
-          .print-page { box-shadow: none !important; }
-        }
+        ${pageStyles}
+        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .no-print { display: none !important; }
+        @media print { .no-print { display: none !important; } }
       `}</style>
 
-      {/* ── Barra de ações (some ao imprimir) ── */}
+      {/* Toolbar */}
       <div className="no-print fixed top-0 inset-x-0 z-50 bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
           <button
@@ -58,62 +545,66 @@ export function PrintGrid({
           </button>
           <span className="text-gray-300">|</span>
           <span className="text-sm font-medium text-gray-700">{nomeLote}</span>
-          <span className="text-xs text-gray-400">· {totalChaves} chaves</span>
+          <span className="text-xs text-gray-400">
+            · {totalChaves} chaves · Gerado em {geradoEm}
+          </span>
+          <span className="text-xs bg-amber-100 text-amber-700 font-semibold px-2 py-0.5 rounded-full">
+            {isCartao ? "Cartão 3,5×7 cm" : "MDF 9×9 cm"}
+          </span>
         </div>
         <button
           onClick={() => window.print()}
           className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white text-sm font-semibold px-5 py-2 rounded-xl transition-colors"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+            />
           </svg>
           Imprimir / Salvar PDF
         </button>
       </div>
 
-      {/* ── Conteúdo imprimível ── */}
-      <div className="pt-16 print:pt-0 px-6 pb-8 print:px-0 print:pb-0 bg-white min-h-screen print-page">
-        {/* Cabeçalho do documento */}
-        <div className="mb-6 print:mb-5 pb-4 border-b border-gray-200">
-          <h1 className="text-lg font-bold text-gray-900">{nomeLote}</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Campanha: <strong>{campanhaNome}</strong> · {totalChaves} chaves · Gerado em {geradoEm}
-          </p>
-        </div>
-
-        {/* Grid de cards — 3 colunas em A4 */}
-        <div className="grid grid-cols-3 gap-3 print:gap-[4mm]">
-          {chaves.map((chave) => (
-            <div
-              key={chave.codigo}
-              className="border border-gray-200 rounded-xl p-3 print:rounded-lg print:p-[3mm] flex flex-col items-center gap-2 print:gap-[2mm] break-inside-avoid"
-              style={{ pageBreakInside: "avoid" }}
-            >
-              {chave.landingUrl ? (
-                <QRCodeSVG
-                  value={chave.landingUrl}
-                  size={140}
-                  bgColor="#ffffff"
-                  fgColor="#111827"
-                  level="M"
-                  marginSize={1}
-                  className="print:w-[32mm] print:h-[32mm]"
-                />
+      {/* Printable area */}
+      <div
+        style={{
+          paddingTop: 64,
+          paddingBottom: 32,
+          background: "#f0f0f0",
+          minHeight: "100vh",
+        }}
+        className="print:p-0 print:bg-white print:min-h-0"
+      >
+        {/* Screen preview wrapper — simulates A4 sheet */}
+        <div
+          className="no-print mx-auto mb-6 bg-white shadow-2xl"
+          style={{ width: "210mm", minHeight: "297mm", padding: "10mm" }}
+        >
+          <div style={gridStyle}>
+            {chaves.map((chave) =>
+              isCartao ? (
+                <CartaoCard key={chave.codigo} chave={chave} campanha={campanha} loja={loja} />
               ) : (
-                <div className="w-[140px] h-[140px] bg-gray-100 rounded flex items-center justify-center text-gray-400 text-xs">
-                  sem URL
-                </div>
-              )}
-              <code className="font-mono text-xs font-bold tracking-widest text-gray-800 text-center">
-                {chave.codigo}
-              </code>
-            </div>
-          ))}
+                <MdfCard key={chave.codigo} chave={chave} campanha={campanha} loja={loja} />
+              ),
+            )}
+          </div>
         </div>
 
-        {/* Rodapé */}
-        <div className="mt-6 pt-4 border-t border-gray-100 text-center text-xs text-gray-400">
-          Gerado pelo Courtesyfy
+        {/* Print-only output — no wrapper div, cards render directly */}
+        <div className="hidden print:block">
+          <div style={gridStyle}>
+            {chaves.map((chave) =>
+              isCartao ? (
+                <CartaoCard key={chave.codigo} chave={chave} campanha={campanha} loja={loja} />
+              ) : (
+                <MdfCard key={chave.codigo} chave={chave} campanha={campanha} loja={loja} />
+              ),
+            )}
+          </div>
         </div>
       </div>
     </>

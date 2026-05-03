@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/prisma"
 import { PrintGrid } from "./_components/print-grid"
 
-type SearchParams = { auto?: string }
+type SearchParams = { auto?: string; formato?: string }
 
 export default async function ImprimirLotePage({
   params,
@@ -16,14 +16,33 @@ export default async function ImprimirLotePage({
   if (!session?.user?.lojaId) redirect("/login")
 
   const { loteId } = await params
-  const { auto } = await searchParams
+  const { auto, formato } = await searchParams
+  const printFormat = formato === "mdf" ? "mdf" : "cartao"
 
   const lote = await db.loteChave.findUnique({
     where: { id: loteId },
-    include: { campanha: { select: { nome: true } } },
+    include: {
+      campanha: {
+        select: {
+          nome: true,
+          tipoBeneficio: true,
+          valorBeneficio: true,
+          descricaoPremio: true,
+          descricao: true,
+          expiraEm: true,
+        },
+      },
+    },
   })
 
   if (!lote || lote.lojaId !== session.user.lojaId) notFound()
+
+  const loja = await db.loja.findUnique({
+    where: { id: session.user.lojaId },
+    select: { nome: true, nomeExibicao: true, logoUrl: true, corPrimaria: true },
+  })
+
+  if (!loja) notFound()
 
   const chaves = await db.chave.findMany({
     where: { loteId },
@@ -37,10 +56,23 @@ export default async function ImprimirLotePage({
   return (
     <PrintGrid
       chaves={chaves}
-      campanhaNome={lote.campanha.nome}
+      campanha={{
+        nome: lote.campanha.nome,
+        tipoBeneficio: lote.campanha.tipoBeneficio,
+        valorBeneficio: lote.campanha.valorBeneficio?.toString() ?? null,
+        descricaoPremio: lote.campanha.descricaoPremio ?? null,
+        descricao: lote.campanha.descricao ?? null,
+        expiraEm: lote.campanha.expiraEm.toLocaleDateString("pt-BR"),
+      }}
+      loja={{
+        nome: loja.nomeExibicao ?? loja.nome,
+        logoUrl: loja.logoUrl ?? null,
+        corPrimaria: loja.corPrimaria,
+      }}
       nomeLote={nomeLote}
       totalChaves={chaves.length}
       geradoEm={geradoEm}
+      formato={printFormat}
       autoPrint={auto === "1"}
     />
   )
