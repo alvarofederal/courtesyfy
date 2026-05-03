@@ -47,20 +47,20 @@ function SubmitButtons({ isEditing }: { isEditing: boolean }) {
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex items-center gap-2 bg-black hover:bg-gray-800 disabled:opacity-50 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors"
+        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-black hover:bg-gray-800 disabled:opacity-50 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors"
       >
         {pending ? "Salvando..." : "Salvar alterações"}
       </button>
     )
   }
   return (
-    <div className="flex gap-3">
+    <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
       <button
         type="submit"
         name="publicar"
         value="rascunho"
         disabled={pending}
-        className="inline-flex items-center gap-2 border border-gray-200 hover:bg-gray-50 disabled:opacity-50 text-gray-700 text-sm font-medium px-5 py-2.5 rounded-xl transition-colors"
+        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-gray-200 hover:bg-gray-50 disabled:opacity-50 text-gray-700 text-sm font-medium px-5 py-2.5 rounded-xl transition-colors"
       >
         {pending ? "Salvando..." : "Salvar como rascunho"}
       </button>
@@ -69,7 +69,7 @@ function SubmitButtons({ isEditing }: { isEditing: boolean }) {
         name="publicar"
         value="ativa"
         disabled={pending}
-        className="inline-flex items-center gap-2 bg-black hover:bg-gray-800 disabled:opacity-50 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors"
+        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-black hover:bg-gray-800 disabled:opacity-50 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors"
       >
         {pending ? "Criando..." : "Criar e ativar"}
       </button>
@@ -261,6 +261,7 @@ export function CampanhaForm({ action, defaultValues = {}, isEditing = false }: 
       <div className="pt-2 flex items-center justify-end">
         <SubmitButtons isEditing={isEditing} />
       </div>
+
     </form>
   )
 }

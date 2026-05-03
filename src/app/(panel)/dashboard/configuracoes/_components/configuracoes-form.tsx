@@ -18,7 +18,7 @@ function SaveButton() {
     <button
       type="submit"
       disabled={pending}
-      className="inline-flex items-center gap-2 bg-black hover:bg-gray-800 disabled:opacity-50 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors"
+      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-black hover:bg-gray-800 disabled:opacity-50 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors"
     >
       {pending ? "Salvando..." : "Salvar alterações"}
     </button>
@@ -146,8 +146,8 @@ export function ConfiguracoesForm({ loja }: { loja: LojaData }) {
       <section>
         <h2 className="text-base font-semibold text-gray-900 mb-4">Endereço</h2>
         <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Logradouro</label>
               <input
                 name="logradouro"
@@ -185,8 +185,8 @@ export function ConfiguracoesForm({ loja }: { loja: LojaData }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-1">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">CEP</label>
               <input
                 name="cep"
@@ -195,7 +195,7 @@ export function ConfiguracoesForm({ loja }: { loja: LojaData }) {
                 className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
-            <div>
+            <div className="col-span-2 sm:col-span-1">
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Cidade</label>
               <input
                 name="cidade"
@@ -286,7 +286,9 @@ export function ConfiguracoesForm({ loja }: { loja: LojaData }) {
       </section>
 
       <div className="flex justify-end pt-2">
-        <SaveButton />
+        <div className="w-full sm:w-auto">
+          <SaveButton />
+        </div>
       </div>
     </form>
   )
