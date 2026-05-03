@@ -39,7 +39,7 @@ export default async function GerarLotePage({
   }))
 
   return (
-    <div className="max-w-2xl">
+    <div className="w-full">
       {/* Breadcrumb */}
       <Link
         href={
@@ -54,7 +54,7 @@ export default async function GerarLotePage({
       </Link>
 
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Gerar lote de chaves</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Gerar lote de chaves</h1>
         <p className="text-gray-500 text-sm mt-0.5">
           Cada chave recebe um código único no formato{" "}
           <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">
@@ -64,7 +64,7 @@ export default async function GerarLotePage({
         </p>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+      <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6">
         <GerarLoteForm campanhas={campanhas} campanhaIdPadrão={params.campanhaId} />
       </div>
 

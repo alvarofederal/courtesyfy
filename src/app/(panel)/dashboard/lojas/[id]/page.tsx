@@ -47,7 +47,7 @@ export default async function LojaAdminDetailPage({
   }
 
   return (
-    <div className="w-full max-w-5xl">
+    <div className="w-full">
       <Link
         href="/dashboard/lojas"
         className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors"

@@ -42,7 +42,7 @@ export default async function ConfiguracoesPage() {
   const planoCfg = PLANO_LABELS[loja.plano]
 
   return (
-    <div className="w-full max-w-4xl">
+    <div className="w-full">
       <div className="mb-8">
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Configurações</h1>
         <p className="text-gray-500 text-sm mt-0.5">Dados e identidade visual da sua loja</p>

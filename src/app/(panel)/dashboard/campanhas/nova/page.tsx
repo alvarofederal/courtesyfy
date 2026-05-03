@@ -22,7 +22,7 @@ export default async function NovaCampanhaPage() {
   const limiteBloqueado = loja?.plano === "ESSENCIAL" && totalCampanhas >= 3
 
   return (
-    <div className="max-w-2xl">
+    <div className="w-full">
       {/* Breadcrumb */}
       <Link
         href="/dashboard/campanhas"
@@ -33,7 +33,7 @@ export default async function NovaCampanhaPage() {
       </Link>
 
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Nova campanha</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Nova campanha</h1>
         <p className="text-gray-500 text-sm mt-0.5">
           Configure os detalhes da sua campanha promocional
         </p>
@@ -55,7 +55,7 @@ export default async function NovaCampanhaPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+      <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6">
         {limiteBloqueado ? (
           <p className="text-gray-500 text-sm text-center py-8">
             Faça upgrade do seu plano para criar mais campanhas.
