@@ -7,6 +7,7 @@ import {
   QrCode, Key, BarChart3, CheckCircle2, ArrowRight,
   Zap, Shield, Users, Gift, Sparkles, ChevronRight,
 } from "lucide-react"
+import { SplashScreen } from "./_components/splash-screen"
 
 /* ─── helpers ─────────────────────────────────────────────────── */
 function cn(...classes: (string | false | undefined | null)[]) {
@@ -286,6 +287,8 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen font-sans overflow-x-hidden" style={{ background: "#050505", color: "#fff" }}>
+
+      <SplashScreen />
 
       {/* ── Fundo luminoso global ── */}
       <div className="luminous-bg" aria-hidden="true">
