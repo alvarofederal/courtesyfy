@@ -1,10 +1,218 @@
 "use client"
 
-import { useActionState, useState, useTransition } from "react"
+import { useActionState, useState, useTransition, useEffect, useRef, useCallback } from "react"
 import { useFormStatus } from "react-dom"
 import { consultarChave, confirmarResgate } from "../_actions/validar-resgate"
 import type { ValidarResgateState } from "../_actions/validar-resgate"
-import { Search, CheckCircle, User, Phone, Mail } from "lucide-react"
+import { Search, CheckCircle, User, Phone, Mail, Camera, Keyboard, X, ZapOff } from "lucide-react"
+
+/* ── QR Scanner ─────────────────────────────────────────────── */
+
+type ScannerState = "idle" | "requesting" | "active" | "found" | "error"
+
+function QRScannerView({ onCode }: { onCode: (code: string) => void }) {
+  const videoRef  = useRef<HTMLVideoElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const rafRef    = useRef<number>(0)
+  const foundRef  = useRef(false)
+
+  const [state, setState]   = useState<ScannerState>("idle")
+  const [errMsg, setErrMsg] = useState("")
+
+  /* extract codigo from QR value (URL or raw code) */
+  function parseQR(raw: string): string | null {
+    // URL format: .../c/XXXX-XXXX-XXXX-XXXX  or  .../c/XXXXXXXXXXXXXXXX
+    const urlMatch = raw.match(/\/c\/([A-Z0-9-]{16,19})/i)
+    if (urlMatch) return urlMatch[1].toUpperCase()
+    // Raw code: XXXX-XXXX-XXXX-XXXX
+    const codeMatch = raw.match(/^([A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4})$/i)
+    if (codeMatch) return codeMatch[1].toUpperCase()
+    // 16-char no dashes
+    const plainMatch = raw.match(/^([A-Z0-9]{16})$/i)
+    if (plainMatch) {
+      const c = plainMatch[1].toUpperCase()
+      return `${c.slice(0,4)}-${c.slice(4,8)}-${c.slice(8,12)}-${c.slice(12,16)}`
+    }
+    return null
+  }
+
+  const stop = useCallback(() => {
+    cancelAnimationFrame(rafRef.current)
+    streamRef.current?.getTracks().forEach(t => t.stop())
+    streamRef.current = null
+  }, [])
+
+  useEffect(() => () => stop(), [stop])
+
+  async function start() {
+    if (!("BarcodeDetector" in window)) {
+      setState("error")
+      setErrMsg("Seu navegador não suporta leitura de QR por câmera. Use o Chrome ou Edge.")
+      return
+    }
+
+    setState("requesting")
+    foundRef.current = false
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment", width: { ideal: 1280 } },
+      })
+      streamRef.current = stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        await videoRef.current.play()
+      }
+      setState("active")
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const detector = new (window as any).BarcodeDetector({ formats: ["qr_code"] })
+
+      const scan = async () => {
+        if (foundRef.current) return
+        const video = videoRef.current
+        const canvas = canvasRef.current
+        if (!video || !canvas || video.readyState < 2) {
+          rafRef.current = requestAnimationFrame(scan)
+          return
+        }
+        canvas.width  = video.videoWidth
+        canvas.height = video.videoHeight
+        const ctx = canvas.getContext("2d")
+        if (!ctx) return
+
+        ctx.drawImage(video, 0, 0)
+        try {
+          const results = await detector.detect(canvas)
+          if (results.length > 0) {
+            const codigo = parseQR(results[0].rawValue)
+            if (codigo) {
+              foundRef.current = true
+              setState("found")
+              stop()
+              onCode(codigo)
+              return
+            }
+          }
+        } catch {/* ignore */}
+        rafRef.current = requestAnimationFrame(scan)
+      }
+
+      rafRef.current = requestAnimationFrame(scan)
+    } catch {
+      setState("error")
+      setErrMsg("Não foi possível acessar a câmera. Verifique as permissões.")
+    }
+  }
+
+  if (state === "idle") {
+    return (
+      <button
+        onClick={start}
+        className="w-full flex flex-col items-center justify-center gap-3 py-10 rounded-2xl border-2 border-dashed border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all group"
+      >
+        <div className="w-14 h-14 bg-gray-100 group-hover:bg-emerald-100 rounded-2xl flex items-center justify-center transition-colors">
+          <Camera className="w-7 h-7 text-gray-400 group-hover:text-emerald-600 transition-colors" />
+        </div>
+        <div className="text-center">
+          <p className="font-semibold text-gray-700 group-hover:text-emerald-700 text-sm transition-colors">
+            Iniciar câmera
+          </p>
+          <p className="text-xs text-gray-400 mt-0.5">Aponte para o QR Code da chave</p>
+        </div>
+      </button>
+    )
+  }
+
+  if (state === "requesting") {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 gap-3">
+        <div className="w-10 h-10 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-gray-500">Acessando câmera...</p>
+      </div>
+    )
+  }
+
+  if (state === "error") {
+    return (
+      <div className="rounded-2xl p-5 text-center bg-red-50 border border-red-100">
+        <ZapOff className="w-8 h-8 text-red-400 mx-auto mb-2" />
+        <p className="text-sm text-red-600 font-medium">{errMsg}</p>
+        <button
+          onClick={() => setState("idle")}
+          className="mt-3 text-xs text-red-400 hover:text-red-600 underline"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    )
+  }
+
+  if (state === "found") {
+    return (
+      <div className="flex flex-col items-center justify-center py-10 gap-3">
+        <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center">
+          <CheckCircle className="w-8 h-8 text-emerald-600" />
+        </div>
+        <p className="text-sm font-semibold text-emerald-700">QR lido com sucesso!</p>
+        <p className="text-xs text-gray-400">Buscando a chave...</p>
+      </div>
+    )
+  }
+
+  // state === "active"
+  return (
+    <div className="relative rounded-2xl overflow-hidden bg-black">
+      <video
+        ref={videoRef}
+        playsInline
+        muted
+        className="w-full block"
+        style={{ maxHeight: "280px", objectFit: "cover" }}
+      />
+      <canvas ref={canvasRef} className="hidden" />
+
+      {/* Scanning overlay */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        {/* Dark mask with hole */}
+        <div className="absolute inset-0 bg-black/40" />
+        {/* Frame */}
+        <div className="relative z-10 w-44 h-44">
+          {/* Corners */}
+          {[
+            "top-0 left-0 border-t-2 border-l-2 rounded-tl-lg",
+            "top-0 right-0 border-t-2 border-r-2 rounded-tr-lg",
+            "bottom-0 left-0 border-b-2 border-l-2 rounded-bl-lg",
+            "bottom-0 right-0 border-b-2 border-r-2 rounded-br-lg",
+          ].map((cls, i) => (
+            <div key={i} className={`absolute w-6 h-6 border-emerald-400 ${cls}`} />
+          ))}
+          {/* Scan line */}
+          <div
+            className="absolute inset-x-0 h-0.5 bg-emerald-400/80"
+            style={{ animation: "scanline 2s linear infinite" }}
+          />
+        </div>
+      </div>
+
+      {/* Bottom label */}
+      <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 py-2 text-center">
+        <p className="text-white text-xs font-medium">Aponte para o QR Code da chave</p>
+      </div>
+
+      <style>{`
+        @keyframes scanline {
+          0%   { top: 10%; }
+          50%  { top: 85%; }
+          100% { top: 10%; }
+        }
+      `}</style>
+    </div>
+  )
+}
+
+/* ── Confirm button ─────────────────────────────────────────── */
 
 function ConfirmarButton() {
   const { pending } = useFormStatus()
@@ -19,36 +227,53 @@ function ConfirmarButton() {
   )
 }
 
+/* ── Validador ──────────────────────────────────────────────── */
+
+type Modo = "digitar" | "scanner"
+
 export function Validador() {
-  const [codigoDigitado, setCodigoDigitado] = useState("")
-  const [consultaResult, setConsultaResult] = useState<ValidarResgateState | null>(null)
-  const [isPending, startTransition] = useTransition()
-  const [confirmState, confirmAction] = useActionState<ValidarResgateState, FormData>(
+  const [modo, setModo] = useState<Modo>("digitar")
+  const [codigoDigitado, setCodigoDigitado]   = useState("")
+  const [consultaResult, setConsultaResult]   = useState<ValidarResgateState | null>(null)
+  const [isPending, startTransition]          = useTransition()
+  const [confirmState, confirmAction]         = useActionState<ValidarResgateState, FormData>(
     confirmarResgate,
     {},
   )
 
   function formatarCodigo(valor: string) {
-    const limpo = valor.toUpperCase().replace(/[^A-Z0-9]/g, "")
+    const limpo  = valor.toUpperCase().replace(/[^A-Z0-9]/g, "")
     const grupos = limpo.match(/.{1,4}/g) ?? []
     return grupos.join("-").slice(0, 19)
   }
 
-  function handleBuscar() {
-    const codigo = codigoDigitado.replace(/-/g, "")
-    if (codigo.length < 16) return
+  const buscar = useCallback((codigo: string) => {
+    const limpo = codigo.replace(/-/g, "")
+    if (limpo.length < 16) return
     startTransition(async () => {
-      const result = await consultarChave(codigoDigitado)
+      const result = await consultarChave(codigo)
       setConsultaResult(result)
     })
+  }, [])
+
+  function handleBuscar() {
+    buscar(codigoDigitado)
+  }
+
+  /* QR scanner auto-fill */
+  function handleQRCode(codigo: string) {
+    setCodigoDigitado(codigo)
+    setModo("digitar") // volta pra aba de digitação mostrando o código
+    buscar(codigo)
   }
 
   function handleReset() {
     setConsultaResult(null)
     setCodigoDigitado("")
+    confirmAction // reset already handled by useActionState
   }
 
-  // Sucesso na confirmação
+  /* ── Sucesso ── */
   if (confirmState.success) {
     return (
       <div className="text-center py-8">
@@ -67,12 +292,11 @@ export function Validador() {
     )
   }
 
-  // Chave encontrada e válida — mostrar confirmação
+  /* ── Chave encontrada ── */
   if (consultaResult?.chave) {
     const ch = consultaResult.chave
     return (
       <div className="space-y-4">
-        {/* Info da chave */}
         <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
@@ -83,34 +307,27 @@ export function Validador() {
           <p className="text-xl font-bold text-emerald-700 mt-1">{ch.beneficio}</p>
         </div>
 
-        {/* Dados do cliente */}
         {(ch.clienteNome || ch.clienteTelefone || ch.clienteEmail) && (
           <div className="bg-gray-50 rounded-2xl p-4 space-y-1.5">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
-              Cliente
-            </p>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Cliente</p>
             {ch.clienteNome && (
               <div className="flex items-center gap-2 text-sm text-gray-700">
-                <User className="w-3.5 h-3.5 text-gray-400" />
-                {ch.clienteNome}
+                <User className="w-3.5 h-3.5 text-gray-400" /> {ch.clienteNome}
               </div>
             )}
             {ch.clienteTelefone && (
               <div className="flex items-center gap-2 text-sm text-gray-700">
-                <Phone className="w-3.5 h-3.5 text-gray-400" />
-                {ch.clienteTelefone}
+                <Phone className="w-3.5 h-3.5 text-gray-400" /> {ch.clienteTelefone}
               </div>
             )}
             {ch.clienteEmail && (
               <div className="flex items-center gap-2 text-sm text-gray-700">
-                <Mail className="w-3.5 h-3.5 text-gray-400" />
-                {ch.clienteEmail}
+                <Mail className="w-3.5 h-3.5 text-gray-400" /> {ch.clienteEmail}
               </div>
             )}
           </div>
         )}
 
-        {/* Formulário de confirmação */}
         <form action={confirmAction} className="space-y-3">
           <input type="hidden" name="codigo" value={ch.codigo} />
 
@@ -145,42 +362,82 @@ export function Validador() {
     )
   }
 
-  // Tela de busca
+  /* ── Busca ── */
   return (
     <div className="space-y-4">
+      {/* Tabs */}
+      <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
+        <button
+          onClick={() => setModo("digitar")}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${
+            modo === "digitar"
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          <Keyboard className="w-3.5 h-3.5" />
+          Digitar código
+        </button>
+        <button
+          onClick={() => setModo("scanner")}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${
+            modo === "scanner"
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          <Camera className="w-3.5 h-3.5" />
+          Escanear QR
+        </button>
+      </div>
+
+      {/* Error */}
       {consultaResult?.error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm text-center">
-          {consultaResult.error}
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm text-center flex items-center justify-between gap-2">
+          <span>{consultaResult.error}</span>
+          <button onClick={() => setConsultaResult(null)}>
+            <X className="w-4 h-4 text-red-400 hover:text-red-600" />
+          </button>
         </div>
       )}
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Código da chave
-        </label>
-        <input
-          type="text"
-          value={codigoDigitado}
-          onChange={(e) => setCodigoDigitado(formatarCodigo(e.target.value))}
-          onKeyDown={(e) => e.key === "Enter" && handleBuscar()}
-          placeholder="XXXX-XXXX-XXXX-XXXX"
-          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-emerald-500 text-center text-lg"
-          maxLength={19}
-          autoFocus
-        />
-        <p className="text-gray-400 text-xs mt-1 text-center">
-          Digite ou cole o código. Pressione Enter para buscar.
-        </p>
-      </div>
+      {/* Digitar */}
+      {modo === "digitar" && (
+        <div className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Código da chave
+            </label>
+            <input
+              type="text"
+              value={codigoDigitado}
+              onChange={(e) => setCodigoDigitado(formatarCodigo(e.target.value))}
+              onKeyDown={(e) => e.key === "Enter" && handleBuscar()}
+              placeholder="XXXX-XXXX-XXXX-XXXX"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-emerald-500 text-center text-lg"
+              maxLength={19}
+              autoFocus
+            />
+            <p className="text-gray-400 text-xs mt-1 text-center">
+              Digite, cole ou use a câmera. Pressione Enter para buscar.
+            </p>
+          </div>
 
-      <button
-        onClick={handleBuscar}
-        disabled={isPending || codigoDigitado.replace(/-/g, "").length < 16}
-        className="w-full bg-black hover:bg-gray-800 disabled:opacity-40 text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
-      >
-        <Search className="w-4 h-4" />
-        {isPending ? "Buscando..." : "Buscar chave"}
-      </button>
+          <button
+            onClick={handleBuscar}
+            disabled={isPending || codigoDigitado.replace(/-/g, "").length < 16}
+            className="w-full bg-black hover:bg-gray-800 disabled:opacity-40 text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+          >
+            <Search className="w-4 h-4" />
+            {isPending ? "Buscando..." : "Buscar chave"}
+          </button>
+        </div>
+      )}
+
+      {/* Scanner */}
+      {modo === "scanner" && (
+        <QRScannerView onCode={handleQRCode} />
+      )}
     </div>
   )
 }
