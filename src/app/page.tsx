@@ -397,6 +397,21 @@ export default function LandingPage() {
   const { scrollYProgress } = useScroll()
   const heroY = useTransform(scrollYProgress, [0, 0.4], ["0%", "20%"])
 
+  /* ── Headlines rotativas ── */
+  const heroHeadlines = [
+    { top: "Campanhas que",       mid: "geram resultado",    bot: "de verdade." },
+    { top: "Seu cliente carrega", mid: "sua marca",          bot: "no bolso." },
+    { top: "O card que sai",      mid: "da sua loja",        bot: "nunca para." },
+    { top: "Cortesia certa,",     mid: "cliente certo,",     bot: "na hora certa." },
+    { top: "Cada QR Code",        mid: "é um vendedor",      bot: "24h por dia." },
+    { top: "A promoção que",      mid: "vai ao bolso",       bot: "e volta ao balcão." },
+  ]
+  const [hlIdx, setHlIdx] = useState(0)
+  useEffect(() => {
+    const id = setInterval(() => setHlIdx(i => (i + 1) % heroHeadlines.length), 4500)
+    return () => clearInterval(id)
+  }, [])
+
   const features = [
     { icon: Key,       title: "Chaves que não se repetem",      desc: "Cada código gerado é único no planeta. Sem duplicata, sem reuso. Seu cliente sabe que a cortesia é exclusiva — e isso vale mais do que qualquer desconto genérico." },
     { icon: QrCode,    title: "Página de resgate com sua marca", desc: "Não é uma tela fria. É uma experiência bonita, com seu logo e identidade, no celular do cliente. O momento do resgate vira memória da sua loja." },
@@ -409,25 +424,68 @@ export default function LandingPage() {
   const plans = [
     {
       name: "Essencial",
-      price: "Grátis",
+      price: "R$ 79,90",
+      period: "/mês",
       desc: "Para começar",
       highlight: false,
-      features: ["3 campanhas ativas", "100 chaves/mês", "QR Code básico", "Página de resgate"],
+      features: ["3 campanhas ativas", "100 chaves/mês", "QR Code personalizado", "Página de resgate", "Painel de acompanhamento"],
     },
     {
       name: "Profissional",
-      price: "R$ 97",
+      price: "R$ 159,90",
       period: "/mês",
       desc: "Mais popular",
       highlight: true,
-      features: ["Campanhas ilimitadas", "5.000 chaves/mês", "Layout personalizado", "Analytics avançado", "Múltiplos operadores", "Exportação CSV"],
+      features: ["Campanhas ilimitadas", "5.000 chaves/mês", "Layout de card personalizado", "Analytics avançado por campanha", "Múltiplos operadores", "Exportação CSV"],
     },
     {
       name: "Empresarial",
-      price: "Consulta",
+      price: "Consulte",
       desc: "Para grandes redes",
       highlight: false,
-      features: ["White label", "API completa", "Multi-unidades", "SLA dedicado", "Onboarding dedicado"],
+      features: ["White label completo", "API para integração", "Multi-unidades", "SLA dedicado", "Onboarding presencial"],
+    },
+  ]
+
+  const materials = [
+    {
+      tier: "Econômica",
+      icon: Zap,
+      name: "Papel Offset 240g",
+      desc: "Alto volume, baixo custo. Ideal para entrada no sistema e campanhas de grande alcance.",
+      unitPrice: "R$ 0,50",
+      accentColor: "#10b981",
+      kits: [
+        { label: "Kit 100 peças",  price: "R$ 49,90" },
+        { label: "Kit 250 peças",  price: "R$ 109,90" },
+        { label: "Kit 500 peças",  price: "R$ 199,90" },
+      ],
+    },
+    {
+      tier: "Intermediária",
+      icon: Key,
+      name: "MDF Chaveiro 7×3,5cm",
+      desc: "Brinde funcional que o cliente guarda no chaveiro. Alta recorrência em campanhas sazonais.",
+      unitPrice: "R$ 2,50",
+      accentColor: "#f59e0b",
+      kits: [
+        { label: "Kit 10 peças",   price: "R$ 25,00" },
+        { label: "Kit 50 peças",   price: "R$ 125,00" },
+        { label: "Kit 100 peças",  price: "R$ 250,00" },
+      ],
+    },
+    {
+      tier: "Premium",
+      icon: Sparkles,
+      name: "MDF Quadrado 9×9cm",
+      desc: "Peça sublimada decorativa. Campanhas especiais, lançamentos, presentes — sua marca em destaque.",
+      unitPrice: "R$ 4,40",
+      accentColor: "#a78bfa",
+      kits: [
+        { label: "Kit 10 peças",   price: "R$ 44,00" },
+        { label: "Kit 25 peças",   price: "R$ 110,00" },
+        { label: "Kit 50 peças",   price: "R$ 220,00" },
+      ],
     },
   ]
 
@@ -485,20 +543,34 @@ export default function LandingPage() {
                 <ChevronRight className="w-3.5 h-3.5 opacity-60" />
               </motion.div>
 
-              {/* Headline */}
+              {/* Headline rotativa */}
               <motion.h1
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15, duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-                className="text-5xl md:text-6xl lg:text-[4.2rem] font-semibold leading-[1.08] tracking-tight mb-6"
+                className="text-5xl md:text-6xl lg:text-[4.2rem] font-semibold leading-[1.12] tracking-tight mb-6"
+                style={{ minHeight: "4.6em" }}
               >
-                Seu cliente carrega<br />
-                <span
-                  className="bg-clip-text text-transparent"
-                  style={{ backgroundImage: "linear-gradient(135deg, #10b981 0%, #6ee7b7 45%, #34d399 100%)" }}
-                >
-                  sua marca no bolso.
-                </span>
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={hlIdx}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -16 }}
+                    transition={{ duration: 0.42, ease: [0.23, 1, 0.32, 1] }}
+                    className="block"
+                  >
+                    {heroHeadlines[hlIdx].top}<br />
+                    <span
+                      className="bg-clip-text text-transparent"
+                      style={{ backgroundImage: "linear-gradient(135deg, #10b981 0%, #6ee7b7 45%, #34d399 100%)" }}
+                    >
+                      {heroHeadlines[hlIdx].mid}
+                    </span>
+                    <br />
+                    {heroHeadlines[hlIdx].bot}
+                  </motion.span>
+                </AnimatePresence>
               </motion.h1>
 
               {/* Sub */}
@@ -746,28 +818,40 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ═══ PLANOS ══════════════════════════════════════════════ */}
+      {/* ═══ PLANOS + MATERIAIS ══════════════════════════════════ */}
       <section id="planos" className="py-32 px-6 relative">
         <Orb className="w-[600px] h-[300px] top-1/2 right-0 -translate-y-1/2 opacity-[0.06]"
           style={{ background: "radial-gradient(ellipse, rgba(16,185,129,1), transparent 70%)" }} />
 
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
+
+          {/* ── Cabeçalho ── */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-center mb-20"
           >
-            <SectionLabel>Planos</SectionLabel>
+            <SectionLabel>Planos & Materiais</SectionLabel>
             <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mt-5 mb-4">
-              Simples. Transparente.
+              Assine a plataforma.{" "}
+              <span className="bg-clip-text text-transparent"
+                style={{ backgroundImage: "linear-gradient(90deg, #10b981, #6ee7b7)" }}>
+                Peça os cards.
+              </span>
             </h2>
-            <p className="text-lg max-w-xl mx-auto" style={{ color: "rgba(255,255,255,0.45)" }}>
-              Comece grátis. Escale quando precisar.
+            <p className="text-lg max-w-2xl mx-auto" style={{ color: "rgba(255,255,255,0.45)" }}>
+              Dois componentes, um sistema. A assinatura dá acesso à plataforma.
+              Os materiais físicos são os cards que saem da sua loja e voltam como clientes.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6 items-start">
+          {/* ── Bloco de assinatura ── */}
+          <p className="text-xs font-bold uppercase tracking-[3px] mb-6"
+            style={{ color: "#10b981" }}>
+            01 — Assinatura mensal da plataforma
+          </p>
+          <div className="grid md:grid-cols-3 gap-6 items-start mb-24">
             {plans.map((plan, i) => (
               <motion.div
                 key={i}
@@ -794,15 +878,12 @@ export default function LandingPage() {
                     Mais popular
                   </div>
                 )}
-
                 <p className="text-sm font-medium mb-1" style={{ color: "rgba(255,255,255,0.5)" }}>{plan.desc}</p>
                 <h3 className="text-xl font-semibold mb-4">{plan.name}</h3>
-
                 <div className="mb-6 flex items-end gap-1">
                   <span className="text-4xl font-bold">{plan.price}</span>
                   {plan.period && <span className="text-sm mb-1.5" style={{ color: "rgba(255,255,255,0.35)" }}>{plan.period}</span>}
                 </div>
-
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-center gap-3 text-sm">
@@ -811,7 +892,6 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
-
                 <Link
                   href="/register"
                   className="block text-center text-sm font-semibold py-3 rounded-xl transition-all hover:scale-[1.02] active:scale-95"
@@ -825,6 +905,105 @@ export default function LandingPage() {
               </motion.div>
             ))}
           </div>
+
+          {/* ── Divisor ── */}
+          <div className="flex items-center gap-6 mb-14">
+            <div className="flex-1 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(255,255,255,0.08))" }} />
+            <span className="text-xs font-bold uppercase tracking-[3px] px-4"
+              style={{ color: "rgba(255,255,255,0.25)" }}>
+              mais
+            </span>
+            <div className="flex-1 h-px" style={{ background: "linear-gradient(to left, transparent, rgba(255,255,255,0.08))" }} />
+          </div>
+
+          {/* ── Bloco de materiais ── */}
+          <p className="text-xs font-bold uppercase tracking-[3px] mb-6"
+            style={{ color: "#10b981" }}>
+            02 — Materiais físicos — o card que sai da sua loja
+          </p>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {materials.map((mat, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="glow-card glass-card rounded-2xl p-7 relative overflow-hidden"
+              >
+                {/* Tier badge */}
+                <div className="absolute top-5 right-5 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full"
+                  style={{
+                    background: `${mat.accentColor}18`,
+                    color: mat.accentColor,
+                    border: `1px solid ${mat.accentColor}35`,
+                  }}>
+                  {mat.tier}
+                </div>
+
+                {/* Icon */}
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
+                  style={{ background: `${mat.accentColor}12`, border: `1px solid ${mat.accentColor}28` }}>
+                  <mat.icon className="w-5 h-5" style={{ color: mat.accentColor }} />
+                </div>
+
+                <h3 className="text-lg font-semibold mb-2 pr-16">{mat.name}</h3>
+                <p className="text-sm leading-relaxed mb-6" style={{ color: "rgba(255,255,255,0.40)" }}>
+                  {mat.desc}
+                </p>
+
+                {/* Preço unitário */}
+                <div className="mb-5 pb-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                  <span className="text-xs uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.28)" }}>
+                    preço unitário
+                  </span>
+                  <div className="flex items-end gap-1 mt-1">
+                    <span className="text-3xl font-bold" style={{ color: mat.accentColor }}>
+                      {mat.unitPrice}
+                    </span>
+                    <span className="text-sm mb-1" style={{ color: "rgba(255,255,255,0.3)" }}>/peça</span>
+                  </div>
+                </div>
+
+                {/* Kits */}
+                <div className="space-y-2.5 mb-7">
+                  {mat.kits.map((k) => (
+                    <div key={k.label} className="flex items-center justify-between">
+                      <span className="text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>{k.label}</span>
+                      <span className="text-sm font-semibold text-white">{k.price}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* CTA */}
+                <Link
+                  href="/register"
+                  className="block text-center text-sm font-semibold py-3 rounded-xl transition-all hover:scale-[1.02] active:scale-95"
+                  style={{
+                    background: `${mat.accentColor}14`,
+                    color: mat.accentColor,
+                    border: `1px solid ${mat.accentColor}30`,
+                  }}
+                >
+                  Solicitar pedido
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Nota de rodapé */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-center text-xs mt-10"
+            style={{ color: "rgba(255,255,255,0.22)" }}
+          >
+            * Os materiais físicos são pedidos separados da assinatura e produzidos sob demanda.
+            Prazo de entrega informado no pedido.
+          </motion.p>
+
         </div>
       </section>
 
