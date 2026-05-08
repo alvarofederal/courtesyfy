@@ -20,8 +20,8 @@ function GridBg({ opacity = 0.04 }: { opacity?: number }) {
       className="absolute inset-0 pointer-events-none"
       style={{
         backgroundImage: `
-          linear-gradient(rgba(34,211,238,${opacity}) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(34,211,238,${opacity}) 1px, transparent 1px)`,
+          linear-gradient(rgba(16,185,129,${opacity}) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(16,185,129,${opacity}) 1px, transparent 1px)`,
         backgroundSize: "64px 64px",
         maskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%)",
       }}
@@ -60,20 +60,20 @@ function HeroCard() {
     >
       {/* Outer glow */}
       <div className="absolute inset-0 rounded-3xl blur-2xl"
-        style={{ background: "radial-gradient(ellipse at 50% 60%, rgba(34,211,238,0.25) 0%, transparent 70%)" }} />
+        style={{ background: "radial-gradient(ellipse at 50% 60%, rgba(16,185,129,0.25) 0%, transparent 70%)" }} />
 
       {/* Card body */}
       <div
         className="relative rounded-3xl overflow-hidden border"
         style={{
           background: "linear-gradient(135deg, #1e2023 0%, #16181b 50%, #1a1c20 100%)",
-          borderColor: "rgba(34,211,238,0.2)",
-          boxShadow: "0 0 0 1px rgba(34,211,238,0.1), 0 32px 64px -16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)",
+          borderColor: "rgba(16,185,129,0.2)",
+          boxShadow: "0 0 0 1px rgba(16,185,129,0.1), 0 32px 64px -16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)",
         }}
       >
         {/* Top accent line */}
         <div className="h-px w-full"
-          style={{ background: "linear-gradient(90deg, transparent, rgba(34,211,238,0.6), rgba(125,211,252,0.8), rgba(34,211,238,0.6), transparent)" }} />
+          style={{ background: "linear-gradient(90deg, transparent, rgba(16,185,129,0.6), rgba(110,231,183,0.8), rgba(16,185,129,0.6), transparent)" }} />
 
         <div className="p-8">
           {/* Badge */}
@@ -99,7 +99,7 @@ function HeroCard() {
                   className="font-mono text-lg font-bold tracking-wider"
                   style={{
                     color: "#e0f7ff",
-                    textShadow: "0 0 20px rgba(34,211,238,0.7), 0 0 40px rgba(34,211,238,0.3)",
+                    textShadow: "0 0 20px rgba(16,185,129,0.7), 0 0 40px rgba(16,185,129,0.3)",
                   }}
                 >
                   {code}
@@ -114,12 +114,12 @@ function HeroCard() {
             <div
               className="relative w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0"
               style={{
-                background: "rgba(34,211,238,0.06)",
-                border: "1px solid rgba(34,211,238,0.25)",
-                boxShadow: "0 0 20px rgba(34,211,238,0.15), inset 0 0 20px rgba(34,211,238,0.05)",
+                background: "rgba(16,185,129,0.06)",
+                border: "1px solid rgba(16,185,129,0.25)",
+                boxShadow: "0 0 20px rgba(16,185,129,0.15), inset 0 0 20px rgba(16,185,129,0.05)",
               }}
             >
-              <QrCode className="w-8 h-8" style={{ color: "rgba(34,211,238,0.9)" }} />
+              <QrCode className="w-8 h-8" style={{ color: "rgba(16,185,129,0.9)" }} />
             </div>
           </div>
 
@@ -127,7 +127,7 @@ function HeroCard() {
           <div className="mt-6 flex items-center justify-between">
             <span className="text-xs text-white/25 font-mono">courtesyfy.com</span>
             <span className="text-xs px-2.5 py-1 rounded-full"
-              style={{ background: "rgba(34,211,238,0.08)", color: "rgba(34,211,238,0.7)", border: "1px solid rgba(34,211,238,0.15)" }}>
+              style={{ background: "rgba(16,185,129,0.08)", color: "rgba(16,185,129,0.7)", border: "1px solid rgba(16,185,129,0.15)" }}>
               Válido • 30 dias
             </span>
           </div>
@@ -135,7 +135,7 @@ function HeroCard() {
 
         {/* Bottom accent line */}
         <div className="h-px w-full opacity-30"
-          style={{ background: "linear-gradient(90deg, transparent, rgba(34,211,238,0.4), transparent)" }} />
+          style={{ background: "linear-gradient(90deg, transparent, rgba(16,185,129,0.4), transparent)" }} />
       </div>
 
       {/* Floating stats */}
@@ -203,11 +203,11 @@ function Navbar() {
         {/* Logo */}
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: "linear-gradient(135deg, #22d3ee, #0ea5e9)", boxShadow: "0 0 16px rgba(34,211,238,0.4)" }}>
+            style={{ background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 0 16px rgba(16,185,129,0.4)" }}>
             <Key className="w-3.5 h-3.5 text-black" strokeWidth={2.5} />
           </div>
           <span className="text-white font-semibold text-lg tracking-tight">
-            Courtesy<span style={{ color: "#22d3ee" }}>fy</span>
+            Courtesy<span style={{ color: "#10b981" }}>fy</span>
           </span>
         </div>
 
@@ -228,7 +228,7 @@ function Navbar() {
           <Link
             href="/register"
             className="text-sm font-semibold px-5 py-2.5 rounded-full text-black transition-all hover:scale-105 active:scale-95"
-            style={{ background: "linear-gradient(135deg, #22d3ee, #0ea5e9)", boxShadow: "0 0 24px rgba(34,211,238,0.3)" }}
+            style={{ background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 0 24px rgba(16,185,129,0.3)" }}
           >
             Começar grátis
           </Link>
@@ -242,10 +242,10 @@ function Navbar() {
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[3px]"
-      style={{ color: "#22d3ee" }}>
-      <span className="w-6 h-px" style={{ background: "#22d3ee" }} />
+      style={{ color: "#10b981" }}>
+      <span className="w-6 h-px" style={{ background: "#10b981" }} />
       {children}
-      <span className="w-6 h-px" style={{ background: "#22d3ee" }} />
+      <span className="w-6 h-px" style={{ background: "#10b981" }} />
     </span>
   )
 }
@@ -267,9 +267,9 @@ function GlassCard({
       style={{
         background: "rgba(255,255,255,0.03)",
         backdropFilter: "blur(16px)",
-        border: `1px solid ${hover && hoverGlow ? "rgba(34,211,238,0.2)" : "rgba(255,255,255,0.07)"}`,
+        border: `1px solid ${hover && hoverGlow ? "rgba(16,185,129,0.2)" : "rgba(255,255,255,0.07)"}`,
         boxShadow: hover && hoverGlow
-          ? "0 0 0 1px rgba(34,211,238,0.1), 0 24px 48px -12px rgba(0,0,0,0.5), 0 0 40px rgba(34,211,238,0.06)"
+          ? "0 0 0 1px rgba(16,185,129,0.1), 0 24px 48px -12px rgba(0,0,0,0.5), 0 0 40px rgba(16,185,129,0.06)"
           : "0 8px 32px -8px rgba(0,0,0,0.4)",
         transform: hover ? "translateY(-4px)" : "translateY(0)",
       }}
@@ -331,11 +331,11 @@ export default function LandingPage() {
 
         {/* Glowing orbs */}
         <Orb className="w-[700px] h-[700px] -top-40 -left-40 opacity-20"
-          style={{ background: "radial-gradient(circle, rgba(34,211,238,0.35), transparent 70%)" }} />
+          style={{ background: "radial-gradient(circle, rgba(16,185,129,0.35), transparent 70%)" }} />
         <Orb className="w-[500px] h-[500px] top-1/3 right-0 opacity-15"
-          style={{ background: "radial-gradient(circle, rgba(125,211,252,0.25), transparent 70%)" }} />
+          style={{ background: "radial-gradient(circle, rgba(110,231,183,0.25), transparent 70%)" }} />
         <Orb className="w-[400px] h-[400px] bottom-0 left-1/3 opacity-10"
-          style={{ background: "radial-gradient(circle, rgba(14,165,233,0.3), transparent 70%)" }} />
+          style={{ background: "radial-gradient(circle, rgba(5,150,105,0.3), transparent 70%)" }} />
 
         <div className="max-w-7xl mx-auto px-6 pt-24 pb-16 w-full">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -348,9 +348,9 @@ export default function LandingPage() {
                 transition={{ duration: 0.6 }}
                 className="inline-flex items-center gap-2.5 rounded-full px-5 py-2 mb-8 text-sm font-medium"
                 style={{
-                  background: "rgba(34,211,238,0.08)",
-                  border: "1px solid rgba(34,211,238,0.2)",
-                  color: "#22d3ee",
+                  background: "rgba(16,185,129,0.08)",
+                  border: "1px solid rgba(16,185,129,0.2)",
+                  color: "#10b981",
                 }}
               >
                 <Sparkles className="w-3.5 h-3.5" />
@@ -368,7 +368,7 @@ export default function LandingPage() {
                 Campanhas que<br />
                 <span
                   className="bg-clip-text text-transparent"
-                  style={{ backgroundImage: "linear-gradient(135deg, #22d3ee 0%, #7dd3fc 45%, #38bdf8 100%)" }}
+                  style={{ backgroundImage: "linear-gradient(135deg, #10b981 0%, #6ee7b7 45%, #34d399 100%)" }}
                 >
                   geram resultado
                 </span>
@@ -399,8 +399,8 @@ export default function LandingPage() {
                   href="/register"
                   className="group inline-flex items-center justify-center gap-2.5 text-base font-semibold px-8 py-4 rounded-2xl text-black transition-all hover:scale-[1.03] active:scale-95"
                   style={{
-                    background: "linear-gradient(135deg, #22d3ee, #0ea5e9)",
-                    boxShadow: "0 0 32px rgba(34,211,238,0.35), 0 8px 24px rgba(0,0,0,0.3)",
+                    background: "linear-gradient(135deg, #10b981, #059669)",
+                    boxShadow: "0 0 32px rgba(16,185,129,0.35), 0 8px 24px rgba(0,0,0,0.3)",
                   }}
                 >
                   Criar conta gratuita
@@ -429,7 +429,7 @@ export default function LandingPage() {
                   { value: "< 1s", label: "Validação" },
                 ].map((s) => (
                   <div key={s.label}>
-                    <p className="text-2xl font-bold" style={{ color: "#22d3ee" }}>{s.value}</p>
+                    <p className="text-2xl font-bold" style={{ color: "#10b981" }}>{s.value}</p>
                     <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>{s.label}</p>
                   </div>
                 ))}
@@ -462,7 +462,7 @@ export default function LandingPage() {
             <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mt-5 mb-4">
               Do zero ao resgate em{" "}
               <span className="bg-clip-text text-transparent"
-                style={{ backgroundImage: "linear-gradient(90deg, #22d3ee, #7dd3fc)" }}>
+                style={{ backgroundImage: "linear-gradient(90deg, #10b981, #6ee7b7)" }}>
                 3 passos
               </span>
             </h2>
@@ -488,13 +488,13 @@ export default function LandingPage() {
                   <div className="flex items-start justify-between mb-6">
                     <span
                       className="text-[5rem] font-black leading-none select-none"
-                      style={{ color: "rgba(34,211,238,0.08)", fontVariantNumeric: "tabular-nums" }}
+                      style={{ color: "rgba(16,185,129,0.08)", fontVariantNumeric: "tabular-nums" }}
                     >
                       {item.step}
                     </span>
                     <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 mt-2"
-                      style={{ background: "rgba(34,211,238,0.1)", border: "1px solid rgba(34,211,238,0.2)" }}>
-                      <item.icon className="w-5 h-5" style={{ color: "#22d3ee" }} />
+                      style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)" }}>
+                      <item.icon className="w-5 h-5" style={{ color: "#10b981" }} />
                     </div>
                   </div>
                   <h3 className="text-xl font-semibold mb-3">{item.title}</h3>
@@ -511,7 +511,7 @@ export default function LandingPage() {
       {/* ═══ CARD SHOWCASE ══════════════════════════════════════ */}
       <section className="py-24 px-6 relative overflow-hidden">
         <Orb className="w-[800px] h-[400px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.07]"
-          style={{ background: "radial-gradient(ellipse, rgba(34,211,238,1), transparent 70%)" }} />
+          style={{ background: "radial-gradient(ellipse, rgba(16,185,129,1), transparent 70%)" }} />
 
         <div className="max-w-5xl mx-auto">
           <motion.div
@@ -532,12 +532,12 @@ export default function LandingPage() {
           {/* Cards grid demo */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
-              { bg: "#1a1a2e", accent: "#22d3ee",  label: "Tech / Digital" },
+              { bg: "#1a1a2e", accent: "#10b981",  label: "Tech / Digital" },
               { bg: "#1a0a0a", accent: "#f87171",  label: "Gastronomia" },
               { bg: "#0a1a0a", accent: "#4ade80",  label: "Mercado / Varejo" },
               { bg: "#1a1508", accent: "#fbbf24",  label: "Moda / Boutique" },
               { bg: "#0f0f1a", accent: "#a78bfa",  label: "Beleza / Estética" },
-              { bg: "#0a1520", accent: "#38bdf8",  label: "Fitness / Academia" },
+              { bg: "#0a1520", accent: "#34d399",  label: "Fitness / Academia" },
             ].map((theme, i) => (
               <motion.div
                 key={i}
@@ -604,8 +604,8 @@ export default function LandingPage() {
               >
                 <GlassCard className="p-7 h-full">
                   <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-5"
-                    style={{ background: "rgba(34,211,238,0.08)", border: "1px solid rgba(34,211,238,0.15)" }}>
-                    <feat.icon className="w-5 h-5" style={{ color: "#22d3ee" }} />
+                    style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.15)" }}>
+                    <feat.icon className="w-5 h-5" style={{ color: "#10b981" }} />
                   </div>
                   <h3 className="text-base font-semibold mb-2">{feat.title}</h3>
                   <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.45)" }}>
@@ -621,7 +621,7 @@ export default function LandingPage() {
       {/* ═══ PLANOS ══════════════════════════════════════════════ */}
       <section id="planos" className="py-32 px-6 relative">
         <Orb className="w-[600px] h-[300px] top-1/2 right-0 -translate-y-1/2 opacity-[0.06]"
-          style={{ background: "radial-gradient(ellipse, rgba(34,211,238,1), transparent 70%)" }} />
+          style={{ background: "radial-gradient(ellipse, rgba(16,185,129,1), transparent 70%)" }} />
 
         <div className="max-w-5xl mx-auto">
           <motion.div
@@ -650,19 +650,19 @@ export default function LandingPage() {
                 className={cn("relative rounded-2xl p-8 transition-all duration-300", plan.highlight && "md:-translate-y-4")}
                 style={{
                   background: plan.highlight
-                    ? "linear-gradient(135deg, rgba(34,211,238,0.12) 0%, rgba(14,165,233,0.08) 100%)"
+                    ? "linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(5,150,105,0.08) 100%)"
                     : "rgba(255,255,255,0.03)",
                   border: plan.highlight
-                    ? "1px solid rgba(34,211,238,0.35)"
+                    ? "1px solid rgba(16,185,129,0.35)"
                     : "1px solid rgba(255,255,255,0.07)",
                   boxShadow: plan.highlight
-                    ? "0 0 40px rgba(34,211,238,0.12), 0 24px 48px -12px rgba(0,0,0,0.5)"
+                    ? "0 0 40px rgba(16,185,129,0.12), 0 24px 48px -12px rgba(0,0,0,0.5)"
                     : "none",
                 }}
               >
                 {plan.highlight && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-xs font-bold uppercase tracking-widest px-4 py-1 rounded-full text-black"
-                    style={{ background: "linear-gradient(135deg, #22d3ee, #0ea5e9)" }}>
+                    style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}>
                     Mais popular
                   </div>
                 )}
@@ -678,7 +678,7 @@ export default function LandingPage() {
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-center gap-3 text-sm">
-                      <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: "#22d3ee" }} />
+                      <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: "#10b981" }} />
                       <span style={{ color: "rgba(255,255,255,0.65)" }}>{f}</span>
                     </li>
                   ))}
@@ -688,7 +688,7 @@ export default function LandingPage() {
                   href="/register"
                   className="block text-center text-sm font-semibold py-3 rounded-xl transition-all hover:scale-[1.02] active:scale-95"
                   style={plan.highlight
-                    ? { background: "linear-gradient(135deg, #22d3ee, #0ea5e9)", color: "#000", boxShadow: "0 0 20px rgba(34,211,238,0.3)" }
+                    ? { background: "linear-gradient(135deg, #10b981, #059669)", color: "#000", boxShadow: "0 0 20px rgba(16,185,129,0.3)" }
                     : { background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.8)", border: "1px solid rgba(255,255,255,0.1)" }
                   }
                 >
@@ -704,7 +704,7 @@ export default function LandingPage() {
       <section className="py-32 px-6 relative overflow-hidden">
         <GridBg opacity={0.05} />
         <Orb className="w-[800px] h-[400px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.12]"
-          style={{ background: "radial-gradient(ellipse, rgba(34,211,238,1), transparent 65%)" }} />
+          style={{ background: "radial-gradient(ellipse, rgba(16,185,129,1), transparent 65%)" }} />
 
         <div className="max-w-3xl mx-auto text-center relative z-10">
           <motion.div
@@ -716,7 +716,7 @@ export default function LandingPage() {
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight mt-6 mb-6">
               Transforme suas promoções<br />em{" "}
               <span className="bg-clip-text text-transparent"
-                style={{ backgroundImage: "linear-gradient(135deg, #22d3ee, #7dd3fc, #38bdf8)" }}>
+                style={{ backgroundImage: "linear-gradient(135deg, #10b981, #6ee7b7, #34d399)" }}>
                 resultados reais
               </span>
             </h2>
@@ -727,8 +727,8 @@ export default function LandingPage() {
               href="/register"
               className="group inline-flex items-center gap-3 text-base font-semibold px-10 py-5 rounded-2xl text-black transition-all hover:scale-[1.04] active:scale-95"
               style={{
-                background: "linear-gradient(135deg, #22d3ee, #0ea5e9)",
-                boxShadow: "0 0 48px rgba(34,211,238,0.4), 0 16px 32px rgba(0,0,0,0.4)",
+                background: "linear-gradient(135deg, #10b981, #059669)",
+                boxShadow: "0 0 48px rgba(16,185,129,0.4), 0 16px 32px rgba(0,0,0,0.4)",
               }}
             >
               Criar minha primeira campanha
@@ -743,11 +743,11 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2.5">
             <div className="w-6 h-6 rounded-md flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, #22d3ee, #0ea5e9)" }}>
+              style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}>
               <Key className="w-3 h-3 text-black" strokeWidth={2.5} />
             </div>
             <span className="font-semibold text-white/80">
-              Courtesy<span style={{ color: "#22d3ee" }}>fy</span>
+              Courtesy<span style={{ color: "#10b981" }}>fy</span>
             </span>
           </div>
 
