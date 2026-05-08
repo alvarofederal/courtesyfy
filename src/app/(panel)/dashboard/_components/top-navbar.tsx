@@ -109,11 +109,11 @@ export function TopNavbar({ userName, userEmail, role, onMenuClick }: TopNavbarP
   }
 
   return (
-    <header className="h-14 bg-white border-b border-gray-200 flex items-center px-4 gap-3 flex-shrink-0 z-30">
+    <header className="h-14 dash-header flex items-center px-4 gap-3 flex-shrink-0 z-30">
       {/* Hamburger (mobile) */}
       <button
         onClick={onMenuClick}
-        className="lg:hidden p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+        className="lg:hidden p-2 rounded-lg text-gray-500 dark:text-white/50 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
         aria-label="Abrir menu"
       >
         <Menu className="w-5 h-5" />
@@ -136,7 +136,7 @@ export function TopNavbar({ userName, userEmail, role, onMenuClick }: TopNavbarP
       <div className="relative" ref={bellRef}>
         <button
           onClick={openBell}
-          className="relative p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+          className="relative p-2 rounded-lg text-gray-500 dark:text-white/50 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
           aria-label="Notificações"
         >
           <Bell className="w-5 h-5" />
@@ -148,10 +148,10 @@ export function TopNavbar({ userName, userEmail, role, onMenuClick }: TopNavbarP
         </button>
 
         {bellOpen && (
-          <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-              <span className="text-sm font-semibold text-gray-900">Notificações</span>
-              <button onClick={() => setBellOpen(false)} className="text-gray-400 hover:text-gray-600">
+          <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-[#0d0d0d] rounded-xl shadow-lg border border-gray-200 dark:border-white/10 overflow-hidden z-50">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-white/[0.06]">
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">Notificações</span>
+              <button onClick={() => setBellOpen(false)} className="text-gray-400 dark:text-white/40 hover:text-gray-600 dark:hover:text-white">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -185,7 +185,7 @@ export function TopNavbar({ userName, userEmail, role, onMenuClick }: TopNavbarP
                 ))
               )}
             </div>
-            <div className="px-4 py-2.5 border-t border-gray-100">
+            <div className="px-4 py-2.5 border-t border-gray-100 dark:border-white/[0.06]">
               <Link
                 href="/dashboard/campanhas"
                 onClick={() => setBellOpen(false)}
@@ -202,30 +202,30 @@ export function TopNavbar({ userName, userEmail, role, onMenuClick }: TopNavbarP
       <div className="relative" ref={profileRef}>
         <button
           onClick={openProfile}
-          className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+          className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
           aria-label="Perfil"
         >
           <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
             <span className="text-white text-xs font-bold">{initial}</span>
           </div>
-          <span className="hidden sm:block text-sm font-medium text-gray-700 max-w-[120px] truncate">
+          <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-white/80 max-w-[120px] truncate">
             {displayName}
           </span>
           <ChevronDown className="hidden sm:block w-3.5 h-3.5 text-gray-400" />
         </button>
 
         {profileOpen && (
-          <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50">
+          <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-[#0d0d0d] rounded-xl shadow-lg border border-gray-200 dark:border-white/10 overflow-hidden z-50">
             {/* User info */}
-            <div className="px-4 py-4 border-b border-gray-100">
+            <div className="px-4 py-4 border-b border-gray-100 dark:border-white/[0.06]">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
                   <span className="text-white text-sm font-bold">{initial}</span>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{displayName}</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{displayName}</p>
                   {userEmail && (
-                    <p className="text-xs text-gray-400 truncate">{userEmail}</p>
+                    <p className="text-xs text-gray-400 dark:text-white/40 truncate">{userEmail}</p>
                   )}
                   <span
                     className={`inline-block mt-1 text-xs px-2 py-0.5 rounded-full font-medium ${
@@ -245,17 +245,17 @@ export function TopNavbar({ userName, userEmail, role, onMenuClick }: TopNavbarP
               <Link
                 href="/dashboard/configuracoes"
                 onClick={() => setProfileOpen(false)}
-                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
               >
                 <Settings className="w-4 h-4 text-gray-400" />
                 Configurações
               </Link>
             </div>
 
-            <div className="border-t border-gray-100 py-1.5">
+            <div className="border-t border-gray-100 dark:border-white/[0.06] py-1.5">
               <button
                 onClick={() => signOut({ callbackUrl: "/login" })}
-                className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors w-full"
+                className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors w-full"
               >
                 <LogOut className="w-4 h-4" />
                 Sair da conta

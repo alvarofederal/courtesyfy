@@ -185,7 +185,7 @@ export function AppShell({ role, userName, userEmail, children }: AppShellProps)
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden dash-bg">
       {/* ─── Desktop sidebar ─── */}
       <aside className="hidden lg:flex w-60 bg-black flex-col flex-shrink-0">
         <SidebarContent {...sharedProps} />
@@ -221,7 +221,7 @@ export function AppShell({ role, userName, userEmail, children }: AppShellProps)
         />
 
         {/* Main scrollable content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 dash-bg">
           {children}
         </main>
       </div>
