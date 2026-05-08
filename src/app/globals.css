@@ -896,7 +896,13 @@ select:focus {
   /* sem overflow:hidden — glow/textShadow livre */
 }
 
-/* Faixa de vidro que desliza sobre as letras */
+/*
+ * Ciclo de 10s:
+ *   0-3s   → pass 1: luz desliza pelo nome todo (Courtesy + fy)
+ *   5-8s   → pass 2: glow verde pulsa apenas no "fy" (via .logo-fy-pulse)
+ */
+
+/* Pass 1 — faixa de vidro que percorre todo o nome */
 .logo-shine::after {
   content: '';
   position: absolute;
@@ -911,15 +917,47 @@ select:focus {
     transparent 90%
   );
   transform: skewX(-14deg);
-  animation: logo-glass 5s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+  animation: logo-glass 10s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
   pointer-events: none;
-  /* Chave: só afeta pixels claros (letras), não o fundo escuro */
   mix-blend-mode: overlay;
 }
 
 @keyframes logo-glass {
+  /* Sweep rápido nos primeiros 30% do ciclo */
   0%   { left: -90%; opacity: 0; }
-  6%   { opacity: 1; }
-  40%  { left: 170%; opacity: 0; }
+  3%   { opacity: 1; }
+  28%  { left: 170%; opacity: 0; }
   100% { left: 170%; opacity: 0; }
+}
+
+/* Pass 2 — glow verde exclusivo do "fy", começa no meio do ciclo */
+.logo-fy-pulse {
+  text-shadow: 0 0 14px rgba(16, 185, 129, 0.40);
+  animation: fy-glow-pulse 10s ease-in-out infinite;
+}
+
+@keyframes fy-glow-pulse {
+  /* Silêncio — textShadow base */
+  0%, 46%, 100% {
+    text-shadow: 0 0 14px rgba(16, 185, 129, 0.40);
+  }
+  /* Começa a acender suavemente */
+  52% {
+    text-shadow:
+      0 0 16px rgba(52,  211, 153, 0.9),
+      0 0 35px rgba(16,  185, 129, 0.7),
+      0 0 70px rgba(16,  185, 129, 0.4);
+  }
+  /* Pico máximo do brilho */
+  56% {
+    text-shadow:
+      0 0 20px rgba(110, 231, 183, 1),
+      0 0 45px rgba(52,  211, 153, 0.85),
+      0 0 90px rgba(16,  185, 129, 0.55),
+      0 0 140px rgba(16, 185, 129, 0.25);
+  }
+  /* Apaga suavemente */
+  64% {
+    text-shadow: 0 0 14px rgba(16, 185, 129, 0.40);
+  }
 }

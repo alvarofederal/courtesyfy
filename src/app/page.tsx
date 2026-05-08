@@ -63,12 +63,14 @@ function LightningBolt() {
           preserveAspectRatio="xMidYMin meet"
         >
           <defs>
-            {/* Bloom em 3 camadas: glow exterior suave → mid → core nítido */}
-            <filter id="bolt-bloom" x="-90%" y="-5%" width="280%" height="115%">
-              <feGaussianBlur stdDeviation="28" result="b3" in="SourceGraphic"/>
-              <feGaussianBlur stdDeviation="10" result="b2" in="SourceGraphic"/>
-              <feGaussianBlur stdDeviation="3"  result="b1" in="SourceGraphic"/>
+            {/* Bloom em 4 camadas: corona gigante → glow suave → mid → core nítido */}
+            <filter id="bolt-bloom" x="-120%" y="-5%" width="340%" height="115%">
+              <feGaussianBlur stdDeviation="50" result="b4" in="SourceGraphic"/>
+              <feGaussianBlur stdDeviation="22" result="b3" in="SourceGraphic"/>
+              <feGaussianBlur stdDeviation="8"  result="b2" in="SourceGraphic"/>
+              <feGaussianBlur stdDeviation="2"  result="b1" in="SourceGraphic"/>
               <feMerge>
+                <feMergeNode in="b4"/>
                 <feMergeNode in="b3"/>
                 <feMergeNode in="b2"/>
                 <feMergeNode in="b1"/>
@@ -79,68 +81,100 @@ function LightningBolt() {
 
           {/* ── Grupo principal com bloom ── */}
           <g filter="url(#bolt-bloom)" className="bolt-group">
-            {/* Halo externo no tronco — linha grossa e translúcida */}
+
+            {/* === TRONCO PRINCIPAL === */}
+            {/* Corona externa — muito grossa, muito suave */}
             <path
-              d="M400,0 L383,66 L417,66 L391,162 L427,162 L400,278 L438,278 L403,396 L434,468 L406,568"
-              stroke="rgba(180,255,215,0.32)" strokeWidth="10"
+              d="M400,0 L383,66 L417,66 L391,162 L427,162 L400,278 L438,278 L403,396 L434,468 L406,585"
+              stroke="rgba(200,255,225,0.18)" strokeWidth="20"
               strokeLinecap="round" strokeLinejoin="round"
             />
-            {/* Core branco do tronco — linha fina e brilhante */}
+            {/* Halo externo */}
             <path
-              d="M400,0 L383,66 L417,66 L391,162 L427,162 L400,278 L438,278 L403,396 L434,468 L406,568"
-              stroke="white" strokeWidth="1.8"
+              d="M400,0 L383,66 L417,66 L391,162 L427,162 L400,278 L438,278 L403,396 L434,468 L406,585"
+              stroke="rgba(180,255,215,0.50)" strokeWidth="10"
               strokeLinecap="round" strokeLinejoin="round"
             />
-            {/* Galho direito superior — nasce em 427,162 */}
+            {/* Core branco */}
             <path
-              d="M427,162 L471,244 L507,362 L526,455"
-              stroke="rgba(180,255,215,0.28)" strokeWidth="7"
+              d="M400,0 L383,66 L417,66 L391,162 L427,162 L400,278 L438,278 L403,396 L434,468 L406,585"
+              stroke="white" strokeWidth="2.2"
               strokeLinecap="round" strokeLinejoin="round"
             />
+
+            {/* === GALHO DIREITO SUPERIOR — mais longo e aberto === */}
             <path
-              d="M427,162 L471,244 L507,362 L526,455"
-              stroke="white" strokeWidth="1.2"
-              strokeLinecap="round" strokeLinejoin="round" opacity="0.8"
-            />
-            {/* Galho esquerdo médio — nasce em 438,278 */}
-            <path
-              d="M438,278 L380,355 L342,452 L314,545"
-              stroke="rgba(180,255,215,0.22)" strokeWidth="6"
+              d="M427,162 L478,252 L522,382 L558,490 L574,578"
+              stroke="rgba(200,255,225,0.16)" strokeWidth="16"
               strokeLinecap="round" strokeLinejoin="round"
             />
             <path
-              d="M438,278 L380,355 L342,452 L314,545"
-              stroke="white" strokeWidth="1"
-              strokeLinecap="round" strokeLinejoin="round" opacity="0.72"
+              d="M427,162 L478,252 L522,382 L558,490 L574,578"
+              stroke="rgba(180,255,215,0.42)" strokeWidth="9"
+              strokeLinecap="round" strokeLinejoin="round"
             />
-            {/* Espalhamento esquerdo — nasce em 403,396 */}
             <path
-              d="M403,396 L357,458 L320,538 L290,615"
-              stroke="white" strokeWidth="0.9"
-              strokeLinecap="round" strokeLinejoin="round" opacity="0.5"
+              d="M427,162 L478,252 L522,382 L558,490 L574,578"
+              stroke="white" strokeWidth="1.5"
+              strokeLinecap="round" strokeLinejoin="round" opacity="0.85"
             />
-            {/* Espalhamento direito — nasce em 434,468 */}
+
+            {/* === GALHO ESQUERDO MÉDIO — mais longo e aberto === */}
             <path
-              d="M434,468 L476,528 L502,598"
-              stroke="white" strokeWidth="0.9"
-              strokeLinecap="round" strokeLinejoin="round" opacity="0.45"
+              d="M438,278 L372,362 L326,470 L282,582 L252,648"
+              stroke="rgba(200,255,225,0.14)" strokeWidth="14"
+              strokeLinecap="round" strokeLinejoin="round"
             />
-            {/* Sub-galho direito — nasce em 507,362 */}
-            <path d="M507,362 L538,422" stroke="white" strokeWidth="0.7" strokeLinecap="round" opacity="0.5"/>
-            {/* Sub-galho esquerdo — nasce em 380,355 */}
-            <path d="M380,355 L340,412" stroke="white" strokeWidth="0.7" strokeLinecap="round" opacity="0.45"/>
-            {/* Mini galho — nasce em 471,244 */}
-            <path d="M471,244 L508,298 L524,368" stroke="white" strokeWidth="0.6" strokeLinecap="round" opacity="0.38"/>
-            {/* Mini galho — nasce em 342,452 */}
-            <path d="M342,452 L308,508" stroke="white" strokeWidth="0.6" strokeLinecap="round" opacity="0.35"/>
+            <path
+              d="M438,278 L372,362 L326,470 L282,582 L252,648"
+              stroke="rgba(180,255,215,0.36)" strokeWidth="8"
+              strokeLinecap="round" strokeLinejoin="round"
+            />
+            <path
+              d="M438,278 L372,362 L326,470 L282,582 L252,648"
+              stroke="white" strokeWidth="1.3"
+              strokeLinecap="round" strokeLinejoin="round" opacity="0.78"
+            />
+
+            {/* === ESPALHAMENTO ESQUERDO (nasce em 403,396) — mais longe === */}
+            <path
+              d="M403,396 L344,470 L295,558 L258,645"
+              stroke="white" strokeWidth="1.1"
+              strokeLinecap="round" strokeLinejoin="round" opacity="0.55"
+            />
+
+            {/* === ESPALHAMENTO DIREITO (nasce em 434,468) — mais longe === */}
+            <path
+              d="M434,468 L485,548 L518,632"
+              stroke="white" strokeWidth="1.1"
+              strokeLinecap="round" strokeLinejoin="round" opacity="0.50"
+            />
+
+            {/* Sub-galho direito de 522,382 */}
+            <path d="M522,382 L556,448 L568,525" stroke="white" strokeWidth="0.9" strokeLinecap="round" opacity="0.55"/>
+
+            {/* Sub-galho esquerdo de 372,362 */}
+            <path d="M372,362 L328,425 L302,498" stroke="white" strokeWidth="0.9" strokeLinecap="round" opacity="0.50"/>
+
+            {/* Mini galho direito de 478,252 */}
+            <path d="M478,252 L518,312 L538,395" stroke="white" strokeWidth="0.7" strokeLinecap="round" opacity="0.42"/>
+
+            {/* Mini galho esquerdo de 326,470 */}
+            <path d="M326,470 L288,530" stroke="white" strokeWidth="0.7" strokeLinecap="round" opacity="0.38"/>
+
+            {/* Mini galho extra direito de 558,490 */}
+            <path d="M558,490 L592,548" stroke="white" strokeWidth="0.6" strokeLinecap="round" opacity="0.32"/>
+
+            {/* Mini galho extra esquerdo de 282,582 */}
+            <path d="M282,582 L244,638" stroke="white" strokeWidth="0.6" strokeLinecap="round" opacity="0.30"/>
           </g>
 
-          {/* Brilho de impacto — halo oval na base do raio */}
+          {/* Brilho de impacto — halo oval maior na base */}
           <ellipse
-            cx="418" cy="568" rx="130" ry="22"
-            fill="rgba(255,255,255,0.14)"
+            cx="418" cy="585" rx="200" ry="32"
+            fill="rgba(255,255,255,0.20)"
             className="bolt-impact"
-            style={{ filter: "blur(14px)" }}
+            style={{ filter: "blur(18px)" }}
           />
         </svg>
       </div>
@@ -293,7 +327,7 @@ function Navbar() {
       }}
     >
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        {/* Logo */}
+        {/* Logo — pass 1: luz desliza pelo nome todo; pass 2: glow verde só no "fy" */}
         <span
           className="logo-shine font-bold tracking-tight select-none"
           style={{
@@ -302,7 +336,7 @@ function Navbar() {
           }}
         >
           <span style={{ color: "#ffffff" }}>Courtesy</span>
-          <span style={{ color: "#10b981", textShadow: "0 0 16px rgba(16,185,129,0.55)" }}>fy</span>
+          <span className="logo-fy-pulse" style={{ color: "#10b981" }}>fy</span>
         </span>
 
         {/* Nav links */}
