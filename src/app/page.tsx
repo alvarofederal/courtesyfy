@@ -398,12 +398,12 @@ export default function LandingPage() {
   const heroY = useTransform(scrollYProgress, [0, 0.4], ["0%", "20%"])
 
   const features = [
-    { icon: Key,      title: "Chaves Únicas",         desc: "Cada chave é única, verificada criptograficamente. Zero duplicatas, zero fraudes." },
-    { icon: QrCode,   title: "QR Code Inteligente",   desc: "Geração automática de QR codes com página de resgate personalizada para cada loja." },
-    { icon: Shield,   title: "Anti-fraude em Tempo Real", desc: "Validação instantânea via scan ou digitação. Sistema bloqueia tentativas de reuso." },
-    { icon: BarChart3,title: "Analytics Detalhado",   desc: "Taxa de ativação, conversão e ROI por campanha. Dados em tempo real." },
-    { icon: Users,    title: "Múltiplos Operadores",  desc: "Adicione sua equipe com permissões granulares. Cada um acessa só o que precisa." },
-    { icon: Gift,     title: "Tipos de Benefício",    desc: "Desconto %, fixo, brinde, sorteio, frete grátis ou cashback. Total flexibilidade." },
+    { icon: Key,       title: "Chaves que não se repetem",      desc: "Cada código gerado é único no planeta. Sem duplicata, sem reuso. Seu cliente sabe que a cortesia é exclusiva — e isso vale mais do que qualquer desconto genérico." },
+    { icon: QrCode,    title: "Página de resgate com sua marca", desc: "Não é uma tela fria. É uma experiência bonita, com seu logo e identidade, no celular do cliente. O momento do resgate vira memória da sua loja." },
+    { icon: Shield,    title: "Anti-fraude no balcão",           desc: "Validação em menos de 1 segundo via scan ou código digitado. Chave já usada? Bloqueada na hora. Sua promoção não vira bagunça." },
+    { icon: BarChart3, title: "Você vê tudo, em tempo real",    desc: "Quantas cortesias saíram, quantas foram resgatadas, por quem e quando. ROI de cada campanha direto no painel — sem planilha, sem achismo." },
+    { icon: Users,     title: "Sua equipe no lugar certo",      desc: "Operador só valida. Gerente acompanha relatórios. Dono controla tudo. Permissões por função — cada um acessa só o que precisa." },
+    { icon: Gift,      title: "Benefício do jeito que você faz", desc: "Desconto em %, valor fixo, brinde, frete grátis, cashback ou sorteio. A mecânica da campanha é sua — a tecnologia é nossa." },
   ]
 
   const plans = [
@@ -481,7 +481,7 @@ export default function LandingPage() {
                 }}
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                Plataforma de Cortesias para Lojistas
+                O card que sai da sua loja nunca para de trabalhar
                 <ChevronRight className="w-3.5 h-3.5 opacity-60" />
               </motion.div>
 
@@ -492,15 +492,13 @@ export default function LandingPage() {
                 transition={{ delay: 0.15, duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
                 className="text-5xl md:text-6xl lg:text-[4.2rem] font-semibold leading-[1.08] tracking-tight mb-6"
               >
-                Campanhas que<br />
+                Seu cliente carrega<br />
                 <span
                   className="bg-clip-text text-transparent"
                   style={{ backgroundImage: "linear-gradient(135deg, #10b981 0%, #6ee7b7 45%, #34d399 100%)" }}
                 >
-                  geram resultado
+                  sua marca no bolso.
                 </span>
-                <br />
-                de verdade.
               </motion.h1>
 
               {/* Sub */}
@@ -511,8 +509,9 @@ export default function LandingPage() {
                 className="text-lg md:text-xl leading-relaxed mb-10 max-w-xl"
                 style={{ color: "rgba(255,255,255,0.55)" }}
               >
-                Crie campanhas com chaves únicas e QR Codes inteligentes.
-                Distribua, valide e acompanhe em tempo real — tudo em um só lugar.
+                Crie campanhas de cortesia com chaves únicas e QR Codes exclusivos.
+                Cada card impresso vira propaganda ambulante — quando o cliente escaneia,
+                vive uma experiência premium com a sua marca e você vê cada resgate em tempo real.
               </motion.p>
 
               {/* CTAs */}
@@ -551,9 +550,9 @@ export default function LandingPage() {
                 style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
               >
                 {[
-                  { value: "50K+", label: "Chaves geradas" },
-                  { value: "94%", label: "Taxa de resgate" },
-                  { value: "< 1s", label: "Validação" },
+                  { value: "50K+", label: "Cortesias distribuídas" },
+                  { value: "94%",  label: "Taxa de resgate" },
+                  { value: "< 1s", label: "Validação no balcão" },
                 ].map((s) => (
                   <div key={s.label}>
                     <p className="text-2xl font-bold" style={{ color: "#10b981" }}>{s.value}</p>
@@ -587,22 +586,22 @@ export default function LandingPage() {
           >
             <SectionLabel>Como funciona</SectionLabel>
             <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mt-5 mb-4">
-              Do zero ao resgate em{" "}
+              Da campanha ao resgate em{" "}
               <span className="bg-clip-text text-transparent"
                 style={{ backgroundImage: "linear-gradient(90deg, #10b981, #6ee7b7)" }}>
                 3 passos
               </span>
             </h2>
             <p className="text-lg max-w-xl mx-auto" style={{ color: "rgba(255,255,255,0.45)" }}>
-              Simples para o lojista, premium para o cliente.
+              Simples pra você configurar. Premium pra seu cliente viver.
             </p>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { step: "01", icon: Key,          title: "Crie a campanha",      desc: "Configure benefícios, quantidade de chaves, validade e layout de impressão personalizado." },
-              { step: "02", icon: QrCode,       title: "Distribua os cards",   desc: "Imprima os cards com QR Code único. O cliente escaneia e ativa no próprio celular." },
-              { step: "03", icon: CheckCircle2, title: "Valide em tempo real", desc: "O operador escaneia ou digita o código. Resgate registrado instantaneamente." },
+              { step: "01", icon: Key,          title: "Crie sua campanha",         desc: "Defina o benefício — desconto, brinde, cashback ou sorteio. Escolha quantas chaves quer gerar e por quanto tempo a campanha fica ativa." },
+              { step: "02", icon: QrCode,       title: "O card vai para o mundo",   desc: "Imprima os cards com seu layout e QR Code exclusivo. Distribua no balcão, via WhatsApp ou em panfletos. Cada card é uma propaganda ambulante com rastreamento próprio." },
+              { step: "03", icon: CheckCircle2, title: "Cliente escaneia. Você converte.", desc: "O cliente cai numa página de resgate bonita, com a sua marca. Valide no balcão em menos de 1 segundo. Código já usado? Bloqueado na hora. Tudo registrado no seu painel." },
             ].map((item, i) => (
               <motion.div
                 key={i}
@@ -647,24 +646,25 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <SectionLabel>Design Premium</SectionLabel>
+            <SectionLabel>Propaganda Ambulante</SectionLabel>
             <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mt-5 mb-4">
-              Cards que impressionam
+              Um card que trabalha<br />mesmo quando você não está.
             </h2>
-            <p className="text-lg max-w-xl mx-auto" style={{ color: "rgba(255,255,255,0.45)" }}>
-              Personalize cores, imagens e layout. Imprima em cartão ou MDF sublimação.
+            <p className="text-lg max-w-2xl mx-auto" style={{ color: "rgba(255,255,255,0.45)" }}>
+              Seu cliente recebe o card, leva pra casa, mostra pra amigos, escaneia na hora que quiser.
+              Cada QR Code carrega sua marca, sua campanha e — quando resgatado — traz o cliente de volta ao seu negócio.
             </p>
           </motion.div>
 
           {/* Cards grid demo */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
-              { bg: "#1a1a2e", accent: "#10b981",  label: "Tech / Digital" },
-              { bg: "#1a0a0a", accent: "#f87171",  label: "Gastronomia" },
-              { bg: "#0a1a0a", accent: "#4ade80",  label: "Mercado / Varejo" },
-              { bg: "#1a1508", accent: "#fbbf24",  label: "Moda / Boutique" },
-              { bg: "#0f0f1a", accent: "#a78bfa",  label: "Beleza / Estética" },
-              { bg: "#0a1520", accent: "#34d399",  label: "Fitness / Academia" },
+              { bg: "#1a1a2e", accent: "#10b981",  label: "30% off na próxima compra" },
+              { bg: "#1a0a0a", accent: "#f87171",  label: "Sobremesa grátis" },
+              { bg: "#0a1a0a", accent: "#4ade80",  label: "Frete grátis no pedido" },
+              { bg: "#1a1508", accent: "#fbbf24",  label: "Brinde exclusivo" },
+              { bg: "#0f0f1a", accent: "#a78bfa",  label: "1 serviço grátis" },
+              { bg: "#0a1520", accent: "#34d399",  label: "Cashback R$ 20" },
             ].map((theme, i) => (
               <motion.div
                 key={i}
@@ -713,10 +713,11 @@ export default function LandingPage() {
           >
             <SectionLabel>Recursos</SectionLabel>
             <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mt-5 mb-4">
-              Tudo que sua operação precisa
+              Tudo para sua campanha<br />ser levada a sério.
             </h2>
             <p className="text-lg max-w-xl mx-auto" style={{ color: "rgba(255,255,255,0.45)" }}>
-              Uma plataforma completa. Do lojista pequeno à grande rede.
+              Do lojista independente à rede com dezenas de lojas.
+              Cada detalhe pensado para que a cortesia vire resultado.
             </p>
           </motion.div>
 
@@ -855,16 +856,17 @@ export default function LandingPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <SectionLabel>Pronto para começar?</SectionLabel>
+            <SectionLabel>Comece agora</SectionLabel>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight mt-6 mb-6">
-              Transforme suas promoções<br />em{" "}
+              Seu próximo cliente já está<br />esperando{" "}
               <span className="bg-clip-text text-transparent"
                 style={{ backgroundImage: "linear-gradient(135deg, #10b981, #6ee7b7, #34d399)" }}>
-                resultados reais
+                sua cortesia.
               </span>
             </h2>
             <p className="text-lg mb-10" style={{ color: "rgba(255,255,255,0.45)" }}>
-              Crie sua conta gratuitamente. Nenhum cartão necessário.
+              Crie sua primeira campanha em minutos. Grátis, sem cartão, sem complicação.<br />
+              O card sai impresso. O cliente escaneia. Você vê tudo acontecer.
             </p>
             <Link
               href="/register"
@@ -884,15 +886,16 @@ export default function LandingPage() {
       {/* ═══ FOOTER ══════════════════════════════════════════════ */}
       <footer className="py-12 px-6" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 rounded-md flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}>
-              <Key className="w-3 h-3 text-black" strokeWidth={2.5} />
-            </div>
-            <span className="font-semibold text-white/80">
-              Courtesy<span style={{ color: "#10b981" }}>fy</span>
-            </span>
-          </div>
+          <span
+            className="logo-shine font-bold select-none"
+            style={{
+              fontFamily: "var(--font-open-sans), 'Open Sans', sans-serif",
+              fontSize: "18px",
+            }}
+          >
+            <span style={{ color: "rgba(255,255,255,0.8)" }}>Courtesy</span>
+            <span className="logo-fy-pulse" style={{ color: "#10b981" }}>fy</span>
+          </span>
 
           <p className="text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>
             © 2026 Courtesyfy. Todos os direitos reservados.
