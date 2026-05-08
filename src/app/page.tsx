@@ -63,14 +63,7 @@ function HeroCard() {
         style={{ background: "radial-gradient(ellipse at 50% 60%, rgba(16,185,129,0.25) 0%, transparent 70%)" }} />
 
       {/* Card body */}
-      <div
-        className="relative rounded-3xl overflow-hidden border"
-        style={{
-          background: "linear-gradient(135deg, #1e2023 0%, #16181b 50%, #1a1c20 100%)",
-          borderColor: "rgba(16,185,129,0.2)",
-          boxShadow: "0 0 0 1px rgba(16,185,129,0.1), 0 32px 64px -16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)",
-        }}
-      >
+      <div className="glow-card glass-card-dark relative rounded-3xl overflow-hidden">
         {/* Top accent line */}
         <div className="h-px w-full"
           style={{ background: "linear-gradient(90deg, transparent, rgba(16,185,129,0.6), rgba(110,231,183,0.8), rgba(16,185,129,0.6), transparent)" }} />
@@ -143,13 +136,7 @@ function HeroCard() {
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 1.2, duration: 0.7 }}
-        className="absolute -right-4 top-8 rounded-2xl px-4 py-3 text-xs"
-        style={{
-          background: "rgba(255,255,255,0.04)",
-          backdropFilter: "blur(16px)",
-          border: "1px solid rgba(255,255,255,0.1)",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-        }}
+        className="glass-card absolute -right-4 top-8 rounded-2xl px-4 py-3 text-xs"
       >
         <p className="text-white/40 mb-0.5">Resgatadas hoje</p>
         <p className="text-white font-bold text-base">
@@ -161,13 +148,7 @@ function HeroCard() {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 1.4, duration: 0.7 }}
-        className="absolute -left-4 bottom-12 rounded-2xl px-4 py-3 text-xs"
-        style={{
-          background: "rgba(255,255,255,0.04)",
-          backdropFilter: "blur(16px)",
-          border: "1px solid rgba(255,255,255,0.1)",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-        }}
+        className="glass-card absolute -left-4 bottom-12 rounded-2xl px-4 py-3 text-xs"
       >
         <p className="text-white/40 mb-0.5">Taxa de conversão</p>
         <p className="text-white font-bold text-base">
@@ -252,28 +233,13 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 /* ─── Glass card ──────────────────────────────────────────────── */
 function GlassCard({
-  children, className, hoverGlow = true,
+  children, className,
 }: {
   children: React.ReactNode
   className?: string
-  hoverGlow?: boolean
 }) {
-  const [hover, setHover] = useState(false)
   return (
-    <div
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      className={cn("relative rounded-2xl transition-all duration-500", className)}
-      style={{
-        background: "rgba(255,255,255,0.03)",
-        backdropFilter: "blur(16px)",
-        border: `1px solid ${hover && hoverGlow ? "rgba(16,185,129,0.2)" : "rgba(255,255,255,0.07)"}`,
-        boxShadow: hover && hoverGlow
-          ? "0 0 0 1px rgba(16,185,129,0.1), 0 24px 48px -12px rgba(0,0,0,0.5), 0 0 40px rgba(16,185,129,0.06)"
-          : "0 8px 32px -8px rgba(0,0,0,0.4)",
-        transform: hover ? "translateY(-4px)" : "translateY(0)",
-      }}
-    >
+    <div className={cn("glow-card glass-card rounded-2xl transition-all duration-500 hover:-translate-y-1", className)}>
       {children}
     </div>
   )
@@ -710,9 +676,25 @@ export default function LandingPage() {
       </section>
 
       {/* ═══ CTA FINAL ═══════════════════════════════════════════ */}
-      <section className="py-32 px-6 relative overflow-hidden">
+      <section className="py-40 px-6 relative overflow-hidden">
         <GridBg opacity={0.05} />
-        <Orb className="w-[800px] h-[400px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.12]"
+
+        {/* Raios de luz */}
+        <div className="cta-rays" aria-hidden="true">
+          <div className="cta-ray" />
+          <div className="cta-ray" />
+          <div className="cta-ray" />
+          <div className="cta-ray" />
+          <div className="cta-ray" />
+          <div className="cta-ray" />
+          <div className="cta-ray" />
+          <div className="cta-ray" />
+          <div className="cta-ray" />
+          <div className="cta-ray-origin" />
+        </div>
+
+        {/* Halo difuso de fundo */}
+        <Orb className="w-[700px] h-[350px] top-0 left-1/2 -translate-x-1/2 opacity-[0.18]"
           style={{ background: "radial-gradient(ellipse, rgba(16,185,129,1), transparent 65%)" }} />
 
         <div className="max-w-3xl mx-auto text-center relative z-10">

@@ -523,3 +523,281 @@ select:focus {
     opacity: 0.6;
   }
 }
+
+
+/* ====================== BORDER GLOW VIAJANTE ====================== */
+
+/* @property para animar ângulo do conic-gradient */
+@property --border-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.glow-card {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Trilha da borda — anel completo muito sutil */
+.glow-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--border-angle),
+    transparent 0%,
+    transparent 30%,
+    rgba(16, 185, 129, 0.06) 45%,
+    rgba(16, 185, 129, 0.06) 55%,
+    transparent 70%,
+    transparent 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  padding: 1px;
+  animation: border-spin 6s linear infinite;
+  z-index: -1;
+}
+
+/* Faísca — ponto brilhante que percorre a borda */
+.glow-card::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--border-angle),
+    transparent 0%,
+    transparent 42%,
+    rgba(52, 211, 153, 0.0)  46%,
+    rgba(52, 211, 153, 0.9)  50%,
+    rgba(110, 231, 183, 1)   51%,
+    rgba(52, 211, 153, 0.9)  52%,
+    rgba(52, 211, 153, 0.0)  56%,
+    transparent 60%,
+    transparent 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  padding: 1px;
+  animation: border-spin 6s linear infinite;
+  filter: blur(1px);
+  z-index: -1;
+}
+
+/* Glow halo no hover */
+.glow-card:hover {
+  box-shadow:
+    0 0 0 1px rgba(16, 185, 129, 0.15),
+    0 0 30px rgba(16, 185, 129, 0.08),
+    inset 0 0 30px rgba(16, 185, 129, 0.03);
+}
+
+@keyframes border-spin {
+  to { --border-angle: 360deg; }
+}
+
+
+/* ====================== EFEITO DE VIDRO ====================== */
+
+.glass-card {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.07) 0%,
+      rgba(255, 255, 255, 0.02) 50%,
+      rgba(255, 255, 255, 0.05) 100%
+    );
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+    0 8px 32px rgba(0, 0, 0, 0.4);
+  position: relative;
+}
+
+/* Reflexo de luz no topo do vidro */
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.35) 30%,
+    rgba(255, 255, 255, 0.5)  50%,
+    rgba(255, 255, 255, 0.35) 70%,
+    transparent
+  );
+  border-radius: 100%;
+  pointer-events: none;
+}
+
+.glass-card-dark {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(16, 185, 129, 0.06) 0%,
+      rgba(0, 0, 0, 0.4) 50%,
+      rgba(16, 185, 129, 0.04) 100%
+    );
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(16, 185, 129, 0.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 16px 48px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(16, 185, 129, 0.05);
+  position: relative;
+}
+
+.glass-card-dark::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 8%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(16, 185, 129, 0.4) 30%,
+    rgba(110, 231, 183, 0.6) 50%,
+    rgba(16, 185, 129, 0.4) 70%,
+    transparent
+  );
+  pointer-events: none;
+}
+
+
+/* ====================== RAIOS DE LUZ NO CTA ====================== */
+
+.cta-rays {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Raio central — cone de luz vindo do topo */
+.cta-rays::before {
+  content: '';
+  position: absolute;
+  top: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 0;
+  border-left: 320px solid transparent;
+  border-right: 320px solid transparent;
+  border-top: 700px solid rgba(16, 185, 129, 0.06);
+  filter: blur(8px);
+  animation: ray-pulse 4s ease-in-out infinite;
+}
+
+/* Raio secundário mais largo e difuso */
+.cta-rays::after {
+  content: '';
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 0;
+  border-left: 600px solid transparent;
+  border-right: 600px solid transparent;
+  border-top: 500px solid rgba(16, 185, 129, 0.03);
+  filter: blur(20px);
+  animation: ray-pulse 4s ease-in-out infinite 0.5s;
+}
+
+/* Raios individuais com div filhos */
+.cta-ray {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform-origin: top center;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    rgba(16, 185, 129, 0.0) 0%,
+    rgba(16, 185, 129, 0.5) 15%,
+    rgba(52, 211, 153, 0.3) 40%,
+    rgba(16, 185, 129, 0.1) 70%,
+    transparent 100%
+  );
+  pointer-events: none;
+  animation: ray-flicker var(--duration, 3s) ease-in-out infinite var(--delay, 0s);
+}
+
+.cta-ray:nth-child(1)  { height: 500px; transform: translateX(-50%) rotate(-35deg); --duration: 3.5s; --delay: 0s;    opacity: 0.7; filter: blur(1px); }
+.cta-ray:nth-child(2)  { height: 600px; transform: translateX(-50%) rotate(-20deg); --duration: 4s;   --delay: 0.3s;  opacity: 0.5; filter: blur(0.5px); }
+.cta-ray:nth-child(3)  { height: 700px; transform: translateX(-50%) rotate(-8deg);  --duration: 3s;   --delay: 0.6s;  opacity: 0.9; width: 2px; }
+.cta-ray:nth-child(4)  { height: 700px; transform: translateX(-50%) rotate(0deg);   --duration: 3.8s; --delay: 0s;    opacity: 1;   width: 2px; filter: blur(0.5px); }
+.cta-ray:nth-child(5)  { height: 700px; transform: translateX(-50%) rotate(8deg);   --duration: 3s;   --delay: 0.8s;  opacity: 0.9; width: 2px; }
+.cta-ray:nth-child(6)  { height: 600px; transform: translateX(-50%) rotate(20deg);  --duration: 4s;   --delay: 0.4s;  opacity: 0.5; filter: blur(0.5px); }
+.cta-ray:nth-child(7)  { height: 500px; transform: translateX(-50%) rotate(35deg);  --duration: 3.5s; --delay: 0.2s;  opacity: 0.7; filter: blur(1px); }
+.cta-ray:nth-child(8)  { height: 380px; transform: translateX(-50%) rotate(-50deg); --duration: 5s;   --delay: 1s;    opacity: 0.3; filter: blur(2px); }
+.cta-ray:nth-child(9)  { height: 380px; transform: translateX(-50%) rotate(50deg);  --duration: 5s;   --delay: 1.2s;  opacity: 0.3; filter: blur(2px); }
+
+/* Ponto de origem — fonte de luz */
+.cta-ray-origin {
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(110, 231, 183, 1);
+  box-shadow:
+    0 0 8px 4px rgba(52, 211, 153, 0.8),
+    0 0 20px 8px rgba(16, 185, 129, 0.5),
+    0 0 40px 16px rgba(16, 185, 129, 0.25),
+    0 0 80px 30px rgba(16, 185, 129, 0.1);
+  animation: origin-pulse 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes ray-pulse {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 1; }
+}
+
+@keyframes ray-flicker {
+  0%, 100% { opacity: var(--base-opacity, 0.7); }
+  30%       { opacity: calc(var(--base-opacity, 0.7) * 1.4); }
+  60%       { opacity: calc(var(--base-opacity, 0.7) * 0.6); }
+  80%       { opacity: calc(var(--base-opacity, 0.7) * 1.2); }
+}
+
+@keyframes origin-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 8px 4px rgba(52, 211, 153, 0.8),
+      0 0 20px 8px rgba(16, 185, 129, 0.5),
+      0 0 40px 16px rgba(16, 185, 129, 0.25),
+      0 0 80px 30px rgba(16, 185, 129, 0.1);
+  }
+  50% {
+    box-shadow:
+      0 0 12px 6px rgba(52, 211, 153, 1),
+      0 0 30px 14px rgba(16, 185, 129, 0.7),
+      0 0 60px 24px rgba(16, 185, 129, 0.4),
+      0 0 120px 50px rgba(16, 185, 129, 0.15);
+  }
+}
