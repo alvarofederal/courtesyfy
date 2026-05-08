@@ -37,7 +37,7 @@ export default async function ConfiguracoesPage() {
   const planoLight = PLANO_LABELS_LIGHT[loja.plano]
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div className="w-full">
 
       {/* ── Hero header — igual ao onboarding (sempre dark) ── */}
       <div className="relative mb-6 rounded-3xl overflow-hidden"
