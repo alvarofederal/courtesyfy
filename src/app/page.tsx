@@ -133,29 +133,32 @@ function HeroCard() {
       </div>
 
       {/* Floating stats */}
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 1.2, duration: 0.7 }}
-        className="glass-card absolute -right-4 top-8 rounded-2xl px-4 py-3 text-xs"
-      >
-        <p className="text-white/40 mb-0.5">Resgatadas hoje</p>
-        <p className="text-white font-bold text-base">
-          <span className="text-emerald-400">↑</span> 1.247
-        </p>
-      </motion.div>
+      {/* Stats abaixo do card — nunca se sobrepõem */}
+      <div className="flex gap-3 mt-4 px-1">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.2, duration: 0.7 }}
+          className="glass-card flex-1 rounded-2xl px-4 py-3 text-xs"
+        >
+          <p className="text-white/40 mb-0.5">Resgatadas hoje</p>
+          <p className="text-white font-bold text-base">
+            <span className="text-emerald-400">↑</span> 1.247
+          </p>
+        </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 1.4, duration: 0.7 }}
-        className="glass-card absolute -left-4 bottom-12 rounded-2xl px-4 py-3 text-xs"
-      >
-        <p className="text-white/40 mb-0.5">Taxa de conversão</p>
-        <p className="text-white font-bold text-base">
-          <span className="text-cyan-400">94.2%</span>
-        </p>
-      </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.4, duration: 0.7 }}
+          className="glass-card flex-1 rounded-2xl px-4 py-3 text-xs"
+        >
+          <p className="text-white/40 mb-0.5">Taxa de conversão</p>
+          <p className="text-white font-bold text-base">
+            <span className="text-emerald-400">94.2%</span>
+          </p>
+        </motion.div>
+      </div>
     </motion.div>
   )
 }
