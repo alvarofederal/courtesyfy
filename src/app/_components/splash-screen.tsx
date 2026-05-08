@@ -39,9 +39,6 @@ export function SplashScreen() {
           letterSpacing: "-1px",
           lineHeight:    1,
           userSelect:    "none",
-          display:       "inline-block",
-          position:      "relative",
-          overflow:      "hidden",
         }}
       >
         <span style={{ color: "#ffffff" }}>Courtesy</span>

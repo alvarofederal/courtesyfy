@@ -883,30 +883,38 @@ select:focus {
 
 /* ====================== LOGO GLASS SHINE ====================== */
 
-/* Wrapper que recorta o brilho no shape do texto */
+/*
+ * SEM overflow:hidden — o glow do texto (textShadow) se expande livremente.
+ * O brilho usa mix-blend-mode:overlay:
+ *   • Sobre fundo escuro (#050505) → invisível
+ *   • Sobre letras brancas/verdes → visível como reflexo de vidro
+ * Resultado: o reflexo aparece APENAS nas letras, não no retângulo.
+ */
 .logo-shine {
   position: relative;
   display: inline-block;
-  overflow: hidden;
+  /* sem overflow:hidden — glow/textShadow livre */
 }
 
-/* Faixa de vidro que desliza sobre o nome */
+/* Faixa de vidro que desliza sobre as letras */
 .logo-shine::after {
   content: '';
   position: absolute;
-  top: -20%;
+  top: -30%;
   left: -90%;
-  width: 55%;
-  height: 140%;
+  width: 60%;
+  height: 160%;
   background: linear-gradient(
     108deg,
-    transparent 15%,
-    rgba(255, 255, 255, 0.6) 50%,
-    transparent 85%
+    transparent 10%,
+    rgba(255, 255, 255, 0.95) 50%,
+    transparent 90%
   );
   transform: skewX(-14deg);
   animation: logo-glass 5s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
   pointer-events: none;
+  /* Chave: só afeta pixels claros (letras), não o fundo escuro */
+  mix-blend-mode: overlay;
 }
 
 @keyframes logo-glass {
