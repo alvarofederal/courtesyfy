@@ -20,16 +20,25 @@ import {
 import type { LucideIcon } from "lucide-react"
 import { TopNavbar } from "./top-navbar"
 
-/* ─── Navegação ─────────────────────────────────────────────── */
+/* ─── Navegação na ordem do onboarding ──────────────────────────
+   LojistaNav: espelha os passos do onboarding para facilitar a UX
+   1 → Dashboard (visão geral)
+   2 → Configurações (Identidade visual — passo 2)
+   3 → Layout (criar tema visual — passo 3)
+   4 → Campanhas (passo 4)
+   5 → Chaves (passo 5)
+   6 → Resgates (passo 6)
+   7 → Relatórios
+   ──────────────────────────────────────────────────────────────── */
 
 const lojistaNav: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/dashboard",               label: "Visão Geral",   icon: LayoutDashboard },
+  { href: "/dashboard/configuracoes", label: "Configurações", icon: Settings        },
+  { href: "/dashboard/layout",        label: "Layout",        icon: Layers          },
   { href: "/dashboard/campanhas",     label: "Campanhas",     icon: Megaphone       },
   { href: "/dashboard/chaves",        label: "Chaves",        icon: Key             },
   { href: "/dashboard/resgates",      label: "Resgates",      icon: ShoppingBag     },
-  { href: "/dashboard/configuracoes", label: "Configurações", icon: Settings        },
   { href: "/dashboard/relatorios",    label: "Relatórios",    icon: BarChart3       },
-  { href: "/dashboard/layout",        label: "Layout",        icon: Layers          },
 ]
 
 const adminNav: { href: string; label: string; icon: LucideIcon }[] = [
@@ -42,7 +51,7 @@ const adminNav: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/dashboard/configuracoes", label: "Configurações", icon: Settings        },
 ]
 
-/* ─── Sidebar ───────────────────────────────────────────────── */
+/* ─── Sidebar — sempre dark (identidade de marca) ──────────────── */
 
 interface SidebarContentProps {
   navItems: typeof lojistaNav
@@ -56,17 +65,13 @@ interface SidebarContentProps {
 function SidebarContent({ navItems, initial, displayName, isAdmin, isActive, onClose }: SidebarContentProps) {
   return (
     <>
-      {/* Logo */}
+      {/* Logo — texto puro com efeito vidro, sem ícone */}
       <div className="px-5 py-5 flex items-center justify-between"
         style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-        <Link href="/dashboard" onClick={onClose} className="flex items-center gap-2.5">
-          <div className="w-7 h-7 bg-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ boxShadow: "0 0 12px rgba(16,185,129,0.50)" }}>
-            <Key className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
-          </div>
-          <span className="text-white font-bold text-base tracking-tight"
-            style={{ fontFamily: "var(--font-open-sans), 'Open Sans', sans-serif" }}>
-            Courtesy<span style={{ color: "#10b981" }}>fy</span>
+        <Link href="/dashboard" onClick={onClose} className="logo-shine flex items-center">
+          <span className="text-white font-extrabold text-lg tracking-tight select-none"
+            style={{ fontFamily: "var(--font-open-sans), 'Open Sans', sans-serif", letterSpacing: "-0.02em" }}>
+            Courtesy<span className="logo-fy-pulse" style={{ color: "#10b981" }}>fy</span>
           </span>
         </Link>
         {onClose && (
@@ -140,7 +145,7 @@ function SidebarContent({ navItems, initial, displayName, isAdmin, isActive, onC
   )
 }
 
-/* ─── AppShell ──────────────────────────────────────────────── */
+/* ─── AppShell ──────────────────────────────────────────────────── */
 
 interface AppShellProps {
   role: string
@@ -176,16 +181,17 @@ export function AppShell({ role, userName, userEmail, children }: AppShellProps)
 
   const sharedProps: SidebarContentProps = { navItems, initial, displayName, isAdmin, isActive }
 
+  /* Sidebar — sempre dark, independente do tema */
   const sidebarBg = "linear-gradient(180deg, #020c06 0%, #030f08 100%)"
 
   return (
-    /* Wrapper sempre dark — identidade da plataforma */
-    <div className="dark flex h-screen overflow-hidden" style={{ background: "#050505" }}>
+    /* Wrapper principal — bg responsivo via CSS (dark/light) */
+    <div className="flex h-screen overflow-hidden dash-bg">
 
-      {/* ── Desktop sidebar ── */}
+      {/* ── Desktop sidebar (sempre dark) ── */}
       <aside className="hidden lg:flex w-60 flex-col flex-shrink-0 relative"
         style={{ background: sidebarBg, borderRight: "1px solid rgba(255,255,255,0.07)" }}>
-        {/* Orb sutil na sidebar */}
+        {/* Orb sutil */}
         <div aria-hidden className="absolute pointer-events-none"
           style={{
             top: "-40px", left: "-20px", width: "200px", height: "200px",
@@ -202,7 +208,7 @@ export function AppShell({ role, userName, userEmail, children }: AppShellProps)
           onClick={() => setOpen(false)} aria-hidden />
       )}
 
-      {/* ── Mobile drawer ── */}
+      {/* ── Mobile drawer (sempre dark) ── */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 w-72 flex flex-col lg:hidden transition-transform duration-300 ease-in-out ${open ? "translate-x-0" : "-translate-x-full"}`}
         style={{ background: sidebarBg, borderRight: "1px solid rgba(255,255,255,0.07)" }}
@@ -214,14 +220,14 @@ export function AppShell({ role, userName, userEmail, children }: AppShellProps)
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <TopNavbar userName={userName} userEmail={userEmail} role={role} onMenuClick={() => setOpen(true)} />
 
-        {/* Grid overlay permanente */}
+        {/* Grid overlay — visível no dark, quase invisível no light */}
         <div aria-hidden className="fixed inset-0 pointer-events-none z-0"
           style={{
             backgroundImage: "linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px)",
             backgroundSize: "48px 48px",
           }} />
 
-        {/* Orb superior */}
+        {/* Orb superior esmeralda */}
         <div aria-hidden className="fixed pointer-events-none z-0"
           style={{
             width: "600px", height: "400px",

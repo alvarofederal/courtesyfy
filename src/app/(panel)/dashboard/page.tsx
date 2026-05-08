@@ -16,22 +16,24 @@ import {
   Settings,
   ChevronRight,
   Sparkles,
+  Layers,
 } from "lucide-react"
 
 /* ─── Onboarding Hero ──────────────────────────────────────────── */
 
 const STEPS = [
-  { n: 1, key: "loja",     title: "Loja criada",       desc: "Conta e perfil configurados",        href: null,                        cta: null,           icon: Building2  },
-  { n: 2, key: "marca",    title: "Identidade visual",  desc: "Logo e cor de marca",                href: "/dashboard/configuracoes",   cta: "Configurar",   icon: Sparkles   },
-  { n: 3, key: "campanha", title: "Primeira campanha",  desc: "Crie sua oferta de cortesia",        href: "/dashboard/campanhas/nova",  cta: "Criar agora",  icon: Megaphone  },
-  { n: 4, key: "chaves",   title: "Gerar chaves",       desc: "Produza os códigos com QR Code",     href: "/dashboard/chaves/gerar",    cta: "Gerar chaves", icon: Key        },
-  { n: 5, key: "resgate",  title: "Validar resgate",    desc: "Confirme o benefício no balcão",     href: "/dashboard/resgates",        cta: "Validar agora",icon: ShoppingBag},
+  { n: 1, key: "loja",     title: "Loja criada",        desc: "Conta e perfil configurados",        href: null,                         cta: null,            icon: Building2  },
+  { n: 2, key: "marca",    title: "Identidade visual",  desc: "Logo, cor e dados da loja",          href: "/dashboard/configuracoes",    cta: "Configurar",    icon: Sparkles   },
+  { n: 3, key: "layout",   title: "Criar layout",       desc: "Tema visual dos cards impressos",    href: "/dashboard/layout/novo",      cta: "Criar layout",  icon: Layers     },
+  { n: 4, key: "campanha", title: "Primeira campanha",  desc: "Crie sua oferta de cortesia",        href: "/dashboard/campanhas/nova",   cta: "Criar agora",   icon: Megaphone  },
+  { n: 5, key: "chaves",   title: "Gerar chaves",       desc: "Produza os códigos com QR Code",     href: "/dashboard/chaves/gerar",     cta: "Gerar chaves",  icon: Key        },
+  { n: 6, key: "resgate",  title: "Validar resgate",    desc: "Confirme o benefício no balcão",     href: "/dashboard/resgates",         cta: "Validar agora", icon: ShoppingBag},
 ]
 
 function OnboardingHero({
   passos, passosFeitos, nome,
 }: { passos: Record<string, boolean>; passosFeitos: number; nome: string }) {
-  const pct    = Math.round((passosFeitos / 5) * 100)
+  const pct    = Math.round((passosFeitos / 6) * 100)
   const r      = 22
   const circum = 2 * Math.PI * r
   const next   = STEPS.find((s) => !passos[s.key])
@@ -62,11 +64,11 @@ function OnboardingHero({
           </span>
           <h2 className="text-xl sm:text-2xl font-extrabold text-white leading-tight">
             {passosFeitos === 1 ? `Bem-vindo, ${nome}! Configure sua loja 🚀`
-              : passosFeitos < 4 ? "Continue configurando — está quase pronto"
+              : passosFeitos < 5 ? "Continue configurando — está quase pronto"
               : "Último passo! Sua loja está quase live"}
           </h2>
           <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.45)" }}>
-            {passosFeitos} de 5 etapas concluídas
+            {passosFeitos} de 6 etapas concluídas
             {next && <> · próximo: <span style={{ color: "#34d399" }}>{next.title}</span></>}
           </p>
         </div>
@@ -86,7 +88,7 @@ function OnboardingHero({
       </div>
 
       {/* Steps */}
-      <div className="relative z-10 px-4 pb-5 grid grid-cols-1 sm:grid-cols-5 gap-2">
+      <div className="relative z-10 px-4 pb-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
         {STEPS.map((step) => {
           const done   = passos[step.key]
           const isCurr = !done && STEPS.findIndex((s) => !passos[s.key]) === step.n - 1
@@ -159,15 +161,20 @@ export default async function DashboardPage() {
     db.resgate.count({ where: { lojaId } }),
   ])
 
+  const [temLayout] = await Promise.all([
+    db.layout.count({ where: { lojaId } }),
+  ])
+
   const passos = {
     loja:     true,
     marca:    !!(loja?.logoUrl || loja?.corPrimaria !== "#10b981"),
+    layout:   temLayout > 0,
     campanha: totalCampanhas > 0,
     chaves:   totalChaves > 0,
     resgate:  temResgate > 0,
   }
   const passosFeitos = Object.values(passos).filter(Boolean).length
-  const onboardingOk = passosFeitos === 5
+  const onboardingOk = passosFeitos === 6
   const semDados     = totalChaves === 0 && campanhasAtivas === 0
 
   const stats = [
