@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import Link from "next/link"
 import { signOut } from "next-auth/react"
 import { Bell, User, Settings, LogOut, Menu, Key, ChevronDown, X } from "lucide-react"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 interface Campanha {
   id: string
@@ -127,6 +128,9 @@ export function TopNavbar({ userName, userEmail, role, onMenuClick }: TopNavbarP
       </Link>
 
       <div className="flex-1" />
+
+      {/* ── Theme toggle ── */}
+      <ThemeToggle />
 
       {/* ── Bell ── */}
       <div className="relative" ref={bellRef}>

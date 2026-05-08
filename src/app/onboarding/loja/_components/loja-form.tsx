@@ -1,7 +1,7 @@
 "use client"
 
-import { useActionState, useState } from "react"
-import { Loader2 } from "lucide-react"
+import { useActionState, useState, useRef } from "react"
+import { Loader2, Upload, X, ImageIcon } from "lucide-react"
 import { criarLoja } from "../_actions/criar-loja"
 
 /* ─── preset colors ───────────────────────────────────────────── */
@@ -55,7 +55,7 @@ function ClientPreview({ nome, logoUrl, cor }: { nome: string; logoUrl: string; 
             <p className="text-xs font-semibold" style={{ color: "rgba(255,255,255,0.70)" }}>Campanha de Verão</p>
           </div>
           <div className="flex items-center justify-between px-3 py-2">
-            <code className="font-mono text-[11px] font-bold" style={{ color: cor }}>ABCD-EFGH-IJKL</code>
+            <code className="font-mono text-[11px] font-bold" style={{ color: cor }}>ABCD-EFGH-IJKL-MNOP</code>
             <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.30)" }}>30 dias</span>
           </div>
         </div>
@@ -68,6 +68,121 @@ function ClientPreview({ nome, logoUrl, cor }: { nome: string; logoUrl: string; 
       <p className="text-center text-[10px] pb-2.5" style={{ color: "rgba(255,255,255,0.18)" }}>
         Powered by <span style={{ color: "rgba(255,255,255,0.28)" }}>Courtesyfy</span>
       </p>
+    </div>
+  )
+}
+
+/* ─── Logo Uploader ───────────────────────────────────────────── */
+function LogoUploader({
+  value,
+  cor,
+  onChange,
+}: {
+  value: string
+  cor: string
+  onChange: (url: string) => void
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState("")
+
+  async function handleFile(file: File) {
+    if (!file.type.startsWith("image/")) {
+      setError("Selecione uma imagem (JPG, PNG ou WEBP).")
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Imagem muito grande. Máximo 5 MB.")
+      return
+    }
+
+    setUploading(true)
+    setError("")
+
+    const fd = new FormData()
+    fd.append("file", file)
+
+    try {
+      const res = await fetch("/api/upload", { method: "POST", body: fd })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? "Erro no upload")
+      onChange(data.imageUrl)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erro ao enviar imagem.")
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    const file = e.dataTransfer.files[0]
+    if (file) handleFile(file)
+  }
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) handleFile(file)
+  }
+
+  if (value) {
+    return (
+      <div className="relative w-24 h-24 group">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={value}
+          alt="Logo da loja"
+          className="w-24 h-24 rounded-2xl object-cover"
+          style={{ border: `2px solid ${cor}60` }}
+        />
+        <button
+          type="button"
+          onClick={() => onChange("")}
+          className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          style={{ background: "rgba(239,68,68,0.9)" }}
+        >
+          <X className="w-3.5 h-3.5 text-white" />
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div
+        onClick={() => inputRef.current?.click()}
+        onDrop={handleDrop}
+        onDragOver={(e) => e.preventDefault()}
+        className="flex flex-col items-center justify-center gap-2 w-24 h-24 rounded-2xl cursor-pointer transition-all"
+        style={{
+          background: uploading ? `${cor}10` : "rgba(255,255,255,0.04)",
+          border: `1.5px dashed ${uploading ? cor : "rgba(255,255,255,0.18)"}`,
+        }}
+      >
+        {uploading ? (
+          <Loader2 className="w-5 h-5 animate-spin" style={{ color: cor }} />
+        ) : (
+          <>
+            <div className="flex flex-col items-center gap-1">
+              <ImageIcon className="w-5 h-5" style={{ color: "rgba(255,255,255,0.35)" }} />
+              <Upload className="w-3 h-3" style={{ color: "rgba(255,255,255,0.25)" }} />
+            </div>
+            <span className="text-[10px] text-center leading-tight" style={{ color: "rgba(255,255,255,0.30)" }}>
+              Logo
+            </span>
+          </>
+        )}
+      </div>
+      {error && (
+        <p className="text-[11px] mt-1.5 text-red-400">{error}</p>
+      )}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/jpg,image/png,image/webp"
+        onChange={handleChange}
+        className="hidden"
+      />
     </div>
   )
 }
@@ -130,16 +245,24 @@ export function LojaForm() {
 
         <form action={action} className="space-y-4">
           <input type="hidden" name="corPrimaria" value={cor} />
+          <input type="hidden" name="logoUrl" value={logoUrl} />
 
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div>
-              <label style={lbl}>Nome interno *</label>
-              <input name="nome" required placeholder="Ex: Cafeteria Central"
-                value={nome} onChange={e => setNome(e.target.value)} {...f("nome")} />
+          {/* Logo + Nome de exibição side by side */}
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <label style={lbl}>Logo</label>
+              <LogoUploader value={logoUrl} cor={cor} onChange={setLogoUrl} />
             </div>
-            <div>
-              <label style={lbl}>Nome de exibição</label>
-              <input name="nomeExibicao" placeholder="Como aparece ao cliente" {...f("exib")} />
+            <div className="flex-1 min-w-0 space-y-4">
+              <div>
+                <label style={lbl}>Nome interno *</label>
+                <input name="nome" required placeholder="Ex: Cafeteria Central"
+                  value={nome} onChange={e => setNome(e.target.value)} {...f("nome")} />
+              </div>
+              <div>
+                <label style={lbl}>Nome de exibição</label>
+                <input name="nomeExibicao" placeholder="Como aparece ao cliente" {...f("exib")} />
+              </div>
             </div>
           </div>
 
@@ -172,15 +295,6 @@ export function LojaForm() {
                 {UFS.map(uf => <option key={uf} value={uf} style={{ background: "#111", color: "#fff" }}>{uf}</option>)}
               </select>
             </div>
-          </div>
-
-          <div>
-            <label style={lbl}>URL do logo</label>
-            <input name="logoUrl" type="url" placeholder="https://minhaloja.com/logo.png"
-              value={logoUrl} onChange={e => setLogoUrl(e.target.value)} {...f("logo")} />
-            <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.22)" }}>
-              Cole o link direto da imagem. Pode adicionar depois nas configurações.
-            </p>
           </div>
 
           {/* Cor de marca */}

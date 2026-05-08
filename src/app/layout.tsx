@@ -4,6 +4,7 @@ import { Geist, Geist_Mono, Open_Sans } from "next/font/google";
 import "./globals.css";
 import { SessionAuthProvider } from "@/components/session-auth";
 import { QueryClientContext } from "@/providers/queryclient";
+import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 
 const geistSans = Geist({
@@ -38,12 +39,14 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${openSans.variable} antialiased`}
         suppressHydrationWarning
       >
-        <SessionAuthProvider>
-          <QueryClientContext>
-            {children}
-            <Toaster position="top-right" richColors duration={2500} />
-          </QueryClientContext>
-        </SessionAuthProvider>
+        <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
+          <SessionAuthProvider>
+            <QueryClientContext>
+              {children}
+              <Toaster position="top-right" richColors duration={2500} />
+            </QueryClientContext>
+          </SessionAuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

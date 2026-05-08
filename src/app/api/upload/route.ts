@@ -13,7 +13,7 @@ const ALLOWED  = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
 
 export async function POST(req: NextRequest) {
   const session = await auth()
-  if (!session?.user?.lojaId) {
+  if (!session?.user) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
   }
 
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
   const base64  = `data:${file.type};base64,${buffer.toString("base64")}`
 
   const result = await cloudinary.uploader.upload(base64, {
-    folder:         `courtesyfy/layouts/${session.user.lojaId}`,
+    folder:         `courtesyfy/logos/${session.user.id}`,
     resource_type:  "image",
     transformation: [{ quality: "auto", fetch_format: "auto" }],
   })
