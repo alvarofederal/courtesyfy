@@ -31,13 +31,17 @@ export function SplashScreen() {
       }}
     >
       <span
+        className="logo-shine"
         style={{
-          fontFamily:  "var(--font-open-sans), 'Open Sans', sans-serif",
-          fontSize:    "clamp(52px, 14vw, 110px)",
-          fontWeight:  700,
+          fontFamily:    "var(--font-open-sans), 'Open Sans', sans-serif",
+          fontSize:      "clamp(52px, 14vw, 110px)",
+          fontWeight:    700,
           letterSpacing: "-1px",
-          lineHeight:  1,
-          userSelect: "none",
+          lineHeight:    1,
+          userSelect:    "none",
+          display:       "inline-block",
+          position:      "relative",
+          overflow:      "hidden",
         }}
       >
         <span style={{ color: "#ffffff" }}>Courtesy</span>

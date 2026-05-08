@@ -40,6 +40,114 @@ function Orb({ className, style }: { className?: string; style?: React.CSSProper
   )
 }
 
+/* ─── Lightning bolt ──────────────────────────────────────────── */
+function LightningBolt() {
+  return (
+    <>
+      {/* Flash breve que ilumina toda a seção */}
+      <div
+        className="sky-flash-layer absolute inset-0 pointer-events-none"
+        style={{
+          background: "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(255,255,255,0.08) 0%, transparent 70%)",
+        }}
+        aria-hidden="true"
+      />
+
+      {/* O raio em si */}
+      <div className="lightning-wrap" aria-hidden="true">
+        <svg
+          className="bolt-svg"
+          viewBox="0 0 800 650"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="xMidYMin meet"
+        >
+          <defs>
+            {/* Bloom em 3 camadas: glow exterior suave → mid → core nítido */}
+            <filter id="bolt-bloom" x="-90%" y="-5%" width="280%" height="115%">
+              <feGaussianBlur stdDeviation="28" result="b3" in="SourceGraphic"/>
+              <feGaussianBlur stdDeviation="10" result="b2" in="SourceGraphic"/>
+              <feGaussianBlur stdDeviation="3"  result="b1" in="SourceGraphic"/>
+              <feMerge>
+                <feMergeNode in="b3"/>
+                <feMergeNode in="b2"/>
+                <feMergeNode in="b1"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+
+          {/* ── Grupo principal com bloom ── */}
+          <g filter="url(#bolt-bloom)" className="bolt-group">
+            {/* Halo externo no tronco — linha grossa e translúcida */}
+            <path
+              d="M400,0 L383,66 L417,66 L391,162 L427,162 L400,278 L438,278 L403,396 L434,468 L406,568"
+              stroke="rgba(180,255,215,0.32)" strokeWidth="10"
+              strokeLinecap="round" strokeLinejoin="round"
+            />
+            {/* Core branco do tronco — linha fina e brilhante */}
+            <path
+              d="M400,0 L383,66 L417,66 L391,162 L427,162 L400,278 L438,278 L403,396 L434,468 L406,568"
+              stroke="white" strokeWidth="1.8"
+              strokeLinecap="round" strokeLinejoin="round"
+            />
+            {/* Galho direito superior — nasce em 427,162 */}
+            <path
+              d="M427,162 L471,244 L507,362 L526,455"
+              stroke="rgba(180,255,215,0.28)" strokeWidth="7"
+              strokeLinecap="round" strokeLinejoin="round"
+            />
+            <path
+              d="M427,162 L471,244 L507,362 L526,455"
+              stroke="white" strokeWidth="1.2"
+              strokeLinecap="round" strokeLinejoin="round" opacity="0.8"
+            />
+            {/* Galho esquerdo médio — nasce em 438,278 */}
+            <path
+              d="M438,278 L380,355 L342,452 L314,545"
+              stroke="rgba(180,255,215,0.22)" strokeWidth="6"
+              strokeLinecap="round" strokeLinejoin="round"
+            />
+            <path
+              d="M438,278 L380,355 L342,452 L314,545"
+              stroke="white" strokeWidth="1"
+              strokeLinecap="round" strokeLinejoin="round" opacity="0.72"
+            />
+            {/* Espalhamento esquerdo — nasce em 403,396 */}
+            <path
+              d="M403,396 L357,458 L320,538 L290,615"
+              stroke="white" strokeWidth="0.9"
+              strokeLinecap="round" strokeLinejoin="round" opacity="0.5"
+            />
+            {/* Espalhamento direito — nasce em 434,468 */}
+            <path
+              d="M434,468 L476,528 L502,598"
+              stroke="white" strokeWidth="0.9"
+              strokeLinecap="round" strokeLinejoin="round" opacity="0.45"
+            />
+            {/* Sub-galho direito — nasce em 507,362 */}
+            <path d="M507,362 L538,422" stroke="white" strokeWidth="0.7" strokeLinecap="round" opacity="0.5"/>
+            {/* Sub-galho esquerdo — nasce em 380,355 */}
+            <path d="M380,355 L340,412" stroke="white" strokeWidth="0.7" strokeLinecap="round" opacity="0.45"/>
+            {/* Mini galho — nasce em 471,244 */}
+            <path d="M471,244 L508,298 L524,368" stroke="white" strokeWidth="0.6" strokeLinecap="round" opacity="0.38"/>
+            {/* Mini galho — nasce em 342,452 */}
+            <path d="M342,452 L308,508" stroke="white" strokeWidth="0.6" strokeLinecap="round" opacity="0.35"/>
+          </g>
+
+          {/* Brilho de impacto — halo oval na base do raio */}
+          <ellipse
+            cx="418" cy="568" rx="130" ry="22"
+            fill="rgba(255,255,255,0.14)"
+            className="bolt-impact"
+            style={{ filter: "blur(14px)" }}
+          />
+        </svg>
+      </div>
+    </>
+  )
+}
+
 /* ─── Hero card mockup ────────────────────────────────────────── */
 function HeroCard() {
   const [tick, setTick] = useState(0)
@@ -186,15 +294,16 @@ function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 0 16px rgba(16,185,129,0.4)" }}>
-            <Key className="w-3.5 h-3.5 text-black" strokeWidth={2.5} />
-          </div>
-          <span className="text-white font-semibold text-lg tracking-tight">
-            Courtesy<span style={{ color: "#10b981" }}>fy</span>
-          </span>
-        </div>
+        <span
+          className="logo-shine font-bold tracking-tight select-none"
+          style={{
+            fontFamily: "var(--font-open-sans), 'Open Sans', sans-serif",
+            fontSize: "clamp(20px, 2.5vw, 26px)",
+          }}
+        >
+          <span style={{ color: "#ffffff" }}>Courtesy</span>
+          <span style={{ color: "#10b981", textShadow: "0 0 16px rgba(16,185,129,0.55)" }}>fy</span>
+        </span>
 
         {/* Nav links */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
@@ -318,7 +427,10 @@ export default function LandingPage() {
         <Orb className="w-[400px] h-[400px] bottom-0 left-1/3 opacity-10"
           style={{ background: "radial-gradient(circle, rgba(5,150,105,0.3), transparent 70%)" }} />
 
-        <div className="max-w-7xl mx-auto px-6 pt-24 pb-16 w-full">
+        {/* Raio de tempestade — desce do topo central */}
+        <LightningBolt />
+
+        <div className="max-w-7xl mx-auto px-6 pt-24 pb-16 w-full relative" style={{ zIndex: 2 }}>
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left — copy */}
             <div>
