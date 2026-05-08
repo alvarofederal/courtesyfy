@@ -131,27 +131,30 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   Dashboard design tokens — dark/light automático
-   Usar essas classes nos componentes em vez de dark: inline
+   Dashboard design tokens — identidade permanentemente dark
+   O dashboard é sempre escuro independente do tema do sistema.
    ═══════════════════════════════════════════════════════════════ */
 
-.dash-bg           { @apply bg-gray-50 dark:bg-[#050505]; }
-.dash-card         { @apply bg-white dark:bg-white/[0.035] border border-gray-100 dark:border-white/[0.08] rounded-2xl; }
-.dash-card-hover   { @apply bg-white dark:bg-white/[0.035] border border-gray-100 dark:border-white/[0.08] rounded-2xl hover:border-emerald-200 dark:hover:border-emerald-500/30 hover:shadow-sm transition-all; }
-.dash-header       { @apply bg-white dark:bg-[#060606] border-b border-gray-200 dark:border-white/[0.07]; }
-.dash-title        { @apply text-gray-900 dark:text-white; }
-.dash-subtitle     { @apply text-gray-500 dark:text-white/45; }
-.dash-label        { @apply text-gray-400 dark:text-white/30 text-xs font-medium uppercase tracking-wide; }
-.dash-muted        { @apply text-gray-400 dark:text-white/35; }
-.dash-divider      { @apply divide-gray-50 dark:divide-white/[0.05]; }
-.dash-border       { @apply border-gray-100 dark:border-white/[0.08]; }
-.dash-icon-emerald { @apply text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-500/10; }
-.dash-icon-blue    { @apply text-blue-600    bg-blue-50    dark:text-blue-400    dark:bg-blue-500/10;    }
-.dash-icon-purple  { @apply text-purple-600  bg-purple-50  dark:text-purple-400  dark:bg-purple-500/10;  }
-.dash-icon-orange  { @apply text-orange-600  bg-orange-50  dark:text-orange-400  dark:bg-orange-500/10;  }
-.dash-icon-red     { @apply text-red-600     bg-red-50     dark:text-red-400     dark:bg-red-500/10;     }
-.dash-btn-primary  { @apply bg-black hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 dark:text-black text-white font-semibold transition-colors; }
-.dash-input        { @apply bg-white dark:bg-white/[0.05] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 rounded-xl px-4 py-2.5 text-sm outline-none w-full; }
+.dash-bg           { background: #050505; }
+.dash-card         { background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08); border-radius: 1rem; }
+.dash-card-hover   { background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08); border-radius: 1rem; transition: all 0.2s; }
+.dash-card-hover:hover { border-color: rgba(16,185,129,0.30); }
+.dash-header       { background: #060606; border-bottom: 1px solid rgba(255,255,255,0.07); }
+.dash-title        { color: #fff; }
+.dash-subtitle     { color: rgba(255,255,255,0.45); }
+.dash-label        { color: rgba(255,255,255,0.30); font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+.dash-muted        { color: rgba(255,255,255,0.35); }
+.dash-divider      { --tw-divide-opacity: 1; divide-color: rgba(255,255,255,0.05); }
+.dash-border       { border-color: rgba(255,255,255,0.08); }
+.dash-icon-emerald { color: #34d399; background: rgba(16,185,129,0.12); }
+.dash-icon-blue    { color: #60a5fa; background: rgba(59,130,246,0.12);  }
+.dash-icon-purple  { color: #a78bfa; background: rgba(139,92,246,0.12);  }
+.dash-icon-orange  { color: #fb923c; background: rgba(249,115,22,0.12);  }
+.dash-icon-red     { color: #f87171; background: rgba(239,68,68,0.12);   }
+.dash-btn-primary  { background: #fff; color: #050505; font-weight: 600; transition: background 0.15s; }
+.dash-btn-primary:hover { background: rgba(255,255,255,0.88); }
+.dash-input        { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10); color: #fff; border-radius: 0.75rem; padding: 0.625rem 1rem; font-size: 0.875rem; outline: none; width: 100%; }
+.dash-input::placeholder { color: rgba(255,255,255,0.30); }
 
 .scroll-text {
   animation: marquee 10s linear infinite;

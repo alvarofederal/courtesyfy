@@ -20,25 +20,29 @@ import {
 import type { LucideIcon } from "lucide-react"
 import { TopNavbar } from "./top-navbar"
 
+/* ─── Navegação ─────────────────────────────────────────────── */
+
 const lojistaNav: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/dashboard",               label: "Visão Geral",   icon: LayoutDashboard },
-  { href: "/dashboard/campanhas",     label: "Campanhas",     icon: Megaphone },
-  { href: "/dashboard/chaves",        label: "Chaves",        icon: Key },
-  { href: "/dashboard/resgates",      label: "Resgates",      icon: ShoppingBag },
-  { href: "/dashboard/relatorios",    label: "Relatórios",    icon: BarChart3 },
-  { href: "/dashboard/layout",        label: "Layout",        icon: Layers },
-  { href: "/dashboard/configuracoes", label: "Configurações", icon: Settings },
+  { href: "/dashboard/campanhas",     label: "Campanhas",     icon: Megaphone       },
+  { href: "/dashboard/chaves",        label: "Chaves",        icon: Key             },
+  { href: "/dashboard/resgates",      label: "Resgates",      icon: ShoppingBag     },
+  { href: "/dashboard/configuracoes", label: "Configurações", icon: Settings        },
+  { href: "/dashboard/relatorios",    label: "Relatórios",    icon: BarChart3       },
+  { href: "/dashboard/layout",        label: "Layout",        icon: Layers          },
 ]
 
 const adminNav: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/dashboard",               label: "Visão Geral",   icon: LayoutDashboard },
-  { href: "/dashboard/lojas",         label: "Lojas",         icon: Building2 },
-  { href: "/dashboard/usuarios",      label: "Usuários",      icon: Users },
-  { href: "/dashboard/campanhas",     label: "Campanhas",     icon: Megaphone },
-  { href: "/dashboard/chaves",        label: "Chaves",        icon: Key },
-  { href: "/dashboard/relatorios",    label: "Relatórios",    icon: BarChart3 },
-  { href: "/dashboard/configuracoes", label: "Configurações", icon: Settings },
+  { href: "/dashboard/lojas",         label: "Lojas",         icon: Building2       },
+  { href: "/dashboard/usuarios",      label: "Usuários",      icon: Users           },
+  { href: "/dashboard/campanhas",     label: "Campanhas",     icon: Megaphone       },
+  { href: "/dashboard/chaves",        label: "Chaves",        icon: Key             },
+  { href: "/dashboard/relatorios",    label: "Relatórios",    icon: BarChart3       },
+  { href: "/dashboard/configuracoes", label: "Configurações", icon: Settings        },
 ]
+
+/* ─── Sidebar ───────────────────────────────────────────────── */
 
 interface SidebarContentProps {
   navItems: typeof lojistaNav
@@ -49,48 +53,46 @@ interface SidebarContentProps {
   onClose?: () => void
 }
 
-function SidebarContent({
-  navItems,
-  initial,
-  displayName,
-  isAdmin,
-  isActive,
-  onClose,
-}: SidebarContentProps) {
+function SidebarContent({ navItems, initial, displayName, isAdmin, isActive, onClose }: SidebarContentProps) {
   return (
     <>
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-white/10 flex items-center justify-between">
-        <Link
-          href="/dashboard"
-          onClick={onClose}
-          className="flex items-center gap-2.5"
-        >
-          <div className="w-7 h-7 bg-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0">
+      <div className="px-5 py-5 flex items-center justify-between"
+        style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+        <Link href="/dashboard" onClick={onClose} className="flex items-center gap-2.5">
+          <div className="w-7 h-7 bg-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ boxShadow: "0 0 12px rgba(16,185,129,0.50)" }}>
             <Key className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
           </div>
-          <span className="text-white font-bold text-base tracking-tight">Courtesyfy</span>
+          <span className="text-white font-bold text-base tracking-tight"
+            style={{ fontFamily: "var(--font-open-sans), 'Open Sans', sans-serif" }}>
+            Courtesy<span style={{ color: "#10b981" }}>fy</span>
+          </span>
         </Link>
         {onClose && (
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors"
-            aria-label="Fechar menu"
-          >
+          <button onClick={onClose}
+            className="p-1.5 rounded-lg transition-colors"
+            style={{ color: "rgba(255,255,255,0.35)" }}
+            onMouseOver={e => (e.currentTarget.style.color = "white")}
+            onMouseOut={e => (e.currentTarget.style.color = "rgba(255,255,255,0.35)")}
+            aria-label="Fechar menu">
             <X className="w-5 h-5" />
           </button>
         )}
       </div>
 
-      {/* Role badge */}
-      <div className="px-5 py-3 border-b border-white/10">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+      {/* User */}
+      <div className="px-5 py-3.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ background: "rgba(16,185,129,0.18)", border: "1px solid rgba(16,185,129,0.30)" }}>
             <span className="text-emerald-400 text-xs font-bold">{initial}</span>
           </div>
           <div className="min-w-0">
             <p className="text-white text-xs font-medium truncate">{displayName}</p>
-            <p className="text-white/40 text-xs">{isAdmin ? "Super Admin" : "Lojista"}</p>
+            <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
+              {isAdmin ? "Super Admin" : "Lojista"}
+            </p>
           </div>
         </div>
       </div>
@@ -100,33 +102,36 @@ function SidebarContent({
         {navItems.map((item) => {
           const active = isActive(item.href)
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onClose}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm group transition-colors ${
-                active
-                  ? "bg-white/10 text-white"
-                  : "text-white/60 hover:text-white hover:bg-white/8"
-              }`}
-            >
+            <Link key={item.href} href={item.href} onClick={onClose}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm group transition-all"
+              style={{
+                background: active ? "rgba(16,185,129,0.12)" : "transparent",
+                color:      active ? "#fff" : "rgba(255,255,255,0.50)",
+                border:     active ? "1px solid rgba(16,185,129,0.20)" : "1px solid transparent",
+              }}
+              onMouseOver={e => { if (!active) { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.color = "#fff" } }}
+              onMouseOut={e =>  { if (!active) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.50)" } }}>
               <item.icon
-                className={`w-4 h-4 flex-shrink-0 transition-colors ${
-                  active ? "text-emerald-400" : "group-hover:text-emerald-400"
-                }`}
+                className="w-4 h-4 flex-shrink-0 transition-colors"
+                style={{ color: active ? "#10b981" : undefined }}
               />
               {item.label}
+              {active && (
+                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+              )}
             </Link>
           )
         })}
       </nav>
 
       {/* Footer */}
-      <div className="px-3 py-4 border-t border-white/10">
+      <div className="px-3 py-4" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-white/40 hover:text-white hover:bg-white/8 transition-colors text-sm w-full"
-        >
+          className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm w-full transition-all"
+          style={{ color: "rgba(255,255,255,0.35)" }}
+          onMouseOver={e => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.color = "rgba(255,255,255,0.75)" }}
+          onMouseOut={e =>  { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.35)" }}>
           <LogOut className="w-4 h-4 flex-shrink-0" />
           Sair
         </button>
@@ -134,6 +139,8 @@ function SidebarContent({
     </>
   )
 }
+
+/* ─── AppShell ──────────────────────────────────────────────── */
 
 interface AppShellProps {
   role: string
@@ -146,82 +153,85 @@ export function AppShell({ role, userName, userEmail, children }: AppShellProps)
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
 
-  // Fecha sidebar ao navegar
-  useEffect(() => {
-    setOpen(false)
-  }, [pathname])
-
-  // Fecha com Escape
+  useEffect(() => { setOpen(false) }, [pathname])
   useEffect(() => {
     if (!open) return
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false)
-    }
-    document.addEventListener("keydown", handler)
-    return () => document.removeEventListener("keydown", handler)
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false) }
+    document.addEventListener("keydown", h)
+    return () => document.removeEventListener("keydown", h)
   }, [open])
-
-  // Trava scroll do body quando sidebar mobile está aberta
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : ""
     return () => { document.body.style.overflow = "" }
   }, [open])
 
-  const isAdmin = role === "SUPER_ADMIN"
-  const navItems = isAdmin ? adminNav : lojistaNav
-  const initial = (userName ?? userEmail ?? "?")[0].toUpperCase()
+  const isAdmin     = role === "SUPER_ADMIN"
+  const navItems    = isAdmin ? adminNav : lojistaNav
+  const initial     = (userName ?? userEmail ?? "?")[0].toUpperCase()
   const displayName = userName ?? userEmail ?? "Usuário"
 
   function isActive(href: string) {
     return href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href)
   }
 
-  const sharedProps: SidebarContentProps = {
-    navItems,
-    initial,
-    displayName,
-    isAdmin,
-    isActive,
-  }
+  const sharedProps: SidebarContentProps = { navItems, initial, displayName, isAdmin, isActive }
+
+  const sidebarBg = "linear-gradient(180deg, #020c06 0%, #030f08 100%)"
 
   return (
-    <div className="flex h-screen overflow-hidden dash-bg">
-      {/* ─── Desktop sidebar ─── */}
-      <aside className="hidden lg:flex w-60 bg-black flex-col flex-shrink-0">
+    /* Wrapper sempre dark — identidade da plataforma */
+    <div className="dark flex h-screen overflow-hidden" style={{ background: "#050505" }}>
+
+      {/* ── Desktop sidebar ── */}
+      <aside className="hidden lg:flex w-60 flex-col flex-shrink-0 relative"
+        style={{ background: sidebarBg, borderRight: "1px solid rgba(255,255,255,0.07)" }}>
+        {/* Orb sutil na sidebar */}
+        <div aria-hidden className="absolute pointer-events-none"
+          style={{
+            top: "-40px", left: "-20px", width: "200px", height: "200px",
+            background: "radial-gradient(ellipse, rgba(16,185,129,0.12), transparent 65%)",
+            borderRadius: "50%",
+          }} />
         <SidebarContent {...sharedProps} />
       </aside>
 
-      {/* ─── Mobile backdrop ─── */}
+      {/* ── Mobile backdrop ── */}
       {open && (
-        <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
-          onClick={() => setOpen(false)}
-          aria-hidden="true"
-        />
+        <div className="fixed inset-0 z-40 lg:hidden"
+          style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }}
+          onClick={() => setOpen(false)} aria-hidden />
       )}
 
-      {/* ─── Mobile sidebar drawer ─── */}
+      {/* ── Mobile drawer ── */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-black flex flex-col lg:hidden
-          transition-transform duration-300 ease-in-out
-          ${open ? "translate-x-0" : "-translate-x-full"}`}
-        aria-modal="true"
-        role="dialog"
-      >
+        className={`fixed inset-y-0 left-0 z-50 w-72 flex flex-col lg:hidden transition-transform duration-300 ease-in-out ${open ? "translate-x-0" : "-translate-x-full"}`}
+        style={{ background: sidebarBg, borderRight: "1px solid rgba(255,255,255,0.07)" }}
+        aria-modal role="dialog">
         <SidebarContent {...sharedProps} onClose={() => setOpen(false)} />
       </aside>
 
-      {/* ─── Content area ─── */}
+      {/* ── Área principal ── */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <TopNavbar
-          userName={userName}
-          userEmail={userEmail}
-          role={role}
-          onMenuClick={() => setOpen(true)}
-        />
+        <TopNavbar userName={userName} userEmail={userEmail} role={role} onMenuClick={() => setOpen(true)} />
 
-        {/* Main scrollable content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 dash-bg">
+        {/* Grid overlay permanente */}
+        <div aria-hidden className="fixed inset-0 pointer-events-none z-0"
+          style={{
+            backgroundImage: "linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+          }} />
+
+        {/* Orb superior */}
+        <div aria-hidden className="fixed pointer-events-none z-0"
+          style={{
+            width: "600px", height: "400px",
+            top: "-150px", left: "50%",
+            transform: "translateX(-50%)",
+            background: "radial-gradient(ellipse, rgba(16,185,129,0.08), transparent 65%)",
+            borderRadius: "50%",
+          }} />
+
+        <main className="relative z-10 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           {children}
         </main>
       </div>
