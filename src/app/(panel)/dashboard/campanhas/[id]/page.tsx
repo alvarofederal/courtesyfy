@@ -234,11 +234,15 @@ export default async function CampanhaDetailPage({
             </p>
           </div>
           <Link
-            href={`/dashboard/chaves?campanhaId=${id}`}
+            href={
+              totalGeradas === 0
+                ? `/dashboard/chaves/gerar?campanhaId=${id}`
+                : `/dashboard/chaves?campanhaId=${id}`
+            }
             className="inline-flex items-center justify-center gap-2 bg-black hover:bg-gray-800 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors w-full sm:w-auto"
           >
             <Key className="w-4 h-4" />
-            {totalGeradas === 0 ? "Gerar chaves" : "Ver chaves"}
+            {totalGeradas === 0 ? "Gerar chaves agora" : "Ver chaves"}
           </Link>
         </div>
       </div>

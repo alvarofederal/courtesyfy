@@ -31,7 +31,7 @@ export default async function DashboardPage() {
   const [loja, campanhasAtivas, totalChaves, resgatesToday] = await Promise.all([
     db.loja.findUnique({
       where: { id: lojaId },
-      select: { nome: true, plano: true, status: true },
+      select: { nome: true, plano: true, status: true, logoUrl: true, corPrimaria: true },
     }),
     db.campanha.count({
       where: { lojaId, status: "ATIVA" },
@@ -55,8 +55,67 @@ export default async function DashboardPage() {
 
   const semDados = totalChaves === 0 && campanhasAtivas === 0
 
+  const totalCampanhas = await db.campanha.count({ where: { lojaId } })
+  const temResgate     = await db.resgate.count({ where: { lojaId } })
+
+  /* passos concluídos */
+  const passos = {
+    loja:      true,
+    marca:     !!(loja?.logoUrl || loja?.corPrimaria !== null),
+    campanha:  totalCampanhas > 0,
+    chaves:    totalChaves > 0,
+    resgate:   temResgate > 0,
+  }
+  const passosFeitos  = Object.values(passos).filter(Boolean).length
+  const onboardingOk  = passosFeitos === 5
+
   return (
     <div>
+      {/* ── Checklist Primeiros passos ── */}
+      {!onboardingOk && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="font-semibold text-gray-900 text-sm">Primeiros passos</h2>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {passosFeitos} de 5 concluídos — a plataforma já funciona, mas complete para aproveitar 100%
+              </p>
+            </div>
+            <div className="flex-shrink-0 text-right">
+              <span className="text-xs font-bold text-emerald-600">{Math.round((passosFeitos / 5) * 100)}%</span>
+              <div className="w-24 h-1.5 bg-gray-100 rounded-full mt-1 overflow-hidden">
+                <div
+                  className="h-full bg-emerald-500 rounded-full transition-all"
+                  style={{ width: `${(passosFeitos / 5) * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="space-y-2">
+            {[
+              { ok: passos.loja,     label: "Loja criada",                        href: null },
+              { ok: passos.marca,    label: "Logo e cor de marca configurados",    href: "/dashboard/configuracoes" },
+              { ok: passos.campanha, label: "Primeira campanha criada",            href: "/dashboard/campanhas/nova" },
+              { ok: passos.chaves,   label: "Primeiro lote de chaves gerado",      href: "/dashboard/chaves/gerar" },
+              { ok: passos.resgate,  label: "Primeiro resgate validado no balcão", href: "/dashboard/resgates" },
+            ].map(({ ok, label, href }) => (
+              <div key={label} className="flex items-center gap-3">
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold ${ok ? "bg-emerald-500 text-white" : "border-2 border-gray-200 text-gray-300"}`}>
+                  {ok ? "✓" : ""}
+                </div>
+                {href && !ok ? (
+                  <Link href={href} className="text-sm text-emerald-600 hover:underline font-medium">
+                    {label} →
+                  </Link>
+                ) : (
+                  <span className={`text-sm ${ok ? "text-gray-400 line-through" : "text-gray-700"}`}>{label}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-8">
         <div className="min-w-0">
