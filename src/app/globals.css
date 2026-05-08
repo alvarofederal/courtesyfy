@@ -164,3 +164,362 @@ select:focus {
     border-color: rgb(16 185 129) !important;
     box-shadow: 0 0 0 4px rgb(16 185 129 / 0.1) !important;
 }
+
+
+/* ====================== APPLE-LEVEL ANIMATIONS ====================== */
+
+.glow-border {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+}
+
+.glow-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(90deg, 
+    transparent 20%, 
+    rgba(16, 185, 129, 0.6) 40%, 
+    rgba(45, 212, 191, 0.8) 50%, 
+    rgba(16, 185, 129, 0.6) 60%, 
+    transparent 80%);
+  background-size: 200% 200%;
+  animation: borderWalk 4s linear infinite;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: -1;
+  filter: blur(8px);
+}
+
+.glow-border:hover::before {
+  opacity: 1;
+}
+
+@keyframes borderWalk {
+  0% { background-position: 200% 50%; }
+  100% { background-position: -200% 50%; }
+}
+
+/* Shimmer Effect */
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 40%;
+  height: 300%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255,255,255,0.25),
+    transparent
+  );
+  animation: shimmerAnim 6s linear infinite;
+  transform: rotate(30deg);
+}
+
+@keyframes shimmerAnim {
+  0% { transform: translateX(-150%) rotate(30deg); }
+  100% { transform: translateX(400%) rotate(30deg); }
+}
+
+/* Card Float + Hover */
+.premium-card {
+  transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.premium-card:hover {
+  transform: translateY(-12px) scale(1.02);
+  box-shadow: 0 40px 80px -15px rgb(16 185 129 / 0.15);
+}
+
+/* Hero Background Animation */
+.hero-grid {
+  background-image: 
+    linear-gradient(rgba(16,185,129,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16,185,129,0.06) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: gridMove 25s linear infinite;
+}
+
+@keyframes gridMove {
+  0% { background-position: 0 0; }
+  100% { background-position: -60px -60px; }
+}
+
+
+/* ====================== SENIOR ANIMATIONS ====================== */
+
+.glow-border {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+}
+
+.glow-border::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  background: linear-gradient(90deg, 
+    transparent 30%, 
+    rgba(16, 185, 129, 0.7) 45%, 
+    rgba(45, 212, 191, 0.9) 55%, 
+    rgba(16, 185, 129, 0.7) 70%, 
+    transparent 90%);
+  background-size: 300% 300%;
+  animation: borderWalk 5s linear infinite;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  z-index: -1;
+  filter: blur(12px);
+}
+
+.glow-border:hover::before {
+  opacity: 0.85;
+}
+
+@keyframes borderWalk {
+  0% { background-position: 300% 50%; }
+  100% { background-position: -300% 50%; }
+}
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::after {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: -100%;
+  width: 50%;
+  height: 400%;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: shimmerAnim 7s linear infinite;
+}
+
+@keyframes shimmerAnim {
+  0% { transform: translateX(-150%) rotate(25deg); }
+  100% { transform: translateX(500%) rotate(25deg); }
+}
+
+.premium-card {
+  transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.premium-card:hover {
+  transform: translateY(-16px) scale(1.015);
+  box-shadow: 0 45px 90px -20px rgb(16 185 129 / 0.18);
+}
+
+/* Scroll Reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 0.9s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Floating Icons */
+.floating {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-25px); }
+}
+
+.hero-grid {
+  background-image: 
+    linear-gradient(rgba(16,185,129,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16,185,129,0.07) 1px, transparent 1px);
+  background-size: 70px 70px;
+  animation: gridMove 30s linear infinite;
+}
+
+@keyframes gridMove {
+  0% { background-position: 0 0; }
+  100% { background-position: -70px -70px; }
+}
+
+/* ====================== LUMINOUS BACKGROUND ====================== */
+
+.luminous-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Orb 1 — grande, centro-esquerda, pulsa lento */
+.luminous-bg::before {
+  content: '';
+  position: absolute;
+  width: 900px;
+  height: 900px;
+  top: -200px;
+  left: -150px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center,
+    rgba(16, 185, 129, 0.18) 0%,
+    rgba(16, 185, 129, 0.08) 35%,
+    transparent 70%
+  );
+  animation: orb-breathe 8s ease-in-out infinite;
+  filter: blur(40px);
+}
+
+/* Orb 2 — médio, centro-direita, deriva diagonal */
+.luminous-bg::after {
+  content: '';
+  position: absolute;
+  width: 700px;
+  height: 700px;
+  top: 30%;
+  right: -100px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center,
+    rgba(52, 211, 153, 0.14) 0%,
+    rgba(16, 185, 129, 0.06) 40%,
+    transparent 70%
+  );
+  animation: orb-drift 12s ease-in-out infinite alternate;
+  filter: blur(60px);
+}
+
+/* Orb 3 — base da página */
+.luminous-orb3 {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  bottom: -100px;
+  left: 30%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at center,
+    rgba(16, 185, 129, 0.12) 0%,
+    rgba(5, 150, 105, 0.05) 45%,
+    transparent 70%
+  );
+  animation: orb-breathe 10s ease-in-out infinite reverse;
+  filter: blur(50px);
+  pointer-events: none;
+}
+
+/* Raios de luz — linhas finas que emanam do topo */
+.luminous-rays {
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(
+    from 180deg at 50% -10%,
+    transparent 0deg,
+    rgba(16, 185, 129, 0.03) 20deg,
+    transparent 40deg,
+    transparent 60deg,
+    rgba(16, 185, 129, 0.04) 80deg,
+    transparent 100deg,
+    transparent 140deg,
+    rgba(52, 211, 153, 0.03) 160deg,
+    transparent 180deg,
+    transparent 220deg,
+    rgba(16, 185, 129, 0.035) 240deg,
+    transparent 260deg,
+    transparent 300deg,
+    rgba(16, 185, 129, 0.025) 320deg,
+    transparent 340deg,
+    transparent 360deg
+  );
+  animation: rays-rotate 30s linear infinite;
+  pointer-events: none;
+}
+
+/* Brilho central — estrela de luz no hero */
+.luminous-star {
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at center,
+    rgba(16, 185, 129, 0.22) 0%,
+    rgba(16, 185, 129, 0.1) 25%,
+    rgba(16, 185, 129, 0.03) 55%,
+    transparent 70%
+  );
+  animation: star-pulse 6s ease-in-out infinite;
+  filter: blur(30px);
+  pointer-events: none;
+}
+
+/* Scanline sutil — textura de profundidade */
+.luminous-scanline {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+}
+
+/* ── Keyframes ── */
+
+@keyframes orb-breathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 0.7;
+  }
+}
+
+@keyframes orb-drift {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(-60px, 40px) scale(1.15);
+  }
+  66% {
+    transform: translate(40px, -30px) scale(0.9);
+  }
+  100% {
+    transform: translate(-20px, 60px) scale(1.1);
+  }
+}
+
+@keyframes rays-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes star-pulse {
+  0%, 100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(-50%) scale(1.4);
+    opacity: 0.6;
+  }
+}

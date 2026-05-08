@@ -320,6 +320,15 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen font-sans overflow-x-hidden" style={{ background: "#050505", color: "#fff" }}>
+
+      {/* ── Fundo luminoso global ── */}
+      <div className="luminous-bg" aria-hidden="true">
+        <div className="luminous-rays" />
+        <div className="luminous-star" />
+        <div className="luminous-orb3" />
+        <div className="luminous-scanline" />
+      </div>
+
       <Navbar />
 
       {/* ═══ HERO ═══════════════════════════════════════════════ */}
