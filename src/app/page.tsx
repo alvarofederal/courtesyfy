@@ -5,7 +5,7 @@ import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 import {
   QrCode, Key, BarChart3, CheckCircle2, ArrowRight,
-  Zap, Shield, Users, Gift, Sparkles, ChevronRight,
+  Zap, Shield, Users, Gift, Sparkles, ChevronRight, Package,
 } from "lucide-react"
 import { SplashScreen } from "./_components/splash-screen"
 
@@ -426,9 +426,9 @@ export default function LandingPage() {
       name: "Essencial",
       price: "R$ 79,90",
       period: "/mês",
-      desc: "Para começar",
+      desc: "Imprima por conta",
       highlight: false,
-      features: ["3 campanhas ativas", "100 chaves/mês", "QR Code personalizado", "Página de resgate", "Painel de acompanhamento"],
+      features: ["3 campanhas ativas", "100 chaves/mês para imprimir", "PDF otimizado para impressão", "QR Code personalizado", "Página de resgate"],
     },
     {
       name: "Profissional",
@@ -436,7 +436,7 @@ export default function LandingPage() {
       period: "/mês",
       desc: "Mais popular",
       highlight: true,
-      features: ["Campanhas ilimitadas", "5.000 chaves/mês", "Layout de card personalizado", "Analytics avançado por campanha", "Múltiplos operadores", "Exportação CSV"],
+      features: ["Campanhas ilimitadas", "5.000 chaves/mês para imprimir", "Layout de card personalizável", "Analytics avançado por campanha", "Múltiplos operadores", "Exportação para qualquer gráfica"],
     },
     {
       name: "Empresarial",
@@ -832,26 +832,184 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="text-center mb-20"
           >
-            <SectionLabel>Planos & Materiais</SectionLabel>
+            <SectionLabel>Dois caminhos, uma plataforma</SectionLabel>
             <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mt-5 mb-4">
-              Assine a plataforma.{" "}
+              Comece com físico.{" "}
               <span className="bg-clip-text text-transparent"
                 style={{ backgroundImage: "linear-gradient(90deg, #10b981, #6ee7b7)" }}>
-                Peça os cards.
+                Escale do jeito que quiser.
               </span>
             </h2>
             <p className="text-lg max-w-2xl mx-auto" style={{ color: "rgba(255,255,255,0.45)" }}>
-              Dois componentes, um sistema. A assinatura dá acesso à plataforma.
-              Os materiais físicos são os cards que saem da sua loja e voltam como clientes.
+              Compre os cards físicos e a plataforma vem inclusa para gerenciar cada chave.
+              Quando a última cortesia for resgatada, você escolhe: pede mais cards ou migra para o digital.
+              A plataforma se adapta ao seu ritmo.
             </p>
           </motion.div>
 
-          {/* ── Bloco de assinatura ── */}
-          <p className="text-xs font-bold uppercase tracking-[3px] mb-6"
-            style={{ color: "#10b981" }}>
-            01 — Assinatura mensal da plataforma
-          </p>
-          <div className="grid md:grid-cols-3 gap-6 items-start mb-24">
+          {/* ── CAMINHO 1: Físico + Plataforma inclusa ── */}
+          <div className="flex items-center gap-4 mb-8">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold text-black flex-shrink-0"
+              style={{ background: "linear-gradient(135deg, #10b981, #059669)" }}>1</div>
+            <div>
+              <p className="text-base font-semibold text-white">Comece com cards físicos</p>
+              <p className="text-sm" style={{ color: "rgba(255,255,255,0.40)" }}>
+                Nós produzimos, você distribui. Plataforma de gestão inclusa no kit.
+              </p>
+            </div>
+          </div>
+
+          {/* ── CAMINHO 1: Cards físicos (materiais) ── */}
+          <div className="grid md:grid-cols-3 gap-6 mb-16">
+            {materials.map((mat, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="glow-card glass-card rounded-2xl p-7 relative overflow-hidden"
+              >
+                {/* Tier badge */}
+                <div className="absolute top-5 right-5 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full"
+                  style={{
+                    background: `${mat.accentColor}18`,
+                    color: mat.accentColor,
+                    border: `1px solid ${mat.accentColor}35`,
+                  }}>
+                  {mat.tier}
+                </div>
+
+                {/* Plataforma inclusa badge */}
+                <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full mb-4"
+                  style={{
+                    background: "rgba(16,185,129,0.10)",
+                    color: "#10b981",
+                    border: "1px solid rgba(16,185,129,0.25)",
+                  }}>
+                  <CheckCircle2 className="w-3 h-3" />
+                  Plataforma inclusa
+                </div>
+
+                {/* Icon */}
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
+                  style={{ background: `${mat.accentColor}12`, border: `1px solid ${mat.accentColor}28` }}>
+                  <mat.icon className="w-5 h-5" style={{ color: mat.accentColor }} />
+                </div>
+
+                <h3 className="text-lg font-semibold mb-2 pr-16">{mat.name}</h3>
+                <p className="text-sm leading-relaxed mb-6" style={{ color: "rgba(255,255,255,0.40)" }}>
+                  {mat.desc}
+                </p>
+
+                {/* Preço unitário */}
+                <div className="mb-5 pb-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                  <span className="text-xs uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.28)" }}>
+                    preço unitário
+                  </span>
+                  <div className="flex items-end gap-1 mt-1">
+                    <span className="text-3xl font-bold" style={{ color: mat.accentColor }}>
+                      {mat.unitPrice}
+                    </span>
+                    <span className="text-sm mb-1" style={{ color: "rgba(255,255,255,0.3)" }}>/peça</span>
+                  </div>
+                </div>
+
+                {/* Kits */}
+                <div className="space-y-2.5 mb-7">
+                  {mat.kits.map((k) => (
+                    <div key={k.label} className="flex items-center justify-between">
+                      <span className="text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>{k.label}</span>
+                      <span className="text-sm font-semibold text-white">{k.price}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* CTA */}
+                <Link
+                  href="/register"
+                  className="block text-center text-sm font-semibold py-3 rounded-xl transition-all hover:scale-[1.02] active:scale-95"
+                  style={{
+                    background: `${mat.accentColor}14`,
+                    color: mat.accentColor,
+                    border: `1px solid ${mat.accentColor}30`,
+                  }}
+                >
+                  Solicitar pedido
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* ── Callout: o que acontece quando as chaves acabam ── */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="rounded-2xl p-8 mb-24 relative overflow-hidden"
+            style={{
+              background: "linear-gradient(135deg, rgba(16,185,129,0.07) 0%, rgba(5,150,105,0.04) 100%)",
+              border: "1px solid rgba(16,185,129,0.18)",
+            }}
+          >
+            {/* Halo difuso */}
+            <div className="absolute inset-0 pointer-events-none"
+              style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(16,185,129,0.08), transparent 65%)" }} />
+
+            <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+              {/* Texto */}
+              <div className="flex-1 text-center md:text-left">
+                <p className="text-xs font-bold uppercase tracking-[3px] mb-3" style={{ color: "#10b981" }}>
+                  Quando a última chave for resgatada…
+                </p>
+                <h3 className="text-xl md:text-2xl font-semibold mb-2">
+                  A plataforma avisa. Você decide o próximo passo.
+                </h3>
+                <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.45)" }}>
+                  Acabou o estoque de cards? Sem problema. O sistema notifica e te dá duas opções na
+                  hora — sem perder clientes, sem parar a campanha.
+                </p>
+              </div>
+
+              {/* Duas opções */}
+              <div className="flex flex-col sm:flex-row md:flex-col gap-3 w-full md:w-auto md:min-w-[220px]">
+                <div className="flex items-center gap-3 px-5 py-4 rounded-xl"
+                  style={{ background: "rgba(16,185,129,0.10)", border: "1px solid rgba(16,185,129,0.22)" }}>
+                  <Package className="w-5 h-5 flex-shrink-0" style={{ color: "#10b981" }} />
+                  <div>
+                    <p className="text-sm font-semibold text-white">Pedir mais cards</p>
+                    <p className="text-xs" style={{ color: "rgba(255,255,255,0.40)" }}>continua no físico</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 px-5 py-4 rounded-xl"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)" }}>
+                  <Sparkles className="w-5 h-5 flex-shrink-0" style={{ color: "#a78bfa" }} />
+                  <div>
+                    <p className="text-sm font-semibold text-white">Migrar para digital</p>
+                    <p className="text-xs" style={{ color: "rgba(255,255,255,0.40)" }}>assina e imprime</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* ── CAMINHO 2: Assinatura ── */}
+          <div className="flex items-center gap-4 mb-8">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold flex-shrink-0"
+              style={{
+                background: "rgba(255,255,255,0.06)",
+                border: "1px solid rgba(255,255,255,0.12)",
+                color: "rgba(255,255,255,0.6)",
+              }}>2</div>
+            <div>
+              <p className="text-base font-semibold text-white">Prefiro imprimir por conta</p>
+              <p className="text-sm" style={{ color: "rgba(255,255,255,0.40)" }}>
+                Assine um plano, gere as chaves e imprima onde quiser — ou use só o digital.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 items-start">
             {plans.map((plan, i) => (
               <motion.div
                 key={i}
@@ -905,104 +1063,6 @@ export default function LandingPage() {
               </motion.div>
             ))}
           </div>
-
-          {/* ── Divisor ── */}
-          <div className="flex items-center gap-6 mb-14">
-            <div className="flex-1 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(255,255,255,0.08))" }} />
-            <span className="text-xs font-bold uppercase tracking-[3px] px-4"
-              style={{ color: "rgba(255,255,255,0.25)" }}>
-              mais
-            </span>
-            <div className="flex-1 h-px" style={{ background: "linear-gradient(to left, transparent, rgba(255,255,255,0.08))" }} />
-          </div>
-
-          {/* ── Bloco de materiais ── */}
-          <p className="text-xs font-bold uppercase tracking-[3px] mb-6"
-            style={{ color: "#10b981" }}>
-            02 — Materiais físicos — o card que sai da sua loja
-          </p>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {materials.map((mat, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="glow-card glass-card rounded-2xl p-7 relative overflow-hidden"
-              >
-                {/* Tier badge */}
-                <div className="absolute top-5 right-5 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full"
-                  style={{
-                    background: `${mat.accentColor}18`,
-                    color: mat.accentColor,
-                    border: `1px solid ${mat.accentColor}35`,
-                  }}>
-                  {mat.tier}
-                </div>
-
-                {/* Icon */}
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
-                  style={{ background: `${mat.accentColor}12`, border: `1px solid ${mat.accentColor}28` }}>
-                  <mat.icon className="w-5 h-5" style={{ color: mat.accentColor }} />
-                </div>
-
-                <h3 className="text-lg font-semibold mb-2 pr-16">{mat.name}</h3>
-                <p className="text-sm leading-relaxed mb-6" style={{ color: "rgba(255,255,255,0.40)" }}>
-                  {mat.desc}
-                </p>
-
-                {/* Preço unitário */}
-                <div className="mb-5 pb-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                  <span className="text-xs uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.28)" }}>
-                    preço unitário
-                  </span>
-                  <div className="flex items-end gap-1 mt-1">
-                    <span className="text-3xl font-bold" style={{ color: mat.accentColor }}>
-                      {mat.unitPrice}
-                    </span>
-                    <span className="text-sm mb-1" style={{ color: "rgba(255,255,255,0.3)" }}>/peça</span>
-                  </div>
-                </div>
-
-                {/* Kits */}
-                <div className="space-y-2.5 mb-7">
-                  {mat.kits.map((k) => (
-                    <div key={k.label} className="flex items-center justify-between">
-                      <span className="text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>{k.label}</span>
-                      <span className="text-sm font-semibold text-white">{k.price}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* CTA */}
-                <Link
-                  href="/register"
-                  className="block text-center text-sm font-semibold py-3 rounded-xl transition-all hover:scale-[1.02] active:scale-95"
-                  style={{
-                    background: `${mat.accentColor}14`,
-                    color: mat.accentColor,
-                    border: `1px solid ${mat.accentColor}30`,
-                  }}
-                >
-                  Solicitar pedido
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Nota de rodapé */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-center text-xs mt-10"
-            style={{ color: "rgba(255,255,255,0.22)" }}
-          >
-            * Os materiais físicos são pedidos separados da assinatura e produzidos sob demanda.
-            Prazo de entrega informado no pedido.
-          </motion.p>
 
         </div>
       </section>
