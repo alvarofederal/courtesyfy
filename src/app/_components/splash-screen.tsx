@@ -18,16 +18,20 @@ export function SplashScreen() {
     <div
       aria-hidden="true"
       style={{
-        position:   "fixed",
-        inset:       0,
-        zIndex:      9999,
-        background: "#050505",
-        display:    "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        opacity:    fading ? 0 : 1,
-        transition: fading ? "opacity 0.8s ease" : "none",
-        pointerEvents: fading ? "none" : "all",
+        position:        "fixed",
+        inset:            0,
+        zIndex:           9999,
+        background:      "#050505",
+        display:         "flex",
+        alignItems:      "center",
+        justifyContent:  "center",
+        opacity:         fading ? 0 : 1,
+        transition:      fading ? "opacity 0.8s ease" : "none",
+        pointerEvents:   fading ? "none" : "all",
+        /* Força camada própria na GPU — impede animações de baixo de vazar */
+        transform:       "translateZ(0)",
+        willChange:      "opacity",
+        isolation:       "isolate",
       }}
     >
       <span

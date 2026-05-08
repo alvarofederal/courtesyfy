@@ -831,17 +831,31 @@ select:focus {
 /* Grupo principal — contém trunk + galhos */
 .bolt-group {
   animation: bolt-strike 9s ease-in-out infinite;
+  /* Aguarda a splash sumir (4s) antes de começar — evita flickering no mobile */
+  animation-delay: 4.2s;
+  opacity: 0; /* invisível até a animação começar */
 }
 
 /* Brilho de impacto no chão */
 .bolt-impact {
   animation: bolt-strike 9s ease-in-out infinite;
-  animation-delay: 0.06s;
+  animation-delay: 4.26s;
+  opacity: 0;
 }
 
 /* Flash do céu — ilumina toda a seção brevemente */
 .sky-flash-layer {
   animation: sky-flash 9s ease-in-out infinite;
+  animation-delay: 4.2s;
+  opacity: 0;
+}
+
+/* Mobile: filtro mais leve para não sobrecarregar a GPU */
+@media (max-width: 768px) {
+  .bolt-svg {
+    max-width: 600px;
+    opacity: 0.85;
+  }
 }
 
 /* Raio: invisível a maior parte do tempo, flash rápido duplo */
