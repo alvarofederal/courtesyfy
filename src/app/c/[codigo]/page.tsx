@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { db } from "@/lib/prisma"
 import { AtivacaoForm } from "./_components/ativacao-form"
+import Link from "next/link"
 
 function daysDiff(to: Date) {
   return Math.ceil((to.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
@@ -24,40 +25,54 @@ function buildBenefitLabel(
   return { label: tipo.replace(/_/g, " ").toLowerCase(), destaque: "" }
 }
 
+/* ─── Status screens ─────────────────────────────────────────── */
 function StatusScreen({
   icon,
-  iconBg,
   title,
   message,
   cor,
 }: {
   icon: React.ReactNode
-  iconBg: string
   title: string
   message: string
   cor: string
 }) {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Mini header */}
-      <div className="h-2" style={{ backgroundColor: cor }} />
+    <div className="min-h-screen flex flex-col" style={{ background: "#050505" }}>
+      {/* thin accent bar */}
+      <div className="h-1 w-full" style={{ background: `linear-gradient(90deg, transparent, ${cor}, transparent)` }} />
+
       <div className="flex-1 flex items-center justify-center p-6">
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 max-w-sm w-full text-center">
+        <div
+          className="w-full max-w-sm rounded-3xl p-8 text-center"
+          style={{
+            background: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(255,255,255,0.07)",
+            boxShadow: "0 24px 48px rgba(0,0,0,0.5)",
+          }}
+        >
           <div
             className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
-            style={{ backgroundColor: iconBg }}
+            style={{ background: `${cor}14`, border: `1px solid ${cor}30` }}
           >
             {icon}
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">{title}</h2>
-          <p className="text-gray-500 text-sm leading-relaxed">{message}</p>
+          <h2 className="text-xl font-bold text-white mb-2">{title}</h2>
+          <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.40)" }}>{message}</p>
         </div>
       </div>
-      <p className="text-center text-xs text-gray-300 py-4">Powered by Courtesyfy</p>
+
+      <p className="text-center text-xs py-4" style={{ color: "rgba(255,255,255,0.15)" }}>
+        Powered by{" "}
+        <Link href="/" className="font-semibold" style={{ color: "rgba(255,255,255,0.30)" }}>
+          Courtesyfy
+        </Link>
+      </p>
     </div>
   )
 }
 
+/* ─── Page ───────────────────────────────────────────────────── */
 export default async function ChaveLandingPage({
   params,
 }: {
@@ -94,19 +109,17 @@ export default async function ChaveLandingPage({
 
   if (!chave) notFound()
 
-  const cor = chave.loja.corPrimaria ?? "#10b981"
+  const cor          = chave.loja.corPrimaria ?? "#10b981"
   const nomeExibicao = chave.loja.nomeExibicao ?? chave.loja.nome
-  const campanha = chave.campanha
+  const campanha     = chave.campanha
 
-  // ── Status screens ──────────────────────────────────────────
-
+  /* ── Status screens ── */
   if (campanha.status === "ENCERRADA" || campanha.status === "CANCELADA") {
     return (
       <StatusScreen
         cor={cor}
-        iconBg="#FEF3C7"
         icon={
-          <svg className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-8 h-8" style={{ color: cor }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         }
@@ -120,9 +133,8 @@ export default async function ChaveLandingPage({
     return (
       <StatusScreen
         cor={cor}
-        iconBg="#FEF3C7"
         icon={
-          <svg className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-8 h-8" style={{ color: cor }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         }
@@ -136,9 +148,8 @@ export default async function ChaveLandingPage({
     return (
       <StatusScreen
         cor={cor}
-        iconBg="#DCFCE7"
         icon={
-          <svg className="w-8 h-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-8 h-8" style={{ color: cor }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
           </svg>
         }
@@ -152,9 +163,8 @@ export default async function ChaveLandingPage({
     return (
       <StatusScreen
         cor={cor}
-        iconBg="#FEE2E2"
         icon={
-          <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-8 h-8" style={{ color: "#ef4444" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         }
@@ -164,8 +174,7 @@ export default async function ChaveLandingPage({
     )
   }
 
-  // ── Marcar como CONSULTADA ───────────────────────────────────
-
+  /* ── Marcar como CONSULTADA ── */
   if (chave.status === "GERADA") {
     await db.chave.update({
       where: { id: chave.id },
@@ -182,7 +191,7 @@ export default async function ChaveLandingPage({
     })
   }
 
-  const jaAtivada = chave.status === "ATIVADA"
+  const jaAtivada   = chave.status === "ATIVADA"
   const diasRestantes = daysDiff(campanha.expiraEm)
   const { label: beneficioLabel, destaque } = buildBenefitLabel(
     campanha.tipoBeneficio,
@@ -191,115 +200,157 @@ export default async function ChaveLandingPage({
   )
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#f8fafc" }}>
-      {/* ── Header da loja ── */}
-      <header style={{ backgroundColor: cor }}>
-        <div className="max-w-sm mx-auto px-5 py-5 flex items-center gap-3">
-          {chave.loja.logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={chave.loja.logoUrl}
-              alt={nomeExibicao}
-              className="w-11 h-11 rounded-2xl object-cover bg-white/20 flex-shrink-0"
-            />
-          ) : (
-            <div className="w-11 h-11 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-xl">{nomeExibicao[0]}</span>
-            </div>
-          )}
-          <div className="min-w-0">
-            <p className="text-white font-bold text-base leading-tight truncate">{nomeExibicao}</p>
-            <p className="text-white/70 text-xs">Cortesia exclusiva para você</p>
+    <div className="min-h-screen flex flex-col" style={{ background: "#050505" }}>
+
+      {/* Ambient glow from store accent color */}
+      <div
+        aria-hidden="true"
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          background: `radial-gradient(ellipse 80% 40% at 50% 0%, ${cor}14, transparent 60%)`,
+        }}
+      />
+
+      {/* Header */}
+      <header
+        className="relative z-10 px-5 py-4 flex items-center gap-3"
+        style={{
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          backdropFilter: "blur(12px)",
+          background: "rgba(5,5,5,0.80)",
+        }}
+      >
+        {chave.loja.logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={chave.loja.logoUrl}
+            alt={nomeExibicao}
+            className="w-10 h-10 rounded-xl object-cover flex-shrink-0"
+            style={{ border: `1px solid ${cor}30` }}
+          />
+        ) : (
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-white font-bold text-lg"
+            style={{ background: `${cor}20`, border: `1px solid ${cor}35` }}
+          >
+            {nomeExibicao[0]}
           </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="font-bold text-sm text-white leading-tight truncate">{nomeExibicao}</p>
+          <p className="text-xs" style={{ color: "rgba(255,255,255,0.38)" }}>Cortesia exclusiva</p>
         </div>
+        {/* Courtesyfy branding */}
+        <span
+          className="text-xs font-semibold hidden sm:block"
+          style={{ color: "rgba(255,255,255,0.18)", fontFamily: "var(--font-open-sans), sans-serif" }}
+        >
+          <span style={{ color: "rgba(255,255,255,0.25)" }}>Courtesy</span>
+          <span style={{ color: "#10b981" }}>fy</span>
+        </span>
       </header>
 
-      <main className="flex-1 max-w-sm mx-auto w-full px-4 py-5 space-y-4">
+      <main className="flex-1 max-w-sm mx-auto w-full px-4 py-6 space-y-4 relative z-10">
 
-        {/* ── Card do benefício ── */}
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-          {/* Área do destaque */}
+        {/* Benefit card */}
+        <div
+          className="rounded-3xl overflow-hidden"
+          style={{
+            background: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(255,255,255,0.07)",
+            boxShadow: `0 0 40px ${cor}10`,
+          }}
+        >
+          {/* Benefit highlight */}
           <div
             className="px-6 pt-7 pb-6 text-center"
-            style={{ background: `linear-gradient(160deg, ${cor}18 0%, ${cor}06 100%)` }}
+            style={{ background: `linear-gradient(160deg, ${cor}12 0%, ${cor}04 100%)` }}
           >
-            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: cor }}>
+            <p
+              className="text-xs font-bold uppercase tracking-widest mb-3"
+              style={{ color: cor }}
+            >
               {beneficioLabel}
             </p>
             {destaque && (
-              <p className="text-4xl font-black text-gray-900 mb-2 leading-tight">{destaque}</p>
+              <p className="text-5xl font-black text-white mb-2 leading-tight">{destaque}</p>
             )}
-            <p className="text-base font-semibold text-gray-700">{campanha.nome}</p>
+            <p className="text-base font-semibold" style={{ color: "rgba(255,255,255,0.80)" }}>
+              {campanha.nome}
+            </p>
             {campanha.descricao && (
-              <p className="text-sm text-gray-500 mt-1.5">{campanha.descricao}</p>
+              <p className="text-sm mt-1.5" style={{ color: "rgba(255,255,255,0.45)" }}>
+                {campanha.descricao}
+              </p>
             )}
           </div>
 
-          {/* Código */}
-          <div className="px-6 py-4 border-t border-gray-50 flex items-center justify-between gap-3">
+          {/* Code + validity */}
+          <div
+            className="px-6 py-4 flex items-center justify-between gap-3"
+            style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
+          >
             <div>
-              <p className="text-xs text-gray-400 mb-0.5">Código da chave</p>
+              <p className="text-xs mb-0.5" style={{ color: "rgba(255,255,255,0.30)" }}>Código</p>
               <code className="font-mono text-base font-bold tracking-widest" style={{ color: cor }}>
                 {codigo}
               </code>
             </div>
-            {/* Validade */}
             <div className="text-right flex-shrink-0">
-              <p className="text-xs text-gray-400 mb-0.5">Válido por</p>
-              <p className="text-sm font-semibold text-gray-700">
+              <p className="text-xs mb-0.5" style={{ color: "rgba(255,255,255,0.30)" }}>Válido por</p>
+              <p className="text-sm font-semibold text-white">
                 {diasRestantes === 1 ? "1 dia" : `${diasRestantes} dias`}
               </p>
             </div>
           </div>
 
-          {/* Badge de status */}
           {jaAtivada && (
             <div className="px-6 pb-5 text-center">
               <span
-                className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-full"
-                style={{ backgroundColor: `${cor}15`, color: cor }}
+                className="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-full"
+                style={{ background: `${cor}14`, color: cor, border: `1px solid ${cor}28` }}
               >
-                <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: cor }} />
+                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: cor }} />
                 Ativada — pronta para resgatar
               </span>
             </div>
           )}
         </div>
 
-        {/* ── Painel de ação ── */}
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+        {/* Action panel */}
+        <div
+          className="rounded-3xl p-6"
+          style={{
+            background: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(255,255,255,0.07)",
+          }}
+        >
           {jaAtivada ? (
             <div className="text-center space-y-4">
               <div
                 className="w-14 h-14 rounded-full flex items-center justify-center mx-auto"
-                style={{ backgroundColor: `${cor}15` }}
+                style={{ background: `${cor}14`, border: `1px solid ${cor}28` }}
               >
                 <svg className="w-7 h-7" style={{ color: cor }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
               <div>
-                <p className="font-bold text-gray-900 text-lg">Pronto para resgatar!</p>
-                <p className="text-sm text-gray-500 mt-1">
-                  Mostre este código ao atendente da loja para receber seu benefício.
+                <p className="font-bold text-white text-lg">Pronto para resgatar!</p>
+                <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.45)" }}>
+                  Mostre este código ao atendente da loja.
                 </p>
               </div>
-              <div
-                className="rounded-2xl py-5 px-4"
-                style={{ backgroundColor: `${cor}10` }}
-              >
-                <code
-                  className="font-mono text-2xl font-black tracking-widest block"
-                  style={{ color: cor }}
-                >
+              <div className="rounded-2xl py-5 px-4" style={{ background: `${cor}10`, border: `1px solid ${cor}20` }}>
+                <code className="font-mono text-2xl font-black tracking-widest block" style={{ color: cor }}>
                   {codigo}
                 </code>
               </div>
             </div>
           ) : (
             <>
-              <h2 className="text-base font-bold text-gray-900 mb-1">Ativar minha chave</h2>
-              <p className="text-xs text-gray-500 mb-5">
+              <h2 className="text-base font-bold text-white mb-1">Ativar minha chave</h2>
+              <p className="text-xs mb-5" style={{ color: "rgba(255,255,255,0.38)" }}>
                 Informe seu contato para ativar. Depois é só apresentar o código ao lojista.
               </p>
               <AtivacaoForm codigo={codigo} corPrimaria={cor} />
@@ -307,13 +358,19 @@ export default async function ChaveLandingPage({
           )}
         </div>
 
-        {/* ── Regras ── */}
+        {/* Regras */}
         {campanha.regrasUso && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-4">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
+          <div
+            className="rounded-2xl p-4"
+            style={{
+              background: "rgba(255,255,255,0.02)",
+              border: "1px solid rgba(255,255,255,0.05)",
+            }}
+          >
+            <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.25)" }}>
               Regras de uso
             </p>
-            <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-line">
+            <p className="text-xs leading-relaxed whitespace-pre-line" style={{ color: "rgba(255,255,255,0.40)" }}>
               {campanha.regrasUso}
             </p>
           </div>
@@ -321,8 +378,13 @@ export default async function ChaveLandingPage({
 
       </main>
 
-      <footer className="text-center py-5">
-        <p className="text-xs text-gray-300">Powered by Courtesyfy</p>
+      <footer className="text-center py-5 relative z-10">
+        <p className="text-xs" style={{ color: "rgba(255,255,255,0.15)" }}>
+          Powered by{" "}
+          <Link href="/" className="font-semibold" style={{ color: "rgba(255,255,255,0.28)" }}>
+            <span>Courtesy</span><span style={{ color: "#10b981" }}>fy</span>
+          </Link>
+        </p>
       </footer>
     </div>
   )

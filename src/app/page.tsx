@@ -8,6 +8,7 @@ import {
   Zap, Shield, Users, Gift, Sparkles, ChevronRight, Package,
 } from "lucide-react"
 import { SplashScreen } from "./_components/splash-screen"
+import { LightningCanvas } from "./_components/lightning-canvas"
 
 /* ─── helpers ─────────────────────────────────────────────────── */
 function cn(...classes: (string | false | undefined | null)[]) {
@@ -40,147 +41,6 @@ function Orb({ className, style }: { className?: string; style?: React.CSSProper
   )
 }
 
-/* ─── Lightning bolt ──────────────────────────────────────────── */
-function LightningBolt() {
-  return (
-    <>
-      {/* Flash breve que ilumina toda a seção */}
-      <div
-        className="sky-flash-layer absolute inset-0 pointer-events-none"
-        style={{
-          background: "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(255,255,255,0.08) 0%, transparent 70%)",
-        }}
-        aria-hidden="true"
-      />
-
-      {/* O raio em si */}
-      <div className="lightning-wrap" aria-hidden="true">
-        <svg
-          className="bolt-svg"
-          viewBox="0 0 800 650"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          preserveAspectRatio="xMidYMin meet"
-        >
-          <defs>
-            {/* Bloom em 4 camadas: corona gigante → glow suave → mid → core nítido */}
-            <filter id="bolt-bloom" x="-120%" y="-5%" width="340%" height="115%">
-              <feGaussianBlur stdDeviation="50" result="b4" in="SourceGraphic"/>
-              <feGaussianBlur stdDeviation="22" result="b3" in="SourceGraphic"/>
-              <feGaussianBlur stdDeviation="8"  result="b2" in="SourceGraphic"/>
-              <feGaussianBlur stdDeviation="2"  result="b1" in="SourceGraphic"/>
-              <feMerge>
-                <feMergeNode in="b4"/>
-                <feMergeNode in="b3"/>
-                <feMergeNode in="b2"/>
-                <feMergeNode in="b1"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
-
-          {/* ── Grupo principal com bloom ── */}
-          <g filter="url(#bolt-bloom)" className="bolt-group">
-
-            {/* === TRONCO PRINCIPAL === */}
-            {/* Corona externa — muito grossa, muito suave */}
-            <path
-              d="M400,0 L383,66 L417,66 L391,162 L427,162 L400,278 L438,278 L403,396 L434,468 L406,585"
-              stroke="rgba(200,255,225,0.18)" strokeWidth="20"
-              strokeLinecap="round" strokeLinejoin="round"
-            />
-            {/* Halo externo */}
-            <path
-              d="M400,0 L383,66 L417,66 L391,162 L427,162 L400,278 L438,278 L403,396 L434,468 L406,585"
-              stroke="rgba(180,255,215,0.50)" strokeWidth="10"
-              strokeLinecap="round" strokeLinejoin="round"
-            />
-            {/* Core branco */}
-            <path
-              d="M400,0 L383,66 L417,66 L391,162 L427,162 L400,278 L438,278 L403,396 L434,468 L406,585"
-              stroke="white" strokeWidth="2.2"
-              strokeLinecap="round" strokeLinejoin="round"
-            />
-
-            {/* === GALHO DIREITO SUPERIOR — mais longo e aberto === */}
-            <path
-              d="M427,162 L478,252 L522,382 L558,490 L574,578"
-              stroke="rgba(200,255,225,0.16)" strokeWidth="16"
-              strokeLinecap="round" strokeLinejoin="round"
-            />
-            <path
-              d="M427,162 L478,252 L522,382 L558,490 L574,578"
-              stroke="rgba(180,255,215,0.42)" strokeWidth="9"
-              strokeLinecap="round" strokeLinejoin="round"
-            />
-            <path
-              d="M427,162 L478,252 L522,382 L558,490 L574,578"
-              stroke="white" strokeWidth="1.5"
-              strokeLinecap="round" strokeLinejoin="round" opacity="0.85"
-            />
-
-            {/* === GALHO ESQUERDO MÉDIO — mais longo e aberto === */}
-            <path
-              d="M438,278 L372,362 L326,470 L282,582 L252,648"
-              stroke="rgba(200,255,225,0.14)" strokeWidth="14"
-              strokeLinecap="round" strokeLinejoin="round"
-            />
-            <path
-              d="M438,278 L372,362 L326,470 L282,582 L252,648"
-              stroke="rgba(180,255,215,0.36)" strokeWidth="8"
-              strokeLinecap="round" strokeLinejoin="round"
-            />
-            <path
-              d="M438,278 L372,362 L326,470 L282,582 L252,648"
-              stroke="white" strokeWidth="1.3"
-              strokeLinecap="round" strokeLinejoin="round" opacity="0.78"
-            />
-
-            {/* === ESPALHAMENTO ESQUERDO (nasce em 403,396) — mais longe === */}
-            <path
-              d="M403,396 L344,470 L295,558 L258,645"
-              stroke="white" strokeWidth="1.1"
-              strokeLinecap="round" strokeLinejoin="round" opacity="0.55"
-            />
-
-            {/* === ESPALHAMENTO DIREITO (nasce em 434,468) — mais longe === */}
-            <path
-              d="M434,468 L485,548 L518,632"
-              stroke="white" strokeWidth="1.1"
-              strokeLinecap="round" strokeLinejoin="round" opacity="0.50"
-            />
-
-            {/* Sub-galho direito de 522,382 */}
-            <path d="M522,382 L556,448 L568,525" stroke="white" strokeWidth="0.9" strokeLinecap="round" opacity="0.55"/>
-
-            {/* Sub-galho esquerdo de 372,362 */}
-            <path d="M372,362 L328,425 L302,498" stroke="white" strokeWidth="0.9" strokeLinecap="round" opacity="0.50"/>
-
-            {/* Mini galho direito de 478,252 */}
-            <path d="M478,252 L518,312 L538,395" stroke="white" strokeWidth="0.7" strokeLinecap="round" opacity="0.42"/>
-
-            {/* Mini galho esquerdo de 326,470 */}
-            <path d="M326,470 L288,530" stroke="white" strokeWidth="0.7" strokeLinecap="round" opacity="0.38"/>
-
-            {/* Mini galho extra direito de 558,490 */}
-            <path d="M558,490 L592,548" stroke="white" strokeWidth="0.6" strokeLinecap="round" opacity="0.32"/>
-
-            {/* Mini galho extra esquerdo de 282,582 */}
-            <path d="M282,582 L244,638" stroke="white" strokeWidth="0.6" strokeLinecap="round" opacity="0.30"/>
-          </g>
-
-          {/* Brilho de impacto — halo oval maior na base */}
-          <ellipse
-            cx="418" cy="585" rx="200" ry="32"
-            fill="rgba(255,255,255,0.20)"
-            className="bolt-impact"
-            style={{ filter: "blur(18px)" }}
-          />
-        </svg>
-      </div>
-    </>
-  )
-}
 
 /* ─── Hero card mockup ────────────────────────────────────────── */
 function HeroCard() {
@@ -519,8 +379,8 @@ export default function LandingPage() {
         <Orb className="w-[400px] h-[400px] bottom-0 left-1/3 opacity-10"
           style={{ background: "radial-gradient(circle, rgba(5,150,105,0.3), transparent 70%)" }} />
 
-        {/* Raio de tempestade — desce do topo central */}
-        <LightningBolt />
+        {/* Raio de tempestade — canvas fractal */}
+        <LightningCanvas />
 
         <div className="max-w-7xl mx-auto px-6 pt-24 pb-16 w-full relative" style={{ zIndex: 2 }}>
           <div className="grid lg:grid-cols-2 gap-16 items-center">
