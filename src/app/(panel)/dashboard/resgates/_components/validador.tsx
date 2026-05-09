@@ -4,7 +4,7 @@ import { useActionState, useState, useTransition, useEffect, useRef, useCallback
 import { useFormStatus } from "react-dom"
 import { consultarChave, confirmarResgate } from "../_actions/validar-resgate"
 import type { ValidarResgateState } from "../_actions/validar-resgate"
-import { Search, CheckCircle, User, Phone, Mail, Camera, Keyboard, X, ZapOff } from "lucide-react"
+import { Search, CheckCircle, User, Phone, Mail, Camera, Keyboard, X, ZapOff, ImagePlus } from "lucide-react"
 
 /* ── QR Scanner ─────────────────────────────────────────────── */
 
@@ -45,10 +45,45 @@ function QRScannerView({ onCode }: { onCode: (code: string) => void }) {
 
   useEffect(() => () => stop(), [stop])
 
+  /* Upload de foto como fallback — funciona no Chrome sem câmera ao vivo */
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ""
+
+    if (!("BarcodeDetector" in window)) {
+      setErrMsg("Escaneamento não disponível neste navegador. Digite o código acima.")
+      setState("error")
+      return
+    }
+
+    setState("requesting")
+    try {
+      const url = URL.createObjectURL(file)
+      const img = new Image()
+      img.src = url
+      await new Promise<void>((res, rej) => { img.onload = () => res(); img.onerror = rej })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const detector = new (window as any).BarcodeDetector({ formats: ["qr_code"] })
+      const results = await detector.detect(img)
+      URL.revokeObjectURL(url)
+
+      if (results.length > 0) {
+        const codigo = parseQR(results[0].rawValue)
+        if (codigo) { setState("found"); foundRef.current = true; onCode(codigo); return }
+      }
+      setErrMsg("QR Code não encontrado na imagem. Tente novamente com uma foto mais nítida.")
+      setState("error")
+    } catch {
+      setErrMsg("Não foi possível processar a imagem.")
+      setState("error")
+    }
+  }
+
   async function start() {
     if (!("BarcodeDetector" in window)) {
       setState("error")
-      setErrMsg("Seu navegador não suporta leitura de QR por câmera. Use o Chrome ou Edge.")
+      setErrMsg("Câmera ao vivo não disponível neste navegador (requer Chrome, Edge ou Safari 17+). Use o botão abaixo para tirar uma foto do QR.")
       return
     }
 
@@ -108,20 +143,28 @@ function QRScannerView({ onCode }: { onCode: (code: string) => void }) {
 
   if (state === "idle") {
     return (
-      <button
-        onClick={start}
-        className="w-full flex flex-col items-center justify-center gap-3 py-10 rounded-2xl border-2 border-dashed border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all group"
-      >
-        <div className="w-14 h-14 bg-gray-100 group-hover:bg-emerald-100 rounded-2xl flex items-center justify-center transition-colors">
-          <Camera className="w-7 h-7 text-gray-400 group-hover:text-emerald-600 transition-colors" />
-        </div>
-        <div className="text-center">
-          <p className="font-semibold text-gray-700 group-hover:text-emerald-700 text-sm transition-colors">
-            Iniciar câmera
-          </p>
-          <p className="text-xs text-gray-400 mt-0.5">Aponte para o QR Code da chave</p>
-        </div>
-      </button>
+      <div className="flex flex-col gap-3">
+        {/* Live camera button */}
+        <button onClick={start}
+          className="w-full flex flex-col items-center justify-center gap-3 py-8 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/15 hover:border-emerald-400 dark:hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/[0.06] transition-all group">
+          <div className="w-12 h-12 bg-gray-100 dark:bg-white/10 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-500/15 rounded-2xl flex items-center justify-center transition-colors">
+            <Camera className="w-6 h-6 text-gray-400 dark:text-white/40 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" />
+          </div>
+          <div className="text-center">
+            <p className="font-semibold text-gray-700 dark:text-white/70 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 text-sm transition-colors">
+              Câmera ao vivo
+            </p>
+            <p className="text-xs text-gray-400 dark:text-white/35 mt-0.5">Aponte para o QR Code da chave</p>
+          </div>
+        </button>
+
+        {/* Photo upload fallback */}
+        <label className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-200 dark:border-white/10 text-gray-500 dark:text-white/45 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-300 dark:hover:border-emerald-500/50 text-sm cursor-pointer transition-all">
+          <ImagePlus className="w-4 h-4" />
+          Tirar foto / enviar imagem do QR
+          <input type="file" accept="image/*" capture="environment" onChange={handlePhotoUpload} className="hidden" />
+        </label>
+      </div>
     )
   }
 
@@ -129,22 +172,28 @@ function QRScannerView({ onCode }: { onCode: (code: string) => void }) {
     return (
       <div className="flex flex-col items-center justify-center py-12 gap-3">
         <div className="w-10 h-10 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-gray-500">Acessando câmera...</p>
+        <p className="text-sm text-gray-500 dark:text-white/50">Processando...</p>
       </div>
     )
   }
 
   if (state === "error") {
     return (
-      <div className="rounded-2xl p-5 text-center bg-red-50 border border-red-100">
-        <ZapOff className="w-8 h-8 text-red-400 mx-auto mb-2" />
-        <p className="text-sm text-red-600 font-medium">{errMsg}</p>
-        <button
-          onClick={() => setState("idle")}
-          className="mt-3 text-xs text-red-400 hover:text-red-600 underline"
-        >
-          Tentar novamente
-        </button>
+      <div className="space-y-3">
+        <div className="rounded-2xl p-5 text-center bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20">
+          <ZapOff className="w-8 h-8 text-red-400 mx-auto mb-2" />
+          <p className="text-sm text-red-600 dark:text-red-400 font-medium">{errMsg}</p>
+          <button onClick={() => setState("idle")}
+            className="mt-3 text-xs text-red-400 dark:text-red-400/70 hover:text-red-600 underline">
+            Tentar novamente
+          </button>
+        </div>
+        {/* Photo upload fallback even in error state */}
+        <label className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-200 dark:border-white/10 text-gray-500 dark:text-white/45 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-300 dark:hover:border-emerald-500/50 text-sm cursor-pointer transition-all">
+          <ImagePlus className="w-4 h-4" />
+          Tirar foto / enviar imagem do QR
+          <input type="file" accept="image/*" capture="environment" onChange={handlePhotoUpload} className="hidden" />
+        </label>
       </div>
     )
   }
@@ -152,11 +201,11 @@ function QRScannerView({ onCode }: { onCode: (code: string) => void }) {
   if (state === "found") {
     return (
       <div className="flex flex-col items-center justify-center py-10 gap-3">
-        <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center">
-          <CheckCircle className="w-8 h-8 text-emerald-600" />
+        <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-500/20 rounded-full flex items-center justify-center">
+          <CheckCircle className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
         </div>
-        <p className="text-sm font-semibold text-emerald-700">QR lido com sucesso!</p>
-        <p className="text-xs text-gray-400">Buscando a chave...</p>
+        <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">QR lido com sucesso!</p>
+        <p className="text-xs text-gray-400 dark:text-white/35">Buscando a chave...</p>
       </div>
     )
   }
@@ -366,26 +415,22 @@ export function Validador() {
   return (
     <div className="space-y-4">
       {/* Tabs */}
-      <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
-        <button
-          onClick={() => setModo("digitar")}
+      <div className="flex bg-gray-100 dark:bg-white/[0.06] rounded-xl p-1 gap-1">
+        <button onClick={() => setModo("digitar")}
           className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${
             modo === "digitar"
-              ? "bg-white text-gray-900 shadow-sm"
-              : "text-gray-500 hover:text-gray-700"
-          }`}
-        >
+              ? "bg-white dark:bg-white/10 text-gray-900 dark:text-white shadow-sm"
+              : "text-gray-500 dark:text-white/45 hover:text-gray-700 dark:hover:text-white"
+          }`}>
           <Keyboard className="w-3.5 h-3.5" />
           Digitar código
         </button>
-        <button
-          onClick={() => setModo("scanner")}
+        <button onClick={() => setModo("scanner")}
           className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${
             modo === "scanner"
-              ? "bg-white text-gray-900 shadow-sm"
-              : "text-gray-500 hover:text-gray-700"
-          }`}
-        >
+              ? "bg-white dark:bg-white/10 text-gray-900 dark:text-white shadow-sm"
+              : "text-gray-500 dark:text-white/45 hover:text-gray-700 dark:hover:text-white"
+          }`}>
           <Camera className="w-3.5 h-3.5" />
           Escanear QR
         </button>

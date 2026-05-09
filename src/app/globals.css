@@ -79,37 +79,46 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
+  /* ── Identidade escura do Courtesyfy ── */
+  /* Fundo principal: #050505 */
+  --background: oklch(0.04 0 0);
+  --foreground: oklch(0.96 0 0);
+  /* Cards: glass sutil com toque esmeralda */
+  --card: oklch(0.10 0.004 165);
+  --card-foreground: oklch(0.96 0 0);
+  --popover: oklch(0.10 0.004 165);
+  --popover-foreground: oklch(0.96 0 0);
+  /* Primary: branco para botões de destaque */
   --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --primary-foreground: oklch(0.10 0 0);
+  /* Secundário/Muted: cinza escuro com toque verde */
+  --secondary: oklch(0.16 0.005 165);
+  --secondary-foreground: oklch(0.85 0 0);
+  --muted: oklch(0.14 0.003 165);
+  --muted-foreground: oklch(0.55 0 0);
+  --accent: oklch(0.16 0.005 165);
+  --accent-foreground: oklch(0.96 0 0);
+  /* Destrutivo */
+  --destructive: oklch(0.65 0.22 25);
+  /* Bordas: branco/8 */
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 10%);
+  --ring: oklch(0.55 0.15 165);
+  /* Charts: mantém cores vibrantes */
+  --chart-1: oklch(0.75 0.18 165);
+  --chart-2: oklch(0.65 0.18 220);
+  --chart-3: oklch(0.78 0.19 75);
+  --chart-4: oklch(0.65 0.22 30);
+  --chart-5: oklch(0.65 0.22 300);
+  /* Sidebar permanece preta (já é dark-native) */
+  --sidebar: oklch(0.07 0.002 165);
+  --sidebar-foreground: oklch(0.96 0 0);
+  --sidebar-primary: oklch(0.65 0.18 165);
+  --sidebar-primary-foreground: oklch(0.04 0 0);
+  --sidebar-accent: oklch(0.14 0.003 165);
+  --sidebar-accent-foreground: oklch(0.96 0 0);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.55 0.15 165);
 }
 
 @layer base {
@@ -120,6 +129,147 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   Dashboard design tokens — light + dark responsivo
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Sidebar (responde ao tema) ── */
+.sidebar-panel {
+  background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
+}
+.dark .sidebar-panel {
+  background: linear-gradient(180deg, #020c06 0%, #030f08 100%);
+}
+
+/* ── Hero cards (onboarding / configurações) ── */
+.hero-card {
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f0fdf4 100%);
+  box-shadow: 0 0 0 1px rgba(16,185,129,0.20), 0 20px 48px rgba(0,0,0,0.05);
+}
+.dark .hero-card {
+  background: linear-gradient(135deg, #020c06 0%, #041a0e 50%, #020c06 100%);
+  box-shadow: 0 0 0 1px rgba(16,185,129,0.18), 0 24px 48px rgba(0,0,0,0.25);
+}
+.hero-card-grid {
+  background-image: linear-gradient(rgba(16,185,129,0.10) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(16,185,129,0.10) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+.dark .hero-card-grid {
+  background-image: linear-gradient(rgba(16,185,129,0.04) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(16,185,129,0.04) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+.hero-card-orb {
+  background: radial-gradient(ellipse, rgba(16,185,129,0.18), transparent 65%);
+}
+.dark .hero-card-orb {
+  background: radial-gradient(ellipse, rgba(16,185,129,0.14), transparent 65%);
+}
+.hero-card-title { color: #111827; }
+.dark .hero-card-title { color: #ffffff; }
+.hero-card-sub   { color: rgba(0,0,0,0.40); }
+.dark .hero-card-sub   { color: rgba(255,255,255,0.45); }
+
+/* ── Onboarding step cards ── */
+.onb-step-done    { background: rgba(16,185,129,0.10); border: 1px solid rgba(16,185,129,0.30); }
+.onb-step-current { background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.35); }
+.onb-step-todo    { background: rgba(255,255,255,0.65); border: 1px solid rgba(16,185,129,0.10); }
+.dark .onb-step-todo    { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); }
+.dark .onb-step-current { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.18); }
+
+/* step number circle */
+.onb-num-done { background: #10b981; color: #fff; }
+.onb-num-curr { background: rgba(16,185,129,0.15); color: #059669; }
+.onb-num-todo { background: rgba(16,185,129,0.08); color: rgba(16,185,129,0.45); }
+.dark .onb-num-curr { background: rgba(255,255,255,0.12); color: #fff; }
+.dark .onb-num-todo { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.25); }
+
+/* step titles */
+.onb-title-done { color: #9ca3af; text-decoration: line-through; }
+.onb-title-curr { color: #111827; }
+.onb-title-todo { color: #6b7280; }
+.dark .onb-title-done { color: rgba(255,255,255,0.45); }
+.dark .onb-title-curr { color: #ffffff; }
+.dark .onb-title-todo { color: rgba(255,255,255,0.30); }
+
+/* step descriptions */
+.onb-desc-done { color: #d1d5db; }
+.onb-desc-todo { color: #9ca3af; }
+.dark .onb-desc-done { color: rgba(255,255,255,0.22); }
+.dark .onb-desc-todo { color: rgba(255,255,255,0.35); }
+
+/* step CTA (non-active) */
+.onb-cta-todo {
+  background: rgba(16,185,129,0.08);
+  color: rgba(16,185,129,0.60);
+  border: 1px solid rgba(16,185,129,0.18);
+}
+.dark .onb-cta-todo {
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.35);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* ── Light (padrão) ── */
+.dash-bg           { background: #f9fafb; }
+.dash-card         { background: #fff; border: 1px solid #f3f4f6; border-radius: 1rem; }
+.dash-card-hover   { background: #fff; border: 1px solid #f3f4f6; border-radius: 1rem; transition: all 0.2s; }
+.dash-card-hover:hover { border-color: #a7f3d0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.dash-header       { background: #fff; border-bottom: 1px solid #e5e7eb; }
+.dash-dropdown     { background: #fff; border: 1px solid #e5e7eb; border-radius: 0.75rem; box-shadow: 0 4px 24px rgba(0,0,0,0.10); }
+.dash-title        { color: #111827; }
+.dash-subtitle     { color: #6b7280; }
+.dash-label        { color: #9ca3af; font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+.dash-muted        { color: #9ca3af; }
+.dash-border       { border-color: #f3f4f6; }
+.dash-icon-emerald { color: #059669; background: #ecfdf5; }
+.dash-icon-blue    { color: #2563eb; background: #eff6ff; }
+.dash-icon-purple  { color: #7c3aed; background: #f5f3ff; }
+.dash-icon-orange  { color: #d97706; background: #fffbeb; }
+.dash-icon-red     { color: #dc2626; background: #fef2f2; }
+.dash-btn-primary  { background: #000; color: #fff; font-weight: 600; transition: background 0.15s; }
+.dash-btn-primary:hover { background: #1f2937; }
+.dash-input        { background: #fff; border: 1px solid #e5e7eb; color: #111827; border-radius: 0.75rem; padding: 0.625rem 1rem; font-size: 0.875rem; outline: none; width: 100%; }
+.dash-input::placeholder { color: #9ca3af; }
+.dash-divider > * + * { border-top: 1px solid #f9fafb; }
+
+/* ── Dark overrides ── */
+.dark .dash-bg           { background: #050505; }
+.dark .dash-card         { background: rgba(255,255,255,0.035); border-color: rgba(255,255,255,0.08); }
+.dark .dash-card-hover   { background: rgba(255,255,255,0.035); border-color: rgba(255,255,255,0.08); }
+.dark .dash-card-hover:hover { border-color: rgba(16,185,129,0.30); box-shadow: none; }
+.dark .dash-header       { background: #060606; border-bottom-color: rgba(255,255,255,0.07); }
+.dark .dash-dropdown     { background: #0d0d0d; border: 1px solid rgba(255,255,255,0.09); box-shadow: 0 16px 48px rgba(0,0,0,0.6); }
+.dark .dash-title        { color: #fff; }
+.dark .dash-subtitle     { color: rgba(255,255,255,0.45); }
+.dark .dash-label        { color: rgba(255,255,255,0.30); }
+.dark .dash-muted        { color: rgba(255,255,255,0.35); }
+.dark .dash-border       { border-color: rgba(255,255,255,0.08); }
+.dark .dash-icon-emerald { color: #34d399; background: rgba(16,185,129,0.12); }
+.dark .dash-icon-blue    { color: #60a5fa; background: rgba(59,130,246,0.12); }
+.dark .dash-icon-purple  { color: #a78bfa; background: rgba(139,92,246,0.12); }
+.dark .dash-icon-orange  { color: #fb923c; background: rgba(249,115,22,0.12); }
+.dark .dash-icon-red     { color: #f87171; background: rgba(239,68,68,0.12); }
+.dark .dash-btn-primary  { background: #fff; color: #050505; }
+.dark .dash-btn-primary:hover { background: rgba(255,255,255,0.88); }
+.dark .dash-input        { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.10); color: #fff; }
+.dark .dash-input::placeholder { color: rgba(255,255,255,0.30); }
+.dark .dash-divider > * + * { border-top-color: rgba(255,255,255,0.05); }
+
+/* ── Global dark form fields (dentro do dashboard) ── */
+.dark input:not([type=checkbox]):not([type=radio]):not([type=file]),
+.dark textarea,
+.dark select {
+  background: rgba(255,255,255,0.05) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  color: #fff !important;
+}
+.dark input::placeholder,
+.dark textarea::placeholder { color: rgba(255,255,255,0.30) !important; }
+.dark label { color: rgba(255,255,255,0.70); }
+.dark h2:not(.no-dark) { color: #fff; }
 
 .scroll-text {
   animation: marquee 10s linear infinite;

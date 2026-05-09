@@ -4,7 +4,6 @@ import { Geist, Geist_Mono, Open_Sans } from "next/font/google";
 import "./globals.css";
 import { SessionAuthProvider } from "@/components/session-auth";
 import { QueryClientContext } from "@/providers/queryclient";
-import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 
 const geistSans = Geist({
@@ -28,6 +27,25 @@ export const metadata: Metadata = {
   description: "Gestão de campanhas com chaves únicas",
 };
 
+// Script injetado no <head> — executa ANTES do React hidratar.
+// Lê a preferência salva e aplica a classe .dark no <html> imediatamente,
+// evitando o flash de tema errado na primeira renderização.
+const themeScript = `
+(function(){
+  try {
+    var t = localStorage.getItem('cfy-theme');
+    if (t === 'light') {
+      document.documentElement.classList.remove('dark');
+    } else {
+      // padrão é escuro
+      document.documentElement.classList.add('dark');
+    }
+  } catch(e) {
+    document.documentElement.classList.add('dark');
+  }
+})();
+`.trim();
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -35,18 +53,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body 
+      {/* Script de tema roda antes da hidratação — sem flash */}
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
+      <body
         className={`${geistSans.variable} ${geistMono.variable} ${openSans.variable} antialiased`}
         suppressHydrationWarning
       >
-        <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
-          <SessionAuthProvider>
-            <QueryClientContext>
-              {children}
-              <Toaster position="top-right" richColors duration={2500} />
-            </QueryClientContext>
-          </SessionAuthProvider>
-        </ThemeProvider>
+        <SessionAuthProvider>
+          <QueryClientContext>
+            {children}
+            <Toaster position="top-right" richColors duration={2500} />
+          </QueryClientContext>
+        </SessionAuthProvider>
       </body>
     </html>
   );
