@@ -237,11 +237,11 @@
 
 /* ── Dark overrides ── */
 .dark .dash-bg           { background: #050505; }
-.dark .dash-card         { background: rgba(255,255,255,0.035); border-color: rgba(255,255,255,0.08); }
-.dark .dash-card-hover   { background: rgba(255,255,255,0.035); border-color: rgba(255,255,255,0.08); }
-.dark .dash-card-hover:hover { border-color: rgba(16,185,129,0.30); box-shadow: none; }
+.dark .dash-card         { background: #0d1a10; border-color: rgba(255,255,255,0.10); }
+.dark .dash-card-hover   { background: #0d1a10; border-color: rgba(255,255,255,0.10); }
+.dark .dash-card-hover:hover { background: #0f1f13; border-color: rgba(16,185,129,0.35); box-shadow: 0 0 0 1px rgba(16,185,129,0.15); }
 .dark .dash-header       { background: #060606; border-bottom-color: rgba(255,255,255,0.07); }
-.dark .dash-dropdown     { background: #0d0d0d; border: 1px solid rgba(255,255,255,0.09); box-shadow: 0 16px 48px rgba(0,0,0,0.6); }
+.dark .dash-dropdown     { background: #0d1a10; border: 1px solid rgba(255,255,255,0.10); box-shadow: 0 16px 48px rgba(0,0,0,0.6); }
 .dark .dash-title        { color: #fff; }
 .dark .dash-subtitle     { color: rgba(255,255,255,0.45); }
 .dark .dash-label        { color: rgba(255,255,255,0.30); }
