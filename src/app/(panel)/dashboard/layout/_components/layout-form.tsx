@@ -10,7 +10,7 @@ import { QRCodeSVG } from "qrcode.react"
 import type { LayoutState } from "../_actions/layout-actions"
 
 // ─────────────────────────────────────────────────────────────
-// CONSTANTS
+// TYPES & CONSTANTS
 // ─────────────────────────────────────────────────────────────
 
 export type TamanhoCard = "MINI" | "CARTAO" | "PADRAO" | "COUPON" | "VOUCHER" | "MEIO_A4" | "MDF"
@@ -21,23 +21,28 @@ interface CardSize {
   desc: string
   mmW: number
   mmH: number
-  /** px width for the card preview render (design resolution) */
+  /** Design resolution px — used as render canvas size */
   preW: number
-  /** px height for the card preview render (design resolution) */
   preH: number
   perFolha: number
   cols: number
   rows: number
 }
 
+/**
+ * All counts verified with formula:
+ *   cols = floor((200 + 2) / (mmW + 2))     [usable width 200mm, 2mm gap]
+ *   rows = floor((287 + 2) / (mmH + 2))     [usable height 287mm, 2mm gap]
+ *   perFolha = cols × rows
+ */
 const CARD_SIZES: Record<TamanhoCard, CardSize> = {
-  MINI:    { label: "Mini",      desc: "63×38 mm · 21/folha",  mmW: 63,  mmH: 38,  preW: 210, preH: 127, perFolha: 21, cols: 3, rows: 7 },
-  CARTAO:  { label: "Cartão",    desc: "70×35 mm · 16/folha",  mmW: 70,  mmH: 35,  preW: 280, preH: 140, perFolha: 16, cols: 2, rows: 8 },
-  PADRAO:  { label: "Padrão",    desc: "85×55 mm · 10/folha",  mmW: 85,  mmH: 55,  preW: 280, preH: 181, perFolha: 10, cols: 2, rows: 5 },
-  COUPON:  { label: "Cupom",     desc: "95×68 mm · 8/folha",   mmW: 95,  mmH: 68,  preW: 300, preH: 215, perFolha:  8, cols: 2, rows: 4 },
-  VOUCHER: { label: "Voucher",   desc: "190×68 mm · 4/folha",  mmW: 190, mmH: 68,  preW: 380, preH: 136, perFolha:  4, cols: 1, rows: 4 },
-  MEIO_A4: { label: "Meio A4",   desc: "190×138 mm · 2/folha", mmW: 190, mmH: 138, preW: 380, preH: 276, perFolha:  2, cols: 1, rows: 2 },
-  MDF:     { label: "MDF",       desc: "90×90 mm · 6/folha",   mmW: 90,  mmH: 90,  preW: 288, preH: 288, perFolha:  6, cols: 2, rows: 3 },
+  MINI:    { label: "Mini",    desc: "63×38 mm · 21/folha",  mmW:  63, mmH:  38, preW: 252, preH: 152, perFolha: 21, cols: 3, rows: 7 },
+  CARTAO:  { label: "Cartão",  desc: "70×35 mm · 14/folha",  mmW:  70, mmH:  35, preW: 280, preH: 140, perFolha: 14, cols: 2, rows: 7 },
+  PADRAO:  { label: "Padrão",  desc: "85×55 mm · 10/folha",  mmW:  85, mmH:  55, preW: 340, preH: 220, perFolha: 10, cols: 2, rows: 5 },
+  COUPON:  { label: "Cupom",   desc: "95×68 mm · 8/folha",   mmW:  95, mmH:  68, preW: 380, preH: 272, perFolha:  8, cols: 2, rows: 4 },
+  VOUCHER: { label: "Voucher", desc: "190×68 mm · 4/folha",  mmW: 190, mmH:  68, preW: 570, preH: 204, perFolha:  4, cols: 1, rows: 4 },
+  MEIO_A4: { label: "Meio A4", desc: "190×138 mm · 2/folha", mmW: 190, mmH: 138, preW: 570, preH: 414, perFolha:  2, cols: 1, rows: 2 },
+  MDF:     { label: "MDF",     desc: "90×90 mm · 6/folha",   mmW:  90, mmH:  90, preW: 360, preH: 360, perFolha:  6, cols: 2, rows: 3 },
 }
 
 const ESTILOS: Record<EstiloCard, { label: string; desc: string }> = {
@@ -52,20 +57,18 @@ const ESTILOS: Record<EstiloCard, { label: string; desc: string }> = {
 // HELPERS
 // ─────────────────────────────────────────────────────────────
 
-function imgFilter(brilho: number, saturacao: number, contraste: number) {
-  return `brightness(${brilho}%) saturate(${saturacao}%) contrast(${contraste}%)`
+function imgFilter(b: number, s: number, c: number) {
+  return `brightness(${b}%) saturate(${s}%) contrast(${c}%)`
 }
-
 function ini(nome: string) {
   return nome.split(/\s+/).slice(0, 2).map(w => w[0]).join("").toUpperCase() || "AB"
 }
-
 function isSquare(size: CardSize) {
-  return Math.abs(size.mmW / size.mmH - 1) < 0.25
+  return Math.abs(size.mmW / size.mmH - 1) < 0.15
 }
 
 // ─────────────────────────────────────────────────────────────
-// CARD RENDERERS
+// CARD PROPS
 // ─────────────────────────────────────────────────────────────
 
 interface CardProps {
@@ -85,24 +88,50 @@ interface CardProps {
   nomeCampanha: string
 }
 
-// ── Clássico landscape ─────────────────────────────────────
-function CardClassicoLandscape({ size, corPrimaria, corFundo, corTexto, corSecundaria,
+// Inline style for keys — never wraps, always 1 line
+const codeStyle = (size: CardSize, corTexto: string, corPrimaria: string) => ({
+  fontFamily: "monospace",
+  fontSize: size.preH * 0.07,
+  fontWeight: "bold" as const,
+  color: corTexto,
+  background: corPrimaria + "15",
+  border: `1px solid ${corPrimaria}55`,
+  borderRadius: 3,
+  padding: "1px 5px",
+  display: "inline-block",
+  whiteSpace: "nowrap" as const,
+  overflow: "hidden" as const,
+  maxWidth: "100%",
+})
+
+// ─────────────────────────────────────────────────────────────
+// RENDERERS
+// ─────────────────────────────────────────────────────────────
+
+// ── Clássico landscape ────────────────────────────────────────
+function CardClassicoLandscape({
+  size, corPrimaria, corFundo, corTexto, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
-  raioCantos, nomeLoja, nomeCampanha }: CardProps) {
+  raioCantos, nomeLoja, nomeCampanha,
+}: CardProps) {
   const letters = ini(nomeLoja)
   const r = raioCantos
+  const logoSz = size.preH * 0.28
+  const qrSz   = size.preH * 0.36
   return (
     <div style={{
       width: size.preW, height: size.preH,
       border: `1.5px solid ${corPrimaria}55`, borderRadius: r,
       display: "flex", flexDirection: "row", alignItems: "center",
-      gap: 0, padding: `6px 10px 6px 14px`,
+      padding: `6px 10px 6px 14px`,
       background: corFundo, position: "relative", overflow: "hidden",
       fontFamily: "'Segoe UI', Arial, sans-serif",
     }}>
-      {img1 && <img src={img1} alt="" style={{ position: "absolute", inset: 0, width: "100%",
-        height: "100%", objectFit: "cover", opacity: opacidade / 100,
-        pointerEvents: "none", filter: imgFilter(b, s, c) }} />}
+      {img1 && <img src={img1} alt="" style={{
+        position: "absolute", inset: 0, width: "100%", height: "100%",
+        objectFit: "cover", opacity: opacidade / 100, pointerEvents: "none",
+        filter: imgFilter(b, s, c),
+      }} />}
 
       {/* accent bar */}
       <div style={{ position: "absolute", top: 0, left: 0, width: 5, height: "100%",
@@ -111,18 +140,22 @@ function CardClassicoLandscape({ size, corPrimaria, corFundo, corTexto, corSecun
 
       {/* logo col */}
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center",
-        justifyContent: "center", minWidth: size.preW * 0.22, paddingLeft: 4, position: "relative", zIndex: 1 }}>
+        justifyContent: "center", width: size.preW * 0.2, paddingLeft: 4,
+        flexShrink: 0, position: "relative", zIndex: 1 }}>
         {img2
-          ? <img src={img2} alt="" style={{ width: size.preH * 0.3, height: size.preH * 0.3,
-              borderRadius: "50%", objectFit: "cover", border: `2px solid ${corPrimaria}`, marginBottom: 3 }} />
-          : <div style={{ width: size.preH * 0.3, height: size.preH * 0.3, borderRadius: "50%",
+          ? <img src={img2} alt="" style={{ width: logoSz, height: logoSz,
+              borderRadius: "50%", objectFit: "cover",
+              border: `2px solid ${corPrimaria}`, marginBottom: 3 }} />
+          : <div style={{ width: logoSz, height: logoSz, borderRadius: "50%",
               background: `linear-gradient(135deg,${corPrimaria}cc,${corPrimaria})`,
               display: "flex", alignItems: "center", justifyContent: "center",
-              color: "#fff", fontSize: size.preH * 0.09, fontWeight: "bold",
+              color: "#fff", fontSize: logoSz * 0.32, fontWeight: "bold",
               marginBottom: 3, border: `2px solid ${corPrimaria}` }}>{letters}</div>
         }
         <span style={{ fontSize: size.preH * 0.065, color: corPrimaria, fontWeight: "bold",
-          textTransform: "uppercase", letterSpacing: 0.4, textAlign: "center", lineHeight: 1.2 }}>
+          textTransform: "uppercase", letterSpacing: 0.4, textAlign: "center", lineHeight: 1.2,
+          whiteSpace: "nowrap", overflow: "hidden", maxWidth: "100%",
+          textOverflow: "ellipsis" }}>
           {nomeLoja || "Sua Loja"}
         </span>
       </div>
@@ -131,49 +164,52 @@ function CardClassicoLandscape({ size, corPrimaria, corFundo, corTexto, corSecun
       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center",
         gap: 2, paddingLeft: 8, overflow: "hidden", position: "relative", zIndex: 1 }}>
         <div style={{ fontSize: size.preH * 0.065, fontWeight: "bold", color: corSecundaria,
-          textTransform: "uppercase", letterSpacing: 0.5 }}>
+          textTransform: "uppercase", letterSpacing: 0.5,
+          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
           {nomeCampanha || "Campanha"}
         </div>
         <div style={{ fontSize: size.preH * 0.14, fontWeight: "bold", color: corPrimaria, lineHeight: 1 }}>
           20% OFF
         </div>
         <div style={{ fontSize: size.preH * 0.065, color: corSecundaria + "99" }}>Desconto exclusivo</div>
-        <code style={{ fontFamily: "monospace", fontSize: size.preH * 0.075, fontWeight: "bold",
-          color: corTexto, background: corPrimaria + "15", border: `1px solid ${corPrimaria}55`,
-          borderRadius: 3, padding: "1px 5px", marginTop: 2, display: "inline-block" }}>
-          XXXX-YYYY-ZZZZ
+        <code style={codeStyle(size, corTexto, corPrimaria)}>
+          XXXX-YYYY-ZZZZ-WWWW
         </code>
         <div style={{ fontSize: size.preH * 0.055, color: corSecundaria + "66" }}>Válido até 31/12/2025</div>
       </div>
 
       {/* QR col */}
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center",
-        justifyContent: "center", gap: 3, minWidth: size.preH * 0.55, position: "relative", zIndex: 1 }}>
+        justifyContent: "center", gap: 3, width: qrSz + 18, flexShrink: 0,
+        position: "relative", zIndex: 1 }}>
         <div style={{ border: `1.5px solid ${corPrimaria}`, borderRadius: 4, padding: 3, background: "#fff" }}>
-          <QRCodeSVG value="https://courtesyfy.com" size={size.preH * 0.38}
+          <QRCodeSVG value="https://courtesyfy.com" size={qrSz}
             bgColor="#fff" fgColor="#111827" level="M" marginSize={0} />
         </div>
         <span style={{ fontSize: size.preH * 0.055, color: corSecundaria + "88",
-          textAlign: "center", lineHeight: 1.3 }}>Escaneie e ative</span>
+          textAlign: "center", lineHeight: 1.3, whiteSpace: "nowrap" }}>Escaneie e ative</span>
       </div>
 
       <div style={{ position: "absolute", bottom: 3, right: 8,
-        fontSize: size.preH * 0.05, color: corSecundaria + "44", letterSpacing: 0.4 }}>
+        fontSize: size.preH * 0.048, color: corSecundaria + "44",
+        letterSpacing: 0.4, whiteSpace: "nowrap" }}>
         courtesyfy.com
       </div>
     </div>
   )
 }
 
-// ── Clássico quadrado (MDF 90×90) ─────────────────────────
-function CardClassicoSquare({ size, corPrimaria, corFundo, corTexto, corSecundaria,
+// ── Clássico quadrado (MDF 90×90 e similares) ─────────────────
+function CardClassicoSquare({
+  size, corPrimaria, corFundo, corTexto, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
-  raioCantos, nomeLoja, nomeCampanha }: CardProps) {
+  raioCantos, nomeLoja, nomeCampanha,
+}: CardProps) {
   const letters = ini(nomeLoja)
   const r = raioCantos
-  const pad = size.preW * 0.06
-  const logoSize = size.preW * 0.22
-  const qrSize = size.preW * 0.28
+  const pad     = size.preW * 0.055
+  const logoSz  = size.preW * 0.20
+  const qrSz    = size.preW * 0.27
   return (
     <div style={{
       width: size.preW, height: size.preH,
@@ -183,74 +219,77 @@ function CardClassicoSquare({ size, corPrimaria, corFundo, corTexto, corSecundar
       display: "flex", flexDirection: "column",
       border: `1.5px solid ${corPrimaria}55`,
     }}>
-      {img1 && <img src={img1} alt="" style={{ position: "absolute", inset: 0, width: "100%",
-        height: "100%", objectFit: "cover", opacity: opacidade / 100,
-        pointerEvents: "none", filter: imgFilter(b, s, c) }} />}
+      {img1 && <img src={img1} alt="" style={{
+        position: "absolute", inset: 0, width: "100%", height: "100%",
+        objectFit: "cover", opacity: opacidade / 100,
+        pointerEvents: "none", filter: imgFilter(b, s, c),
+      }} />}
 
       {/* top accent bar */}
-      <div style={{ height: 5, background: corPrimaria, flexShrink: 0, position: "relative", zIndex: 1 }} />
+      <div style={{ height: 5, background: corPrimaria,
+        flexShrink: 0, position: "relative", zIndex: 1 }} />
 
-      {/* top row: logo + store name + campaign */}
+      {/* header row: logo + name + campaign */}
       <div style={{ display: "flex", flexDirection: "row", alignItems: "center",
         padding: `${pad * 0.6}px ${pad}px ${pad * 0.4}px`, gap: pad * 0.7,
         position: "relative", zIndex: 1 }}>
         {img2
-          ? <img src={img2} alt="" style={{ width: logoSize, height: logoSize, borderRadius: "50%",
-              objectFit: "cover", border: `2px solid ${corPrimaria}`, flexShrink: 0 }} />
-          : <div style={{ width: logoSize, height: logoSize, borderRadius: "50%",
+          ? <img src={img2} alt="" style={{ width: logoSz, height: logoSz,
+              borderRadius: "50%", objectFit: "cover",
+              border: `2px solid ${corPrimaria}`, flexShrink: 0 }} />
+          : <div style={{ width: logoSz, height: logoSz, borderRadius: "50%",
               background: `linear-gradient(135deg,${corPrimaria}cc,${corPrimaria})`,
               display: "flex", alignItems: "center", justifyContent: "center",
-              color: "#fff", fontSize: logoSize * 0.35, fontWeight: "bold",
+              color: "#fff", fontSize: logoSz * 0.35, fontWeight: "bold",
               border: `2px solid ${corPrimaria}`, flexShrink: 0 }}>{letters}</div>
         }
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
           <div style={{ fontSize: size.preW * 0.07, fontWeight: "bold", color: corPrimaria,
-            textTransform: "uppercase", letterSpacing: 0.4, lineHeight: 1.1 }}>
+            textTransform: "uppercase", letterSpacing: 0.4, lineHeight: 1.1,
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {nomeLoja || "Sua Loja"}
           </div>
-          <div style={{ fontSize: size.preW * 0.065, color: corSecundaria,
-            textTransform: "uppercase", letterSpacing: 0.3, marginTop: 1 }}>
+          <div style={{ fontSize: size.preW * 0.062, color: corSecundaria,
+            textTransform: "uppercase", letterSpacing: 0.3, marginTop: 1,
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {nomeCampanha || "Campanha"}
           </div>
         </div>
       </div>
 
       {/* divider */}
-      <div style={{ height: 1, background: corPrimaria + "30", margin: `0 ${pad}px`,
-        position: "relative", zIndex: 1 }} />
+      <div style={{ height: 1, background: corPrimaria + "30",
+        margin: `0 ${pad}px`, position: "relative", zIndex: 1 }} />
 
-      {/* center: discount + code */}
+      {/* body: discount + QR */}
       <div style={{ flex: 1, display: "flex", flexDirection: "row", alignItems: "center",
-        padding: `${pad * 0.6}px ${pad}px`, gap: pad, position: "relative", zIndex: 1 }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: size.preW * 0.18, fontWeight: "bold", color: corPrimaria, lineHeight: 1 }}>
+        padding: `${pad * 0.6}px ${pad}px`, gap: pad * 0.8,
+        position: "relative", zIndex: 1 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: size.preW * 0.18, fontWeight: "bold",
+            color: corPrimaria, lineHeight: 1 }}>
             20% OFF
           </div>
-          <div style={{ fontSize: size.preW * 0.065, color: corSecundaria + "99", marginTop: 2 }}>
+          <div style={{ fontSize: size.preW * 0.062, color: corSecundaria + "99", marginTop: 2 }}>
             Desconto exclusivo
           </div>
-          <code style={{ fontFamily: "monospace", fontSize: size.preW * 0.07,
-            color: corTexto, background: corPrimaria + "15",
-            border: `1px solid ${corPrimaria}55`, borderRadius: 3,
-            padding: "1px 5px", display: "inline-block", marginTop: 5 }}>
-            XXXX-YYYY
+          <code style={{ ...codeStyle(size, corTexto, corPrimaria), fontSize: size.preW * 0.065, marginTop: 5 }}>
+            XXXX-YYYY-ZZZZ-WWWW
           </code>
         </div>
-
-        {/* QR */}
-        <div style={{ flexShrink: 0, display: "flex", flexDirection: "column",
-          alignItems: "center", gap: 3 }}>
+        <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
           <div style={{ border: `1.5px solid ${corPrimaria}`, borderRadius: 4, padding: 3, background: "#fff" }}>
-            <QRCodeSVG value="https://courtesyfy.com" size={qrSize}
+            <QRCodeSVG value="https://courtesyfy.com" size={qrSz}
               bgColor="#fff" fgColor="#111827" level="M" marginSize={0} />
           </div>
-          <span style={{ fontSize: size.preW * 0.055, color: corSecundaria + "77" }}>Escanear</span>
+          <span style={{ fontSize: size.preW * 0.052, color: corSecundaria + "77",
+            whiteSpace: "nowrap" }}>Escanear</span>
         </div>
       </div>
 
-      {/* bottom watermark */}
-      <div style={{ position: "absolute", bottom: 4, left: pad,
-        fontSize: size.preW * 0.05, color: corSecundaria + "44" }}>
+      <div style={{ position: "absolute", bottom: 3, left: pad,
+        fontSize: size.preW * 0.048, color: corSecundaria + "44",
+        whiteSpace: "nowrap" }}>
         courtesyfy.com · Válido até 31/12/2025
       </div>
     </div>
@@ -264,64 +303,68 @@ function CardClassico(props: CardProps) {
 }
 
 // ── Moderno ───────────────────────────────────────────────────
-function CardModerno({ size, corPrimaria, corFundo, corTexto: _ct, corSecundaria,
+function CardModerno({
+  size, corPrimaria, corFundo, corTexto, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
-  raioCantos, nomeLoja, nomeCampanha }: CardProps) {
+  raioCantos, nomeLoja, nomeCampanha,
+}: CardProps) {
   const letters = ini(nomeLoja)
   const r = raioCantos
-  const topH = Math.round(size.preH * (isSquare(size) ? 0.42 : 0.38))
+  const topH = Math.round(size.preH * 0.40)
+  const qrSz  = size.preH * 0.28
   return (
     <div style={{
       width: size.preW, height: size.preH, borderRadius: r, overflow: "hidden",
       background: corFundo, fontFamily: "'Segoe UI', Arial, sans-serif",
       display: "flex", flexDirection: "column", border: `1.5px solid ${corPrimaria}33`,
     }}>
-      {/* Top band */}
+      {/* top band */}
       <div style={{ height: topH, background: `linear-gradient(135deg,${corPrimaria},${corPrimaria}bb)`,
-        position: "relative", overflow: "hidden", display: "flex",
-        alignItems: "center", justifyContent: "center" }}>
+        position: "relative", overflow: "hidden",
+        display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
         {img1 && <img src={img1} alt="" style={{ position: "absolute", inset: 0, width: "100%",
           height: "100%", objectFit: "cover", opacity: opacidade / 100,
           filter: imgFilter(b, s, c), mixBlendMode: "overlay" }} />}
         {img2
-          ? <img src={img2} alt="" style={{ width: topH * 0.55, height: topH * 0.55,
+          ? <img src={img2} alt="" style={{ width: topH * 0.52, height: topH * 0.52,
               borderRadius: "50%", objectFit: "cover",
               border: "3px solid rgba(255,255,255,0.8)", position: "relative", zIndex: 1 }} />
-          : <div style={{ width: topH * 0.55, height: topH * 0.55, borderRadius: "50%",
+          : <div style={{ width: topH * 0.52, height: topH * 0.52, borderRadius: "50%",
               background: "rgba(255,255,255,0.25)", border: "3px solid rgba(255,255,255,0.6)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              color: "#fff", fontSize: topH * 0.22, fontWeight: "bold", position: "relative", zIndex: 1 }}>
-              {letters}
-            </div>
+              color: "#fff", fontSize: topH * 0.22, fontWeight: "bold",
+              position: "relative", zIndex: 1 }}>{letters}</div>
         }
-        <div style={{ position: "absolute", top: 6, left: 8, fontSize: topH * 0.18,
-          fontWeight: "bold", color: "rgba(255,255,255,0.9)", zIndex: 1 }}>
+        <div style={{ position: "absolute", top: 6, left: 8, fontSize: topH * 0.17,
+          fontWeight: "bold", color: "rgba(255,255,255,0.9)", zIndex: 1,
+          whiteSpace: "nowrap", overflow: "hidden", maxWidth: "60%" }}>
           {nomeLoja || "Sua Loja"}
         </div>
       </div>
-      {/* Content */}
+      {/* content */}
       <div style={{ flex: 1, display: "flex", flexDirection: "row",
         alignItems: "center", padding: "6px 10px", gap: 8 }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: size.preH * 0.07, fontWeight: "bold", color: corSecundaria,
-            textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 2 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: size.preH * 0.065, fontWeight: "bold", color: corSecundaria,
+            textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 2,
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {nomeCampanha || "Campanha"}
           </div>
           <div style={{ fontSize: size.preH * 0.13, fontWeight: "bold", color: corPrimaria, lineHeight: 1 }}>
             20% OFF
           </div>
-          <code style={{ fontFamily: "monospace", fontSize: size.preH * 0.07, color: corPrimaria,
-            background: corPrimaria + "14", border: `1px solid ${corPrimaria}44`,
-            borderRadius: 4, padding: "1px 5px", display: "inline-block", marginTop: 3 }}>
-            XXXX-YYYY-ZZZZ
+          <code style={{ ...codeStyle(size, corTexto, corPrimaria), marginTop: 3 }}>
+            XXXX-YYYY-ZZZZ-WWWW
           </code>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, flexShrink: 0 }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center",
+          gap: 2, flexShrink: 0 }}>
           <div style={{ border: `2px solid ${corPrimaria}`, borderRadius: 5, padding: 3, background: "#fff" }}>
-            <QRCodeSVG value="https://courtesyfy.com" size={size.preH * 0.3}
+            <QRCodeSVG value="https://courtesyfy.com" size={qrSz}
               bgColor="#fff" fgColor="#111827" level="M" marginSize={0} />
           </div>
-          <span style={{ fontSize: size.preH * 0.055, color: corSecundaria + "77" }}>Escanear</span>
+          <span style={{ fontSize: size.preH * 0.052, color: corSecundaria + "77",
+            whiteSpace: "nowrap" }}>Escanear</span>
         </div>
       </div>
     </div>
@@ -329,17 +372,21 @@ function CardModerno({ size, corPrimaria, corFundo, corTexto: _ct, corSecundaria
 }
 
 // ── Minimalista ───────────────────────────────────────────────
-function CardMinimalista({ size, corPrimaria, corFundo, corTexto, corSecundaria,
+function CardMinimalista({
+  size, corPrimaria, corFundo, corTexto, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
-  raioCantos, nomeLoja, nomeCampanha }: CardProps) {
+  raioCantos, nomeLoja, nomeCampanha,
+}: CardProps) {
   const letters = ini(nomeLoja)
   const r = raioCantos
+  const logoSz = size.preH * 0.26
+  const qrSz   = size.preH * 0.32
   return (
     <div style={{
       width: size.preW, height: size.preH, borderRadius: r, overflow: "hidden",
       background: corFundo, fontFamily: "'Segoe UI', Arial, sans-serif",
-      display: "flex", flexDirection: "column", border: `1px solid ${corTexto}22`,
-      position: "relative",
+      display: "flex", flexDirection: "column",
+      border: `1px solid ${corTexto}22`, position: "relative",
     }}>
       {img1 && <img src={img1} alt="" style={{ position: "absolute", inset: 0, width: "100%",
         height: "100%", objectFit: "cover", opacity: opacidade / 100,
@@ -347,38 +394,39 @@ function CardMinimalista({ size, corPrimaria, corFundo, corTexto, corSecundaria,
       <div style={{ height: 3, background: corPrimaria, flexShrink: 0, position: "relative", zIndex: 1 }} />
       <div style={{ flex: 1, display: "flex", flexDirection: "row", alignItems: "center",
         padding: "8px 12px", gap: 10, position: "relative", zIndex: 1 }}>
+        {/* logo */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center",
           gap: 3, flexShrink: 0 }}>
           {img2
-            ? <img src={img2} alt="" style={{ width: size.preH * 0.28, height: size.preH * 0.28,
+            ? <img src={img2} alt="" style={{ width: logoSz, height: logoSz,
                 borderRadius: "50%", objectFit: "cover" }} />
-            : <div style={{ width: size.preH * 0.28, height: size.preH * 0.28, borderRadius: "50%",
+            : <div style={{ width: logoSz, height: logoSz, borderRadius: "50%",
                 background: corPrimaria + "22", display: "flex", alignItems: "center",
                 justifyContent: "center", color: corPrimaria,
-                fontSize: size.preH * 0.09, fontWeight: "bold" }}>{letters}</div>
+                fontSize: logoSz * 0.33, fontWeight: "bold" }}>{letters}</div>
           }
-          <span style={{ fontSize: size.preH * 0.06, color: corSecundaria,
-            fontWeight: 600, textAlign: "center", lineHeight: 1.1 }}>
-            {nomeLoja || "Loja"}
-          </span>
+          <span style={{ fontSize: size.preH * 0.057, color: corSecundaria,
+            fontWeight: 600, textAlign: "center", lineHeight: 1.1,
+            whiteSpace: "nowrap" }}>{nomeLoja || "Loja"}</span>
         </div>
-        <div style={{ width: 1, height: "70%", background: corTexto + "15", flexShrink: 0 }} />
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: size.preH * 0.065, color: corSecundaria + "aa",
-            textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 3 }}>
+        <div style={{ width: 1, alignSelf: "stretch", margin: "4px 0",
+          background: corTexto + "15", flexShrink: 0 }} />
+        {/* info */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: size.preH * 0.062, color: corSecundaria + "aa",
+            textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 3,
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {nomeCampanha || "Campanha"}
           </div>
-          <div style={{ fontSize: size.preH * 0.17, fontWeight: "300", color: corPrimaria,
-            letterSpacing: -0.5, lineHeight: 1 }}>
-            20% OFF
-          </div>
-          <code style={{ fontFamily: "monospace", fontSize: size.preH * 0.065,
-            color: corTexto + "cc", display: "block", marginTop: 4 }}>
-            XXXX-YYYY-ZZZZ
+          <div style={{ fontSize: size.preH * 0.16, fontWeight: "300", color: corPrimaria,
+            letterSpacing: -0.5, lineHeight: 1 }}>20% OFF</div>
+          <code style={{ ...codeStyle(size, corTexto, corPrimaria), marginTop: 4, fontSize: size.preH * 0.062 }}>
+            XXXX-YYYY-ZZZZ-WWWW
           </code>
         </div>
+        {/* QR */}
         <div style={{ flexShrink: 0, opacity: 0.85 }}>
-          <QRCodeSVG value="https://courtesyfy.com" size={size.preH * 0.35}
+          <QRCodeSVG value="https://courtesyfy.com" size={qrSz}
             bgColor="transparent" fgColor={corTexto} level="M" marginSize={0} />
         </div>
       </div>
@@ -387,11 +435,15 @@ function CardMinimalista({ size, corPrimaria, corFundo, corTexto, corSecundaria,
 }
 
 // ── Gradiente ─────────────────────────────────────────────────
-function CardGradiente({ size, corPrimaria, corFundo, corTexto: _ct, corSecundaria: _cs,
+function CardGradiente({
+  size, corPrimaria, corFundo, corTexto: _ct, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
-  raioCantos, nomeLoja, nomeCampanha }: CardProps) {
+  raioCantos, nomeLoja, nomeCampanha,
+}: CardProps) {
   const letters = ini(nomeLoja)
   const r = raioCantos
+  const logoSz = size.preH * 0.36
+  const qrSz   = size.preH * 0.33
   return (
     <div style={{
       width: size.preW, height: size.preH, borderRadius: r, overflow: "hidden",
@@ -403,40 +455,46 @@ function CardGradiente({ size, corPrimaria, corFundo, corTexto: _ct, corSecundar
       {img1 && <img src={img1} alt="" style={{ position: "absolute", inset: 0, width: "100%",
         height: "100%", objectFit: "cover", opacity: opacidade / 100,
         filter: imgFilter(b, s, c), mixBlendMode: "overlay", pointerEvents: "none" }} />}
+      {/* logo */}
       <div style={{ flexShrink: 0, display: "flex", flexDirection: "column",
         alignItems: "center", gap: 4, position: "relative", zIndex: 1 }}>
         {img2
-          ? <img src={img2} alt="" style={{ width: size.preH * 0.38, height: size.preH * 0.38,
+          ? <img src={img2} alt="" style={{ width: logoSz, height: logoSz,
               borderRadius: "50%", objectFit: "cover",
               border: "3px solid rgba(255,255,255,0.5)" }} />
-          : <div style={{ width: size.preH * 0.38, height: size.preH * 0.38, borderRadius: "50%",
+          : <div style={{ width: logoSz, height: logoSz, borderRadius: "50%",
               background: "rgba(255,255,255,0.25)", border: "3px solid rgba(255,255,255,0.5)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              color: "#fff", fontSize: size.preH * 0.12, fontWeight: "bold" }}>{letters}</div>
+              color: "#fff", fontSize: logoSz * 0.32, fontWeight: "bold" }}>{letters}</div>
         }
-        <span style={{ fontSize: size.preH * 0.07, color: "rgba(255,255,255,0.9)",
-          fontWeight: 600, textAlign: "center" }}>
+        <span style={{ fontSize: size.preH * 0.068, color: "rgba(255,255,255,0.9)",
+          fontWeight: 600, textAlign: "center", whiteSpace: "nowrap" }}>
           {nomeLoja || "Loja"}
         </span>
       </div>
-      <div style={{ flex: 1, position: "relative", zIndex: 1, paddingLeft: 4 }}>
-        <div style={{ fontSize: size.preH * 0.075, color: "rgba(255,255,255,0.75)",
-          textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>
+      {/* info */}
+      <div style={{ flex: 1, position: "relative", zIndex: 1, paddingLeft: 4, minWidth: 0 }}>
+        <div style={{ fontSize: size.preH * 0.07, color: "rgba(255,255,255,0.75)",
+          textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2,
+          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
           {nomeCampanha || "Campanha"}
         </div>
-        <div style={{ fontSize: size.preH * 0.18, fontWeight: "bold",
+        <div style={{ fontSize: size.preH * 0.17, fontWeight: "bold",
           color: "#fff", lineHeight: 1, textShadow: "0 2px 8px rgba(0,0,0,0.25)" }}>
           20% OFF
         </div>
         <div style={{ marginTop: 6, background: "rgba(255,255,255,0.2)",
           borderRadius: 20, padding: "2px 8px", display: "inline-block" }}>
-          <code style={{ fontFamily: "monospace", fontSize: size.preH * 0.07,
-            color: "#fff", fontWeight: "bold" }}>XXXX-YYYY-ZZZZ</code>
+          <code style={{ fontFamily: "monospace", fontSize: size.preH * 0.065,
+            color: "#fff", fontWeight: "bold", whiteSpace: "nowrap" }}>
+            XXXX-YYYY-ZZZZ-WWWW
+          </code>
         </div>
       </div>
+      {/* QR */}
       <div style={{ flexShrink: 0, position: "relative", zIndex: 1,
         background: "rgba(255,255,255,0.9)", borderRadius: 6, padding: 4 }}>
-        <QRCodeSVG value="https://courtesyfy.com" size={size.preH * 0.36}
+        <QRCodeSVG value="https://courtesyfy.com" size={qrSz}
           bgColor="transparent" fgColor="#111827" level="M" marginSize={0} />
       </div>
     </div>
@@ -444,11 +502,15 @@ function CardGradiente({ size, corPrimaria, corFundo, corTexto: _ct, corSecundar
 }
 
 // ── Neon ──────────────────────────────────────────────────────
-function CardNeon({ size, corPrimaria, corFundo: _cf, corTexto: _ct, corSecundaria: _cs,
+function CardNeon({
+  size, corPrimaria, corFundo: _cf, corTexto: _ct, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
-  raioCantos, nomeLoja, nomeCampanha }: CardProps) {
+  raioCantos, nomeLoja, nomeCampanha,
+}: CardProps) {
   const letters = ini(nomeLoja)
   const r = raioCantos
+  const logoSz = size.preH * 0.30
+  const qrSz   = size.preH * 0.32
   return (
     <div style={{
       width: size.preW, height: size.preH, borderRadius: r, overflow: "hidden",
@@ -463,43 +525,47 @@ function CardNeon({ size, corPrimaria, corFundo: _cf, corTexto: _ct, corSecundar
         filter: imgFilter(b, s, c), pointerEvents: "none" }} />}
       <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2,
         background: `linear-gradient(90deg,transparent,${corPrimaria},transparent)` }} />
+      {/* logo */}
       <div style={{ flexShrink: 0, display: "flex", flexDirection: "column",
         alignItems: "center", gap: 3, position: "relative", zIndex: 1 }}>
         {img2
-          ? <img src={img2} alt="" style={{ width: size.preH * 0.32, height: size.preH * 0.32,
+          ? <img src={img2} alt="" style={{ width: logoSz, height: logoSz,
               borderRadius: "50%", objectFit: "cover",
               border: `2px solid ${corPrimaria}`, boxShadow: `0 0 8px ${corPrimaria}66` }} />
-          : <div style={{ width: size.preH * 0.32, height: size.preH * 0.32, borderRadius: "50%",
+          : <div style={{ width: logoSz, height: logoSz, borderRadius: "50%",
               background: corPrimaria + "22", border: `2px solid ${corPrimaria}`,
               boxShadow: `0 0 8px ${corPrimaria}55`, display: "flex",
               alignItems: "center", justifyContent: "center",
-              color: corPrimaria, fontSize: size.preH * 0.1, fontWeight: "bold" }}>{letters}</div>
+              color: corPrimaria, fontSize: logoSz * 0.33, fontWeight: "bold" }}>{letters}</div>
         }
-        <span style={{ fontSize: size.preH * 0.065, color: corPrimaria, fontWeight: 700,
-          textAlign: "center", textShadow: `0 0 6px ${corPrimaria}` }}>
-          {nomeLoja || "Loja"}
-        </span>
+        <span style={{ fontSize: size.preH * 0.063, color: corPrimaria, fontWeight: 700,
+          textAlign: "center", textShadow: `0 0 6px ${corPrimaria}`,
+          whiteSpace: "nowrap" }}>{nomeLoja || "Loja"}</span>
       </div>
-      <div style={{ flex: 1, position: "relative", zIndex: 1, paddingLeft: 6 }}>
-        <div style={{ fontSize: size.preH * 0.065, color: "rgba(255,255,255,0.50)",
-          textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 2 }}>
+      {/* info */}
+      <div style={{ flex: 1, position: "relative", zIndex: 1, paddingLeft: 6, minWidth: 0 }}>
+        <div style={{ fontSize: size.preH * 0.063, color: "rgba(255,255,255,0.50)",
+          textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 2,
+          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
           {nomeCampanha || "Campanha"}
         </div>
-        <div style={{ fontSize: size.preH * 0.17, fontWeight: "bold",
+        <div style={{ fontSize: size.preH * 0.16, fontWeight: "bold",
           color: corPrimaria, lineHeight: 1, textShadow: `0 0 12px ${corPrimaria}` }}>
           20% OFF
         </div>
-        <code style={{ fontFamily: "monospace", fontSize: size.preH * 0.07,
-          color: "rgba(255,255,255,0.7)", background: corPrimaria + "18",
+        <code style={{ fontFamily: "monospace", fontSize: size.preH * 0.065,
+          color: "rgba(255,255,255,0.75)", background: corPrimaria + "18",
           border: `1px solid ${corPrimaria}55`, borderRadius: 4,
-          padding: "1px 5px", display: "inline-block", marginTop: 4 }}>
-          XXXX-YYYY-ZZZZ
+          padding: "1px 5px", display: "inline-block", marginTop: 4,
+          whiteSpace: "nowrap" }}>
+          XXXX-YYYY-ZZZZ-WWWW
         </code>
       </div>
+      {/* QR */}
       <div style={{ flexShrink: 0, position: "relative", zIndex: 1,
         border: `1.5px solid ${corPrimaria}`, borderRadius: 6, padding: 3,
         background: "#fff", boxShadow: `0 0 10px ${corPrimaria}44` }}>
-        <QRCodeSVG value="https://courtesyfy.com" size={size.preH * 0.36}
+        <QRCodeSVG value="https://courtesyfy.com" size={qrSz}
           bgColor="#fff" fgColor="#111827" level="M" marginSize={0} />
       </div>
     </div>
@@ -518,6 +584,24 @@ function CardRenderer(props: CardProps & { estilo: EstiloCard }) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// A4 LAYOUT ENGINE
+// Correct approach: 1px = 1mm in mini, mmToPx in modal.
+// Cards drawn at their REAL mm dimensions — overflow is impossible.
+// ─────────────────────────────────────────────────────────────
+
+/** Returns pixel layout for a given mm-per-px scale */
+function computeA4Layout(def: CardSize, mmToPx: number) {
+  const marginPx = Math.round(5 * mmToPx)     // 5mm margins
+  const gapPx    = Math.round(2 * mmToPx)     // 2mm gap between cards
+  const cardW    = Math.round(def.mmW * mmToPx)
+  const cardH    = Math.round(def.mmH * mmToPx)
+  const scale    = cardW / def.preW            // render scale
+  const canvasW  = Math.round(210 * mmToPx)
+  const canvasH  = Math.round(297 * mmToPx)
+  return { marginPx, gapPx, cardW, cardH, scale, canvasW, canvasH }
+}
+
+// ─────────────────────────────────────────────────────────────
 // A4 FULL-SCREEN PRINT MODAL
 // ─────────────────────────────────────────────────────────────
 
@@ -530,76 +614,62 @@ interface ModalProps {
 
 function A4PrintModal({ onClose, tamanho, estilo, cardProps }: ModalProps) {
   const def = CARD_SIZES[tamanho]
+  // 680px wide A4 → 680/210 px per mm
+  const mmToPx = 680 / 210
+  const { marginPx, gapPx, cardW, cardH, scale, canvasW, canvasH } = computeA4Layout(def, mmToPx)
 
-  // Lock body scroll while modal is open
   useEffect(() => {
     document.body.style.overflow = "hidden"
     return () => { document.body.style.overflow = "" }
   }, [])
 
-  // A4 at 680px wide — big enough to see detail
-  const a4W = 680
-  const a4H = Math.round(a4W * 297 / 210)
-  const mmToPx = a4W / 210
-  const marginPx = Math.round(5 * mmToPx)
-  const gapPx = Math.round(2 * mmToPx)
-
-  const availW = a4W - marginPx * 2
-  const cardW  = Math.round((availW - gapPx * (def.cols - 1)) / def.cols)
-  const cardH  = Math.round(cardW * def.mmH / def.mmW)
-  const scale  = cardW / def.preW
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto"
-      style={{ background: "rgba(0,0,0,0.80)", backdropFilter: "blur(4px)" }}
+      style={{ background: "rgba(0,0,0,0.82)", backdropFilter: "blur(4px)" }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div className="my-6 rounded-2xl overflow-hidden shadow-2xl"
-        style={{ background: "#1a1a1a", maxWidth: a4W + 64 }}>
+        style={{ background: "#181818", maxWidth: canvasW + 64, width: "100%" }}>
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4"
-          style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
           <div>
             <h3 className="font-semibold text-white text-sm">
               Preview de Impressão — {def.label}
             </h3>
-            <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
-              {def.mmW}×{def.mmH} mm · {def.perFolha} cards · {def.cols} col{def.cols > 1 ? "unas" : "una"} × {def.rows} linhas
+            <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.40)" }}>
+              {def.mmW}×{def.mmH} mm · {def.perFolha} cards · {def.cols} col{def.cols > 1 ? "unas" : "una"} × {def.rows} linhas · escala {Math.round(scale * 100)}%
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => window.print()}
+            <button type="button" onClick={() => window.print()}
               className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
               style={{ background: "rgba(16,185,129,0.15)", color: "#34d399",
-                border: "1px solid rgba(16,185,129,0.30)" }}>
+                border: "1px solid rgba(16,185,129,0.28)" }}>
               <Printer className="w-3.5 h-3.5" />
               Imprimir
             </button>
             <button type="button" onClick={onClose}
-              className="p-2 rounded-lg transition-colors"
-              style={{ color: "rgba(255,255,255,0.50)" }}>
+              className="p-2 rounded-lg" style={{ color: "rgba(255,255,255,0.45)" }}>
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        {/* Sheet */}
-        <div className="p-8" style={{ background: "#111" }}>
-          {/* A4 paper */}
+        {/* A4 sheet */}
+        <div className="p-8 overflow-auto" style={{ background: "#111" }}>
           <div style={{
-            width: a4W,
-            height: a4H,
-            background: "#ffffff",
+            width: canvasW, height: canvasH,
+            background: "#fff",
             boxShadow: "0 8px 48px rgba(0,0,0,0.5)",
             padding: marginPx,
             display: "grid",
             gridTemplateColumns: `repeat(${def.cols}, ${cardW}px)`,
             gap: gapPx,
             alignContent: "start",
+            flexShrink: 0,
           }}>
             {Array.from({ length: def.perFolha }).map((_, i) => (
               <div key={i} style={{
@@ -609,7 +679,7 @@ function A4PrintModal({ onClose, tamanho, estilo, cardProps }: ModalProps) {
                 <div style={{
                   transform: `scale(${scale})`,
                   transformOrigin: "top left",
-                  position: "absolute", top: 0, left: 0,
+                  position: "absolute",
                 }}>
                   <CardRenderer {...cardProps} estilo={estilo} />
                 </div>
@@ -620,12 +690,12 @@ function A4PrintModal({ onClose, tamanho, estilo, cardProps }: ModalProps) {
 
         {/* Footer */}
         <div className="px-6 py-3 flex items-center justify-between"
-          style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-          <span className="text-xs" style={{ color: "rgba(255,255,255,0.30)" }}>
-            Clique fora para fechar · Escala: {Math.round(scale * 100)}%
+          style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+          <span className="text-xs" style={{ color: "rgba(255,255,255,0.28)" }}>
+            Clique fora para fechar
           </span>
-          <span className="text-xs" style={{ color: "rgba(255,255,255,0.30)" }}>
-            Papel A4 · 5mm margem · 2mm espaçamento
+          <span className="text-xs" style={{ color: "rgba(255,255,255,0.28)" }}>
+            A4 · 5mm margem · 2mm espaçamento
           </span>
         </div>
       </div>
@@ -634,7 +704,7 @@ function A4PrintModal({ onClose, tamanho, estilo, cardProps }: ModalProps) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// MINI A4 SHEET PREVIEW (sidebar)
+// MINI A4 PREVIEW (sidebar) — 1px = 1mm → always fits
 // ─────────────────────────────────────────────────────────────
 
 interface SheetPreviewProps extends CardProps {
@@ -644,34 +714,23 @@ interface SheetPreviewProps extends CardProps {
 }
 
 function SheetPreview({ onOpenModal, tamanho, estilo, ...cardProps }: SheetPreviewProps) {
-  const def  = CARD_SIZES[tamanho]
-  const canvasW  = 210
-  const canvasH  = Math.round(canvasW * (297 / 210))
-  const marginPx = Math.round(canvasW * (5 / 210))
-  const gapPx    = Math.round(canvasW * (2 / 210))
-  const cardW    = Math.round((canvasW - marginPx * 2 - gapPx * (def.cols - 1)) / def.cols)
-  const cardH    = Math.round(cardW * (def.mmH / def.mmW))
-  const scale    = cardW / def.preW
+  const def = CARD_SIZES[tamanho]
+  // 1px = 1mm → A4 is exactly 210×297px
+  const { marginPx, gapPx, cardW, cardH, scale, canvasW, canvasH } = computeA4Layout(def, 1)
 
   return (
     <div className="flex flex-col items-center">
-      <button
-        type="button"
-        onClick={onOpenModal}
+      <button type="button" onClick={onOpenModal}
         className="relative group cursor-pointer"
-        title="Clique para abrir preview completo"
-      >
-        {/* A4 paper */}
+        title="Clique para ver o preview de impressão completo">
+        {/* A4 paper at 1px=1mm */}
         <div style={{
           width: canvasW, height: canvasH,
-          background: "#fff",
-          border: "1px solid #d1d5db",
-          borderRadius: 4,
-          padding: marginPx,
+          background: "#fff", border: "1px solid #d1d5db",
+          borderRadius: 3, padding: marginPx,
           display: "grid",
           gridTemplateColumns: `repeat(${def.cols}, ${cardW}px)`,
-          gap: gapPx,
-          alignContent: "start",
+          gap: gapPx, alignContent: "start",
           overflow: "hidden",
         }}>
           {Array.from({ length: def.perFolha }).map((_, i) => (
@@ -690,7 +749,6 @@ function SheetPreview({ onOpenModal, tamanho, estilo, ...cardProps }: SheetPrevi
             </div>
           ))}
         </div>
-
         {/* hover overlay */}
         <div className="absolute inset-0 rounded opacity-0 group-hover:opacity-100 transition-opacity
           flex flex-col items-center justify-center gap-2"
@@ -699,7 +757,6 @@ function SheetPreview({ onOpenModal, tamanho, estilo, ...cardProps }: SheetPrevi
           <span className="text-white text-xs font-medium">Ver impressão completa</span>
         </div>
       </button>
-
       <p className="text-xs dash-muted text-center mt-2">
         {def.perFolha} cards · {def.cols}×{def.rows} · clique para ampliar
       </p>
@@ -708,7 +765,7 @@ function SheetPreview({ onOpenModal, tamanho, estilo, ...cardProps }: SheetPrevi
 }
 
 // ─────────────────────────────────────────────────────────────
-// SMALL UTILITIES
+// FORM UTILITIES
 // ─────────────────────────────────────────────────────────────
 
 function useImageUpload(initial: string | null) {
@@ -888,7 +945,7 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
   const img2 = useImageUpload(initial?.imagem2Url ?? null)
   const img3 = useImageUpload(initial?.imagem3Url ?? null)
 
-  const sizeInfo  = CARD_SIZES[tamanho]
+  const sizeInfo = CARD_SIZES[tamanho]
   const cardProps: CardProps = {
     size: sizeInfo, corPrimaria, corFundo, corTexto,
     corSecundaria: corSec, img1: img1.url, img2: img2.url,
@@ -908,7 +965,7 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
       )}
 
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_370px] gap-8">
-        {/* ─── LEFT: Form ─── */}
+        {/* ─── Form ─── */}
         <form action={(fd) => startTransition(() => formAction(fd))} className="space-y-5">
           {initial?.id && <input type="hidden" name="id" value={initial.id} />}
           <input type="hidden" name="tamanhoCard"  value={tamanho} />
@@ -960,15 +1017,15 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
 
           {/* 2. Tamanho */}
           <Section icon={Maximize2} title="Tamanho do Card">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {(Object.entries(CARD_SIZES) as [TamanhoCard, CardSize][]).map(([key, def]) => (
                 <button key={key} type="button" onClick={() => setTamanho(key)}
-                  className={`text-left p-3 rounded-xl border transition-all text-sm ${
+                  className={`text-left p-3 rounded-xl border transition-all ${
                     tamanho === key
                       ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10"
                       : "dash-card border hover:border-emerald-300 dark:hover:border-emerald-500/40"
                   }`}>
-                  <div className={`font-semibold mb-0.5 ${
+                  <div className={`font-semibold text-sm mb-0.5 ${
                     tamanho === key ? "text-emerald-600 dark:text-emerald-400" : "dash-title"}`}>
                     {def.label}
                   </div>
@@ -976,9 +1033,9 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-2 text-xs dash-muted pt-1">
-              <Info className="w-3.5 h-3.5 flex-shrink-0" />
-              <span>Cards otimizados para A4 sem desperdício. Veja a prévia da folha no painel ao lado.</span>
+            <div className="flex items-start gap-2 text-xs dash-muted pt-1">
+              <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              <span>Todos os tamanhos cabem exatos em folha A4 (5mm margem, 2mm entre cards). Sem desperdício.</span>
             </div>
           </Section>
 
@@ -1005,10 +1062,10 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
           {/* 4. Cores */}
           <Section icon={Palette} title="Paleta de Cores">
             <div className="grid sm:grid-cols-2 gap-4">
-              <ColorPicker label="Cor de Destaque / Marca"   name="corPrimaria"   value={corPrimaria} onChange={setCorPri} />
-              <ColorPicker label="Cor de Fundo do Card"       name="corFundo"      value={corFundo}   onChange={setCorFundo} />
-              <ColorPicker label="Cor do Texto Principal"     name="corTexto"      value={corTexto}   onChange={setCorTexto} />
-              <ColorPicker label="Cor do Texto Secundário"    name="corSecundaria" value={corSec}     onChange={setCorSec} />
+              <ColorPicker label="Cor de Destaque / Marca"  name="corPrimaria"   value={corPrimaria} onChange={setCorPri} />
+              <ColorPicker label="Cor de Fundo do Card"     name="corFundo"      value={corFundo}   onChange={setCorFundo} />
+              <ColorPicker label="Cor do Texto Principal"   name="corTexto"      value={corTexto}   onChange={setCorTexto} />
+              <ColorPicker label="Cor do Texto Secundário"  name="corSecundaria" value={corSec}     onChange={setCorSec} />
             </div>
             <SliderField label="Arredondamento dos cantos" name="raioCantos"
               value={raioCantos} min={0} max={24} unit="px" onChange={setRaio} />
@@ -1038,9 +1095,7 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
 
           {/* 6. Filtros */}
           <Section icon={Sliders} title="Filtros de Imagem">
-            <p className="text-xs dash-muted -mt-2">
-              Ajustes aplicados sobre a imagem de fundo.
-            </p>
+            <p className="text-xs dash-muted -mt-2">Ajustes aplicados sobre a imagem de fundo.</p>
             <SliderField label="Brilho"    name="brilho"    value={brilho}    min={0}  max={200} onChange={setBrilho} />
             <SliderField label="Saturação" name="saturacao" value={saturacao} min={0}  max={200} onChange={setSaturacao} />
             <SliderField label="Contraste" name="contraste" value={contraste} min={50} max={200} onChange={setContraste} />
@@ -1054,13 +1109,11 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
         {/* ─── RIGHT: Live Preview ─── */}
         <div className="xl:sticky xl:top-6 space-y-4 self-start">
           <div className="dash-card p-5">
-
-            {/* Tab selector */}
+            {/* Tabs */}
             <div className="flex items-center gap-2 mb-4">
               <div className="flex gap-1 bg-gray-100 dark:bg-white/5 rounded-xl p-1 flex-1">
                 {(["card", "folha"] as const).map(tab => (
-                  <button key={tab} type="button"
-                    onClick={() => setPreviewTab(tab)}
+                  <button key={tab} type="button" onClick={() => setPreviewTab(tab)}
                     className={`flex-1 text-xs font-medium py-1.5 px-3 rounded-lg transition-all ${
                       previewTab === tab
                         ? "bg-white dark:bg-white/10 dash-title shadow-sm"
@@ -1075,7 +1128,7 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
               </span>
             </div>
 
-            {/* Campaign name (preview only) */}
+            {/* Preview name */}
             <div className="mb-4">
               <input type="text" value={nomeCampanha}
                 onChange={e => setNomeCampanha(e.target.value)}
@@ -1123,14 +1176,10 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
               <div className="text-xs dash-muted">cols × linhas</div>
             </div>
             <div>
-              <button
-                type="button"
+              <button type="button"
                 onClick={() => { setPreviewTab("folha"); setShowModal(true) }}
-                className="flex flex-col items-center gap-0.5 w-full"
-              >
-                <div className="text-lg font-bold text-emerald-500 dark:text-emerald-400 flex items-center gap-1">
-                  <Printer className="w-4 h-4" />
-                </div>
+                className="flex flex-col items-center gap-0.5 w-full group">
+                <Printer className="w-5 h-5 text-emerald-500 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
                 <div className="text-xs text-emerald-500 dark:text-emerald-400 font-medium">
                   Ver impressão
                 </div>
