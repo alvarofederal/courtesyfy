@@ -39,45 +39,37 @@ export default async function ConfiguracoesPage() {
   return (
     <div className="w-full">
 
-      {/* ── Hero header — igual ao onboarding (sempre dark) ── */}
-      <div className="relative mb-6 rounded-3xl overflow-hidden"
-        style={{
-          background: "linear-gradient(135deg, #020c06 0%, #041a0e 50%, #020c06 100%)",
-          boxShadow: "0 0 0 1px rgba(16,185,129,0.18), 0 20px 48px rgba(0,0,0,0.25)",
-        }}>
+      {/* ── Hero header ── */}
+      <div className="relative mb-6 rounded-3xl overflow-hidden hero-card">
         {/* Grid overlay */}
-        <div aria-hidden className="absolute inset-0 pointer-events-none" style={{
-          backgroundImage: "linear-gradient(rgba(16,185,129,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.04) 1px, transparent 1px)",
-          backgroundSize: "36px 36px",
-        }} />
+        <div aria-hidden className="absolute inset-0 pointer-events-none hero-card-grid" />
         {/* Orb */}
-        <div aria-hidden className="absolute pointer-events-none" style={{
-          top: "-40px", right: "8%", width: "240px", height: "240px",
-          background: "radial-gradient(ellipse, rgba(16,185,129,0.16), transparent 65%)",
-          borderRadius: "50%",
-        }} />
+        <div aria-hidden className="absolute pointer-events-none hero-card-orb"
+          style={{ top: "-40px", right: "8%", width: "240px", height: "240px", borderRadius: "50%" }} />
 
         <div className="relative z-10 px-6 py-6 flex items-center gap-4">
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
-            style={{ background: "rgba(16,185,129,0.20)", border: "1px solid rgba(16,185,129,0.35)" }}>
-            <Settings className="w-6 h-6 text-emerald-400" />
+            style={{ background: "rgba(16,185,129,0.18)", border: "1px solid rgba(16,185,129,0.30)" }}>
+            <Settings className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-[11px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full"
-                style={{ background: "rgba(16,185,129,0.15)", color: "#34d399" }}>
+              <span className="text-[11px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
                 Passo 2
               </span>
-              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${planoDark.className}`}>
+              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full dark:hidden ${planoLight.className}`}>
+                {planoLight.label}
+              </span>
+              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full hidden dark:inline-flex ${planoDark.className}`}>
                 {planoDark.label}
               </span>
             </div>
-            <h1 className="text-xl font-extrabold text-white leading-tight">Identidade Visual</h1>
-            <p className="text-sm mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
+            <h1 className="text-xl font-extrabold hero-card-title leading-tight">Identidade Visual</h1>
+            <p className="text-sm mt-0.5 hero-card-sub">
               {loja.nome} · desde {new Date(loja.criadoEm).toLocaleDateString("pt-BR")}
             </p>
           </div>
-          <Sparkles className="w-8 h-8 flex-shrink-0" style={{ color: "rgba(16,185,129,0.45)" }} />
+          <Sparkles className="w-8 h-8 flex-shrink-0 text-emerald-500/60 dark:text-emerald-500/45" />
         </div>
       </div>
 

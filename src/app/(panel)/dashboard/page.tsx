@@ -39,50 +39,40 @@ function OnboardingHero({
   const next   = STEPS.find((s) => !passos[s.key])
 
   return (
-    <div className="relative mb-8 rounded-3xl overflow-hidden"
-      style={{
-        background: "linear-gradient(135deg, #020c06 0%, #041a0e 50%, #020c06 100%)",
-        boxShadow: "0 0 0 1px rgba(16,185,129,0.18), 0 24px 48px rgba(0,0,0,0.25)",
-      }}>
-      {/* Grid */}
-      <div aria-hidden className="absolute inset-0 pointer-events-none" style={{
-        backgroundImage: "linear-gradient(rgba(16,185,129,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.04) 1px, transparent 1px)",
-        backgroundSize: "36px 36px",
-      }} />
+    <div className="relative mb-8 rounded-3xl overflow-hidden hero-card">
+      {/* Grid overlay */}
+      <div aria-hidden className="absolute inset-0 pointer-events-none hero-card-grid" />
       {/* Orb */}
-      <div aria-hidden className="absolute pointer-events-none" style={{
-        top: "-60px", right: "10%", width: "300px", height: "300px",
-        background: "radial-gradient(ellipse, rgba(16,185,129,0.14), transparent 65%)", borderRadius: "50%",
-      }} />
+      <div aria-hidden className="absolute pointer-events-none hero-card-orb"
+        style={{ top: "-60px", right: "10%", width: "300px", height: "300px", borderRadius: "50%" }} />
 
       {/* Cabeçalho */}
       <div className="relative z-10 px-6 pt-7 pb-5 flex flex-col sm:flex-row sm:items-center gap-4">
         <div className="flex-1 min-w-0">
-          <span className="text-[11px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full inline-block mb-2"
-            style={{ background: "rgba(16,185,129,0.15)", color: "#34d399" }}>
+          <span className="text-[11px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full inline-block mb-2 bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
             Configuração inicial
           </span>
-          <h2 className="text-xl sm:text-2xl font-extrabold text-white leading-tight">
+          <h2 className="text-xl sm:text-2xl font-extrabold hero-card-title leading-tight">
             {passosFeitos === 1 ? `Bem-vindo, ${nome}! Configure sua loja 🚀`
               : passosFeitos < 5 ? "Continue configurando — está quase pronto"
               : "Último passo! Sua loja está quase live"}
           </h2>
-          <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.45)" }}>
+          <p className="text-sm mt-1 hero-card-sub">
             {passosFeitos} de 6 etapas concluídas
-            {next && <> · próximo: <span style={{ color: "#34d399" }}>{next.title}</span></>}
+            {next && <> · próximo: <span className="text-emerald-600 dark:text-emerald-400">{next.title}</span></>}
           </p>
         </div>
         {/* Anel SVG */}
         <div className="relative flex-shrink-0 w-16 h-16">
           <svg width="64" height="64" viewBox="0 0 64 64" className="-rotate-90">
-            <circle cx="32" cy="32" r={r} fill="none" stroke="rgba(16,185,129,0.15)" strokeWidth="5" />
+            <circle cx="32" cy="32" r={r} fill="none" stroke="rgba(16,185,129,0.20)" strokeWidth="5" />
             <circle cx="32" cy="32" r={r} fill="none" stroke="#10b981" strokeWidth="5"
               strokeLinecap="round" strokeDasharray={circum}
               strokeDashoffset={circum * (1 - pct / 100)}
               style={{ transition: "stroke-dashoffset 0.6s ease" }} />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-sm font-extrabold" style={{ color: "#10b981" }}>{pct}%</span>
+            <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">{pct}%</span>
           </div>
         </div>
       </div>
@@ -94,41 +84,45 @@ function OnboardingHero({
           const isCurr = !done && STEPS.findIndex((s) => !passos[s.key]) === step.n - 1
           const Icon   = step.icon
           return (
-            <div key={step.key} className="rounded-2xl p-4 flex flex-col gap-3 transition-all" style={{
-              background: done ? "rgba(16,185,129,0.10)" : isCurr ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.03)",
-              border: done ? "1px solid rgba(16,185,129,0.30)" : isCurr ? "1px solid rgba(255,255,255,0.18)" : "1px solid rgba(255,255,255,0.06)",
-            }}>
+            <div key={step.key}
+              className={`rounded-2xl p-4 flex flex-col gap-3 transition-all ${
+                done ? "onb-step-done" : isCurr ? "onb-step-current" : "onb-step-todo"
+              }`}>
               <div className="flex items-center justify-between">
-                <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                  style={done ? { background: "#10b981", color: "#fff" }
-                    : isCurr ? { background: "rgba(255,255,255,0.12)", color: "#fff" }
-                    : { background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.25)" }}>
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                  done ? "onb-num-done" : isCurr ? "onb-num-curr" : "onb-num-todo"
+                }`}>
                   {done ? <Check className="w-3.5 h-3.5" /> : step.n}
                 </div>
-                <Icon className="w-4 h-4 flex-shrink-0"
-                  style={{ color: done ? "#10b981" : isCurr ? "rgba(255,255,255,0.60)" : "rgba(255,255,255,0.18)" }} />
+                <Icon className={`w-4 h-4 flex-shrink-0 ${
+                  done ? "text-emerald-500" : isCurr ? "text-emerald-600 dark:text-white/60" : "text-emerald-400/50 dark:text-white/18"
+                }`} />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold leading-tight"
-                  style={{ color: done ? "rgba(255,255,255,0.45)" : isCurr ? "#fff" : "rgba(255,255,255,0.30)",
-                    textDecoration: done ? "line-through" : "none" }}>
+                <p className={`text-sm font-semibold leading-tight ${
+                  done ? "onb-title-done" : isCurr ? "onb-title-curr" : "onb-title-todo"
+                }`}>
                   {step.title}
                 </p>
-                <p className="text-xs mt-0.5 leading-snug"
-                  style={{ color: done ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.35)" }}>
+                <p className={`text-xs mt-0.5 leading-snug ${done ? "onb-desc-done" : "onb-desc-todo"}`}>
                   {step.desc}
                 </p>
               </div>
               {!done && step.href && (
                 <Link href={step.href}
-                  className="flex items-center justify-between w-full rounded-xl px-3 py-2 text-xs font-bold transition-all"
-                  style={isCurr
-                    ? { background: "linear-gradient(135deg, #10b981, #059669)", color: "#fff", boxShadow: "0 0 18px rgba(16,185,129,0.40)" }
-                    : { background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.35)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  className={`flex items-center justify-between w-full rounded-xl px-3 py-2 text-xs font-bold transition-all ${
+                    isCurr
+                      ? "text-white"
+                      : "onb-cta-todo"
+                  }`}
+                  style={isCurr ? {
+                    background: "linear-gradient(135deg, #10b981, #059669)",
+                    boxShadow: "0 0 18px rgba(16,185,129,0.35)",
+                  } : undefined}>
                   {step.cta}<ChevronRight className="w-3 h-3" />
                 </Link>
               )}
-              {done && <span className="text-xs font-semibold" style={{ color: "#10b981" }}>✓ Concluído</span>}
+              {done && <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">✓ Concluído</span>}
             </div>
           )
         })}

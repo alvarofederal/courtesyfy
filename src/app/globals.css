@@ -132,9 +132,85 @@
 
 /* ═══════════════════════════════════════════════════════════════
    Dashboard design tokens — light + dark responsivo
-   Sidebar é sempre dark (identidade de marca).
-   Main content responde ao toggle dark/light.
    ═══════════════════════════════════════════════════════════════ */
+
+/* ── Sidebar (responde ao tema) ── */
+.sidebar-panel {
+  background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
+}
+.dark .sidebar-panel {
+  background: linear-gradient(180deg, #020c06 0%, #030f08 100%);
+}
+
+/* ── Hero cards (onboarding / configurações) ── */
+.hero-card {
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f0fdf4 100%);
+  box-shadow: 0 0 0 1px rgba(16,185,129,0.20), 0 20px 48px rgba(0,0,0,0.05);
+}
+.dark .hero-card {
+  background: linear-gradient(135deg, #020c06 0%, #041a0e 50%, #020c06 100%);
+  box-shadow: 0 0 0 1px rgba(16,185,129,0.18), 0 24px 48px rgba(0,0,0,0.25);
+}
+.hero-card-grid {
+  background-image: linear-gradient(rgba(16,185,129,0.10) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(16,185,129,0.10) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+.dark .hero-card-grid {
+  background-image: linear-gradient(rgba(16,185,129,0.04) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(16,185,129,0.04) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+.hero-card-orb {
+  background: radial-gradient(ellipse, rgba(16,185,129,0.18), transparent 65%);
+}
+.dark .hero-card-orb {
+  background: radial-gradient(ellipse, rgba(16,185,129,0.14), transparent 65%);
+}
+.hero-card-title { color: #111827; }
+.dark .hero-card-title { color: #ffffff; }
+.hero-card-sub   { color: rgba(0,0,0,0.40); }
+.dark .hero-card-sub   { color: rgba(255,255,255,0.45); }
+
+/* ── Onboarding step cards ── */
+.onb-step-done    { background: rgba(16,185,129,0.10); border: 1px solid rgba(16,185,129,0.30); }
+.onb-step-current { background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.35); }
+.onb-step-todo    { background: rgba(255,255,255,0.65); border: 1px solid rgba(16,185,129,0.10); }
+.dark .onb-step-todo    { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); }
+.dark .onb-step-current { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.18); }
+
+/* step number circle */
+.onb-num-done { background: #10b981; color: #fff; }
+.onb-num-curr { background: rgba(16,185,129,0.15); color: #059669; }
+.onb-num-todo { background: rgba(16,185,129,0.08); color: rgba(16,185,129,0.45); }
+.dark .onb-num-curr { background: rgba(255,255,255,0.12); color: #fff; }
+.dark .onb-num-todo { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.25); }
+
+/* step titles */
+.onb-title-done { color: #9ca3af; text-decoration: line-through; }
+.onb-title-curr { color: #111827; }
+.onb-title-todo { color: #6b7280; }
+.dark .onb-title-done { color: rgba(255,255,255,0.45); }
+.dark .onb-title-curr { color: #ffffff; }
+.dark .onb-title-todo { color: rgba(255,255,255,0.30); }
+
+/* step descriptions */
+.onb-desc-done { color: #d1d5db; }
+.onb-desc-todo { color: #9ca3af; }
+.dark .onb-desc-done { color: rgba(255,255,255,0.22); }
+.dark .onb-desc-todo { color: rgba(255,255,255,0.35); }
+
+/* step CTA (non-active) */
+.onb-cta-todo {
+  background: rgba(16,185,129,0.08);
+  color: rgba(16,185,129,0.60);
+  border: 1px solid rgba(16,185,129,0.18);
+}
+.dark .onb-cta-todo {
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.35);
+  border: 1px solid rgba(255,255,255,0.08);
+}
 
 /* ── Light (padrão) ── */
 .dash-bg           { background: #f9fafb; }

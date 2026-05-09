@@ -65,21 +65,17 @@ interface SidebarContentProps {
 function SidebarContent({ navItems, initial, displayName, isAdmin, isActive, onClose }: SidebarContentProps) {
   return (
     <>
-      {/* Logo — texto puro com efeito vidro, sem ícone */}
-      <div className="px-5 py-5 flex items-center justify-between"
-        style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+      {/* Logo */}
+      <div className="px-5 py-5 flex items-center justify-between border-b border-gray-200 dark:border-white/[0.07]">
         <Link href="/dashboard" onClick={onClose} className="logo-shine flex items-center">
-          <span className="text-white font-extrabold text-lg tracking-tight select-none"
+          <span className="text-gray-900 dark:text-white font-extrabold text-lg tracking-tight select-none"
             style={{ fontFamily: "var(--font-open-sans), 'Open Sans', sans-serif", letterSpacing: "-0.02em" }}>
             Courtesy<span className="logo-fy-pulse" style={{ color: "#10b981" }}>fy</span>
           </span>
         </Link>
         {onClose && (
           <button onClick={onClose}
-            className="p-1.5 rounded-lg transition-colors"
-            style={{ color: "rgba(255,255,255,0.35)" }}
-            onMouseOver={e => (e.currentTarget.style.color = "white")}
-            onMouseOut={e => (e.currentTarget.style.color = "rgba(255,255,255,0.35)")}
+            className="p-1.5 rounded-lg transition-colors text-gray-400 dark:text-white/35 hover:text-gray-700 dark:hover:text-white"
             aria-label="Fechar menu">
             <X className="w-5 h-5" />
           </button>
@@ -87,15 +83,15 @@ function SidebarContent({ navItems, initial, displayName, isAdmin, isActive, onC
       </div>
 
       {/* User */}
-      <div className="px-5 py-3.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+      <div className="px-5 py-3.5 border-b border-gray-200 dark:border-white/[0.07]">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
             style={{ background: "rgba(16,185,129,0.18)", border: "1px solid rgba(16,185,129,0.30)" }}>
-            <span className="text-emerald-400 text-xs font-bold">{initial}</span>
+            <span className="text-emerald-600 dark:text-emerald-400 text-xs font-bold">{initial}</span>
           </div>
           <div className="min-w-0">
-            <p className="text-white text-xs font-medium truncate">{displayName}</p>
-            <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
+            <p className="text-gray-800 dark:text-white text-xs font-medium truncate">{displayName}</p>
+            <p className="text-xs text-gray-500 dark:text-white/35">
               {isAdmin ? "Super Admin" : "Lojista"}
             </p>
           </div>
@@ -108,21 +104,19 @@ function SidebarContent({ navItems, initial, displayName, isAdmin, isActive, onC
           const active = isActive(item.href)
           return (
             <Link key={item.href} href={item.href} onClick={onClose}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm group transition-all"
-              style={{
-                background: active ? "rgba(16,185,129,0.12)" : "transparent",
-                color:      active ? "#fff" : "rgba(255,255,255,0.50)",
-                border:     active ? "1px solid rgba(16,185,129,0.20)" : "1px solid transparent",
-              }}
-              onMouseOver={e => { if (!active) { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.color = "#fff" } }}
-              onMouseOut={e =>  { if (!active) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.50)" } }}>
-              <item.icon
-                className="w-4 h-4 flex-shrink-0 transition-colors"
-                style={{ color: active ? "#10b981" : undefined }}
-              />
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all border ${
+                active
+                  ? "bg-emerald-50 dark:bg-emerald-500/[0.12] text-emerald-700 dark:text-white border-emerald-200 dark:border-emerald-500/20"
+                  : "text-gray-600 dark:text-white/50 border-transparent hover:bg-gray-100 dark:hover:bg-white/[0.05] hover:text-gray-900 dark:hover:text-white"
+              }`}>
+              <item.icon className={`w-4 h-4 flex-shrink-0 transition-colors ${
+                active
+                  ? "text-emerald-600 dark:text-emerald-400"
+                  : "text-gray-400 dark:text-white/30"
+              }`} />
               {item.label}
               {active && (
-                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 flex-shrink-0" />
               )}
             </Link>
           )
@@ -130,13 +124,10 @@ function SidebarContent({ navItems, initial, displayName, isAdmin, isActive, onC
       </nav>
 
       {/* Footer */}
-      <div className="px-3 py-4" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+      <div className="px-3 py-4 border-t border-gray-200 dark:border-white/[0.07]">
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
-          className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm w-full transition-all"
-          style={{ color: "rgba(255,255,255,0.35)" }}
-          onMouseOver={e => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.color = "rgba(255,255,255,0.75)" }}
-          onMouseOut={e =>  { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.35)" }}>
+          className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm w-full transition-all text-gray-500 dark:text-white/35 hover:bg-gray-100 dark:hover:bg-white/[0.05] hover:text-gray-900 dark:hover:text-white/75">
           <LogOut className="w-4 h-4 flex-shrink-0" />
           Sair
         </button>
@@ -181,21 +172,17 @@ export function AppShell({ role, userName, userEmail, children }: AppShellProps)
 
   const sharedProps: SidebarContentProps = { navItems, initial, displayName, isAdmin, isActive }
 
-  /* Sidebar — sempre dark, independente do tema */
-  const sidebarBg = "linear-gradient(180deg, #020c06 0%, #030f08 100%)"
-
   return (
     /* Wrapper principal — bg responsivo via CSS (dark/light) */
     <div className="flex h-screen overflow-hidden dash-bg">
 
-      {/* ── Desktop sidebar (sempre dark) ── */}
-      <aside className="hidden lg:flex w-60 flex-col flex-shrink-0 relative"
-        style={{ background: sidebarBg, borderRight: "1px solid rgba(255,255,255,0.07)" }}>
+      {/* ── Desktop sidebar ── */}
+      <aside className="hidden lg:flex w-60 flex-col flex-shrink-0 relative sidebar-panel border-r border-gray-200 dark:border-white/[0.07]">
         {/* Orb sutil */}
         <div aria-hidden className="absolute pointer-events-none"
           style={{
             top: "-40px", left: "-20px", width: "200px", height: "200px",
-            background: "radial-gradient(ellipse, rgba(16,185,129,0.12), transparent 65%)",
+            background: "radial-gradient(ellipse, rgba(16,185,129,0.10), transparent 65%)",
             borderRadius: "50%",
           }} />
         <SidebarContent {...sharedProps} />
@@ -204,14 +191,13 @@ export function AppShell({ role, userName, userEmail, children }: AppShellProps)
       {/* ── Mobile backdrop ── */}
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden"
-          style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }}
+          style={{ background: "rgba(0,0,0,0.60)", backdropFilter: "blur(4px)" }}
           onClick={() => setOpen(false)} aria-hidden />
       )}
 
-      {/* ── Mobile drawer (sempre dark) ── */}
+      {/* ── Mobile drawer ── */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 flex flex-col lg:hidden transition-transform duration-300 ease-in-out ${open ? "translate-x-0" : "-translate-x-full"}`}
-        style={{ background: sidebarBg, borderRight: "1px solid rgba(255,255,255,0.07)" }}
+        className={`fixed inset-y-0 left-0 z-50 w-72 flex flex-col lg:hidden transition-transform duration-300 ease-in-out sidebar-panel border-r border-gray-200 dark:border-white/[0.07] ${open ? "translate-x-0" : "-translate-x-full"}`}
         aria-modal role="dialog">
         <SidebarContent {...sharedProps} onClose={() => setOpen(false)} />
       </aside>
