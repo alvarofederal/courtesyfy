@@ -456,10 +456,12 @@ enum StatusResgate {
 
 enum TamanhoCard {
   MINI
+  CARTAO
   PADRAO
   COUPON
   VOUCHER
   MEIO_A4
+  MDF
 }
 
 enum EstiloCard {
