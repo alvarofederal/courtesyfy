@@ -5,6 +5,22 @@ import { db } from "@/lib/prisma"
 import { Plus, Star, Pencil, Layers } from "lucide-react"
 import { ExcluirLayoutBtn } from "./_components/excluir-layout-btn"
 
+const TAMANHO_LABEL: Record<string, string> = {
+  MINI:    "Mini 63×38 mm",
+  PADRAO:  "Padrão 85×55 mm",
+  COUPON:  "Cupom 95×68 mm",
+  VOUCHER: "Voucher 190×68 mm",
+  MEIO_A4: "Meio A4 190×138 mm",
+}
+
+const ESTILO_LABEL: Record<string, string> = {
+  CLASSICO:    "Clássico",
+  MODERNO:     "Moderno",
+  MINIMALISTA: "Minimalista",
+  GRADIENTE:   "Gradiente",
+  NEON:        "Neon",
+}
+
 export default async function LayoutListPage() {
   const session = await auth()
   if (!session?.user?.lojaId) redirect("/login")
@@ -35,11 +51,11 @@ export default async function LayoutListPage() {
 
       {layouts.length === 0 ? (
         <div className="dash-card p-12 text-center">
-          <Layers className="w-10 h-10 mx-auto mb-3" style={{ color: "rgba(255,255,255,0.20)" }} />
+          <Layers className="w-10 h-10 mx-auto mb-3 dash-muted" />
           <p className="dash-subtitle text-sm">Nenhum layout criado ainda.</p>
           <Link
             href="/dashboard/layout/novo"
-            className="mt-4 inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300 text-sm font-medium transition-colors"
+            className="mt-4 inline-flex items-center gap-2 text-emerald-500 hover:text-emerald-400 text-sm font-medium transition-colors"
           >
             <Plus className="w-4 h-4" />
             Criar o primeiro layout
@@ -48,15 +64,13 @@ export default async function LayoutListPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {layouts.map((layout) => (
-            <div
-              key={layout.id}
-              className="dash-card p-5 flex flex-col gap-4"
-            >
+            <div key={layout.id} className="dash-card p-5 flex flex-col gap-4">
+
               {/* Color swatch + name */}
               <div className="flex items-center gap-3">
                 <div
-                  className="w-10 h-10 rounded-xl flex-shrink-0"
-                  style={{ backgroundColor: layout.corPrimaria, border: "1px solid rgba(255,255,255,0.10)" }}
+                  className="w-10 h-10 rounded-xl flex-shrink-0 border border-black/5 dark:border-white/10"
+                  style={{ backgroundColor: layout.corPrimaria }}
                 />
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
@@ -69,17 +83,26 @@ export default async function LayoutListPage() {
                 </div>
               </div>
 
+              {/* Tags */}
+              <div className="flex flex-wrap gap-1.5">
+                <span className="text-xs dash-muted bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-full">
+                  {TAMANHO_LABEL[layout.tamanhoCard as string] ?? layout.tamanhoCard}
+                </span>
+                <span className="text-xs dash-muted bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-full">
+                  {ESTILO_LABEL[layout.estiloCard as string] ?? layout.estiloCard}
+                </span>
+              </div>
+
               {/* Image thumbs */}
-              {(layout.imagem1Url || layout.imagem2Url || layout.imagem3Url) && (
+              {(layout.imagem1Url || layout.imagem2Url) && (
                 <div className="flex gap-2">
-                  {[layout.imagem1Url, layout.imagem2Url, layout.imagem3Url].map((img, i) =>
+                  {[layout.imagem1Url, layout.imagem2Url].map((img, i) =>
                     img ? (
                       <img
                         key={i}
                         src={img}
                         alt=""
-                        className="w-12 h-12 rounded-lg object-cover"
-                        style={{ border: "1px solid rgba(255,255,255,0.08)" }}
+                        className="w-10 h-10 rounded-lg object-cover border border-black/5 dark:border-white/10"
                       />
                     ) : null,
                   )}
@@ -92,13 +115,10 @@ export default async function LayoutListPage() {
               </p>
 
               {/* Actions */}
-              <div className="flex items-center gap-2 pt-1" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+              <div className="flex items-center gap-2 pt-1 border-t border-gray-100 dark:border-white/5">
                 <Link
                   href={`/dashboard/layout/${layout.id}`}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl transition-colors"
-                  style={{ border: "1px solid rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.65)" }}
-                  onMouseOver={(e: React.MouseEvent<HTMLAnchorElement>) => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
-                  onMouseOut={(e: React.MouseEvent<HTMLAnchorElement>) => (e.currentTarget.style.background = "transparent")}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl transition-colors dash-subtitle hover:dash-title border border-gray-200 dark:border-white/10 hover:border-emerald-400 dark:hover:border-emerald-500/40"
                 >
                   <Pencil className="w-3.5 h-3.5" />
                   Editar

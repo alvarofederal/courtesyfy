@@ -164,15 +164,24 @@ model Loja {
 }
 
 model Layout {
-  id             String   @id @default(cuid())
+  id             String      @id @default(cuid())
   lojaId         String
   nome           String
-  corPrimaria    String   @default("#c8a96e")
-  imagem1Url     String?  @db.Text
-  imagem2Url     String?  @db.Text
-  imagem3Url     String?  @db.Text
-  opacidadeFundo Int      @default(20)
-  padrao         Boolean  @default(false)
+  corPrimaria    String      @default("#c8a96e")
+  corFundo       String      @default("#fffdf7")
+  corTexto       String      @default("#3a2510")
+  corSecundaria  String      @default("#5a3e28")
+  imagem1Url     String?     @db.Text
+  imagem2Url     String?     @db.Text
+  imagem3Url     String?     @db.Text
+  opacidadeFundo Int         @default(20)
+  brilho         Int         @default(100)
+  saturacao      Int         @default(100)
+  contraste      Int         @default(100)
+  tamanhoCard    TamanhoCard @default(PADRAO)
+  estiloCard     EstiloCard  @default(CLASSICO)
+  raioCantos     Int         @default(8)
+  padrao         Boolean     @default(false)
 
   loja      Loja       @relation(fields: [lojaId], references: [id])
   campanhas Campanha[]
@@ -443,6 +452,22 @@ enum StatusResgate {
   CONFIRMADO
   RECUSADO
   ESTORNADO
+}
+
+enum TamanhoCard {
+  MINI
+  PADRAO
+  COUPON
+  VOUCHER
+  MEIO_A4
+}
+
+enum EstiloCard {
+  CLASSICO
+  MODERNO
+  MINIMALISTA
+  GRADIENTE
+  NEON
 }
 
 enum TipoEvento {

@@ -11,21 +11,45 @@ export type LayoutState = {
   success?: boolean
 }
 
-export async function criarLayout(_prev: LayoutState, formData: FormData): Promise<LayoutState> {
-  const session = await auth()
-  if (!session?.user?.lojaId) return { error: "Não autorizado" }
-
+function extractLayoutFields(formData: FormData) {
   const nome          = formData.get("nome") as string
   const corPrimaria   = formData.get("corPrimaria") as string
+  const corFundo      = formData.get("corFundo") as string
+  const corTexto      = formData.get("corTexto") as string
+  const corSecundaria = formData.get("corSecundaria") as string
   const imagem1Url    = (formData.get("imagem1Url") as string) || null
   const imagem2Url    = (formData.get("imagem2Url") as string) || null
   const imagem3Url    = (formData.get("imagem3Url") as string) || null
   const opacidadeFundo = parseInt(formData.get("opacidadeFundo") as string) || 20
+  const brilho        = parseInt(formData.get("brilho") as string) || 100
+  const saturacao     = parseInt(formData.get("saturacao") as string) || 100
+  const contraste     = parseInt(formData.get("contraste") as string) || 100
+  const tamanhoCard   = (formData.get("tamanhoCard") as string) || "PADRAO"
+  const estiloCard    = (formData.get("estiloCard") as string) || "CLASSICO"
+  const raioCantos    = parseInt(formData.get("raioCantos") as string) || 8
   const padrao        = formData.get("padrao") === "on"
 
-  if (!nome?.trim()) return { fieldErrors: { nome: ["Nome obrigatório"] } }
+  return {
+    nome, corPrimaria, corFundo, corTexto, corSecundaria,
+    imagem1Url, imagem2Url, imagem3Url,
+    opacidadeFundo: Math.min(60, Math.max(5, opacidadeFundo)),
+    brilho: Math.min(200, Math.max(0, brilho)),
+    saturacao: Math.min(200, Math.max(0, saturacao)),
+    contraste: Math.min(200, Math.max(0, contraste)),
+    tamanhoCard, estiloCard,
+    raioCantos: Math.min(24, Math.max(0, raioCantos)),
+    padrao,
+  }
+}
 
-  if (padrao) {
+export async function criarLayout(_prev: LayoutState, formData: FormData): Promise<LayoutState> {
+  const session = await auth()
+  if (!session?.user?.lojaId) return { error: "Não autorizado" }
+
+  const fields = extractLayoutFields(formData)
+  if (!fields.nome?.trim()) return { fieldErrors: { nome: ["Nome obrigatório"] } }
+
+  if (fields.padrao) {
     await db.layout.updateMany({
       where: { lojaId: session.user.lojaId, padrao: true },
       data: { padrao: false },
@@ -35,13 +59,22 @@ export async function criarLayout(_prev: LayoutState, formData: FormData): Promi
   await db.layout.create({
     data: {
       lojaId: session.user.lojaId,
-      nome: nome.trim(),
-      corPrimaria: corPrimaria || "#c8a96e",
-      imagem1Url,
-      imagem2Url,
-      imagem3Url,
-      opacidadeFundo: Math.min(60, Math.max(5, opacidadeFundo)),
-      padrao,
+      nome: fields.nome.trim(),
+      corPrimaria: fields.corPrimaria || "#c8a96e",
+      corFundo: fields.corFundo || "#fffdf7",
+      corTexto: fields.corTexto || "#3a2510",
+      corSecundaria: fields.corSecundaria || "#5a3e28",
+      imagem1Url: fields.imagem1Url,
+      imagem2Url: fields.imagem2Url,
+      imagem3Url: fields.imagem3Url,
+      opacidadeFundo: fields.opacidadeFundo,
+      brilho: fields.brilho,
+      saturacao: fields.saturacao,
+      contraste: fields.contraste,
+      tamanhoCard: fields.tamanhoCard as "MINI" | "PADRAO" | "COUPON" | "VOUCHER" | "MEIO_A4",
+      estiloCard: fields.estiloCard as "CLASSICO" | "MODERNO" | "MINIMALISTA" | "GRADIENTE" | "NEON",
+      raioCantos: fields.raioCantos,
+      padrao: fields.padrao,
     },
   })
 
@@ -53,21 +86,15 @@ export async function atualizarLayout(_prev: LayoutState, formData: FormData): P
   const session = await auth()
   if (!session?.user?.lojaId) return { error: "Não autorizado" }
 
-  const id            = formData.get("id") as string
-  const nome          = formData.get("nome") as string
-  const corPrimaria   = formData.get("corPrimaria") as string
-  const imagem1Url    = (formData.get("imagem1Url") as string) || null
-  const imagem2Url    = (formData.get("imagem2Url") as string) || null
-  const imagem3Url    = (formData.get("imagem3Url") as string) || null
-  const opacidadeFundo = parseInt(formData.get("opacidadeFundo") as string) || 20
-  const padrao        = formData.get("padrao") === "on"
+  const id     = formData.get("id") as string
+  const fields = extractLayoutFields(formData)
 
-  if (!nome?.trim()) return { fieldErrors: { nome: ["Nome obrigatório"] } }
+  if (!fields.nome?.trim()) return { fieldErrors: { nome: ["Nome obrigatório"] } }
 
   const layout = await db.layout.findUnique({ where: { id } })
   if (!layout || layout.lojaId !== session.user.lojaId) return { error: "Não encontrado" }
 
-  if (padrao) {
+  if (fields.padrao) {
     await db.layout.updateMany({
       where: { lojaId: session.user.lojaId, padrao: true, id: { not: id } },
       data: { padrao: false },
@@ -77,13 +104,22 @@ export async function atualizarLayout(_prev: LayoutState, formData: FormData): P
   await db.layout.update({
     where: { id },
     data: {
-      nome: nome.trim(),
-      corPrimaria: corPrimaria || "#c8a96e",
-      imagem1Url,
-      imagem2Url,
-      imagem3Url,
-      opacidadeFundo: Math.min(60, Math.max(5, opacidadeFundo)),
-      padrao,
+      nome: fields.nome.trim(),
+      corPrimaria: fields.corPrimaria || "#c8a96e",
+      corFundo: fields.corFundo || "#fffdf7",
+      corTexto: fields.corTexto || "#3a2510",
+      corSecundaria: fields.corSecundaria || "#5a3e28",
+      imagem1Url: fields.imagem1Url,
+      imagem2Url: fields.imagem2Url,
+      imagem3Url: fields.imagem3Url,
+      opacidadeFundo: fields.opacidadeFundo,
+      brilho: fields.brilho,
+      saturacao: fields.saturacao,
+      contraste: fields.contraste,
+      tamanhoCard: fields.tamanhoCard as "MINI" | "PADRAO" | "COUPON" | "VOUCHER" | "MEIO_A4",
+      estiloCard: fields.estiloCard as "CLASSICO" | "MODERNO" | "MINIMALISTA" | "GRADIENTE" | "NEON",
+      raioCantos: fields.raioCantos,
+      padrao: fields.padrao,
     },
   })
 

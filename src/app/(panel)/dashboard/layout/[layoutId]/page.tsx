@@ -5,6 +5,7 @@ import { db } from "@/lib/prisma"
 import { ChevronLeft } from "lucide-react"
 import { LayoutForm } from "../_components/layout-form"
 import { atualizarLayout } from "../_actions/layout-actions"
+import type { TamanhoCard, EstiloCard } from "../_components/layout-form"
 
 export default async function EditarLayoutPage({
   params,
@@ -30,28 +31,37 @@ export default async function EditarLayoutPage({
     <div>
       <Link
         href="/dashboard/layout"
-        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm dash-muted hover:dash-subtitle mb-6 transition-colors"
       >
         <ChevronLeft className="w-4 h-4" />
         Layouts
       </Link>
 
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">{layout.nome}</h1>
-        <p className="text-gray-500 text-sm mt-0.5">Editar cores e imagens do layout.</p>
+        <h1 className="text-2xl font-bold dash-title">{layout.nome}</h1>
+        <p className="dash-subtitle text-sm mt-0.5">Edite tamanho, estilo, cores e imagens do layout.</p>
       </div>
 
       <LayoutForm
         action={atualizarLayout}
         initial={{
-          id: layout.id,
-          nome: layout.nome,
-          corPrimaria: layout.corPrimaria,
-          imagem1Url: layout.imagem1Url,
-          imagem2Url: layout.imagem2Url,
-          imagem3Url: layout.imagem3Url,
+          id:            layout.id,
+          nome:          layout.nome,
+          corPrimaria:   layout.corPrimaria,
+          corFundo:      layout.corFundo      ?? "#fffdf7",
+          corTexto:      layout.corTexto      ?? "#3a2510",
+          corSecundaria: layout.corSecundaria ?? "#5a3e28",
+          imagem1Url:    layout.imagem1Url,
+          imagem2Url:    layout.imagem2Url,
+          imagem3Url:    layout.imagem3Url,
           opacidadeFundo: layout.opacidadeFundo,
-          padrao: layout.padrao,
+          brilho:        layout.brilho        ?? 100,
+          saturacao:     layout.saturacao     ?? 100,
+          contraste:     layout.contraste     ?? 100,
+          tamanhoCard:   (layout.tamanhoCard  as TamanhoCard)  ?? "PADRAO",
+          estiloCard:    (layout.estiloCard   as EstiloCard)   ?? "CLASSICO",
+          raioCantos:    layout.raioCantos    ?? 8,
+          padrao:        layout.padrao,
         }}
         nomeLoja={loja?.nomeExibicao ?? loja?.nome ?? "Sua Loja"}
       />

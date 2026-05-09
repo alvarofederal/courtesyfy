@@ -19,16 +19,16 @@ export default async function NovoLayoutPage() {
     <div>
       <Link
         href="/dashboard/layout"
-        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm dash-muted hover:dash-subtitle mb-6 transition-colors"
       >
         <ChevronLeft className="w-4 h-4" />
         Layouts
       </Link>
 
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Novo layout</h1>
-        <p className="text-gray-500 text-sm mt-0.5">
-          Configure cores e imagens para personalizar os cards impressos.
+        <h1 className="text-2xl font-bold dash-title">Novo layout</h1>
+        <p className="dash-subtitle text-sm mt-0.5">
+          Configure tamanho, estilo, cores e imagens para personalizar os cards impressos.
         </p>
       </div>
 
