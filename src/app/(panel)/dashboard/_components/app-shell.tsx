@@ -16,6 +16,7 @@ import {
   X,
   LogOut,
   Layers,
+  Printer,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { TopNavbar } from "./top-navbar"
@@ -38,6 +39,7 @@ const lojistaNav: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/dashboard/campanhas",     label: "Campanhas",     icon: Megaphone       },
   { href: "/dashboard/chaves",        label: "Chaves",        icon: Key             },
   { href: "/dashboard/resgates",      label: "Resgates",      icon: ShoppingBag     },
+  { href: "/dashboard/impressao",     label: "Impressão",     icon: Printer         },
   { href: "/dashboard/relatorios",    label: "Relatórios",    icon: BarChart3       },
 ]
 
@@ -45,10 +47,11 @@ const adminNav: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/dashboard",               label: "Visão Geral",   icon: LayoutDashboard },
   { href: "/dashboard/lojas",         label: "Lojas",         icon: Building2       },
   { href: "/dashboard/usuarios",      label: "Usuários",      icon: Users           },
-  { href: "/dashboard/campanhas",     label: "Campanhas",     icon: Megaphone       },
-  { href: "/dashboard/chaves",        label: "Chaves",        icon: Key             },
-  { href: "/dashboard/relatorios",    label: "Relatórios",    icon: BarChart3       },
-  { href: "/dashboard/configuracoes", label: "Configurações", icon: Settings        },
+  { href: "/dashboard/campanhas",            label: "Campanhas",  icon: Megaphone },
+  { href: "/dashboard/chaves",               label: "Chaves",     icon: Key       },
+  { href: "/dashboard/admin/impressoes",     label: "Impressões", icon: Printer   },
+  { href: "/dashboard/relatorios",           label: "Relatórios", icon: BarChart3 },
+  { href: "/dashboard/configuracoes",        label: "Configurações", icon: Settings },
 ]
 
 /* ─── Sidebar — sempre dark (identidade de marca) ──────────────── */

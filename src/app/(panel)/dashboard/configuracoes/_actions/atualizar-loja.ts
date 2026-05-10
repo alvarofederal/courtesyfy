@@ -40,6 +40,7 @@ const schema = z.object({
     .optional()
     .transform((v) => v ?? "#10b981")
     .pipe(z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Cor inválida (use HEX, ex: #10b981)")),
+  tipoImpressao: z.enum(["PROPRIO", "ADMIN_COURTESYFY"]).default("PROPRIO"),
 })
 
 export type ConfiguracaoLojaState = {
@@ -56,21 +57,22 @@ export async function atualizarLoja(
   if (!session?.user?.lojaId) return { error: "Não autorizado" }
 
   const result = schema.safeParse({
-    nome:         formData.get("nome"),
-    nomeExibicao: formData.get("nomeExibicao"),
-    email:        formData.get("email"),
-    telefone:     formData.get("telefone"),
-    cnpjCpf:      formData.get("cnpjCpf"),
-    logradouro:   formData.get("logradouro"),
-    numero:       formData.get("numero"),
-    complemento:  formData.get("complemento"),
-    bairro:       formData.get("bairro"),
-    cidade:       formData.get("cidade"),
-    estado:       formData.get("estado"),
-    cep:          formData.get("cep"),
-    siteUrl:      formData.get("siteUrl"),
-    logoUrl:      formData.get("logoUrl"),
-    corPrimaria:  formData.get("corPrimaria"),
+    nome:            formData.get("nome"),
+    nomeExibicao:    formData.get("nomeExibicao"),
+    email:           formData.get("email"),
+    telefone:        formData.get("telefone"),
+    cnpjCpf:         formData.get("cnpjCpf"),
+    logradouro:      formData.get("logradouro"),
+    numero:          formData.get("numero"),
+    complemento:     formData.get("complemento"),
+    bairro:          formData.get("bairro"),
+    cidade:          formData.get("cidade"),
+    estado:          formData.get("estado"),
+    cep:             formData.get("cep"),
+    siteUrl:         formData.get("siteUrl"),
+    logoUrl:         formData.get("logoUrl"),
+    corPrimaria:     formData.get("corPrimaria"),
+    tipoImpressao:   formData.get("tipoImpressao"),
   })
 
   if (!result.success) {
@@ -96,7 +98,8 @@ export async function atualizarLoja(
       cep:          d.cep || null,
       siteUrl:      d.siteUrl || null,
       logoUrl:      d.logoUrl || null,
-      corPrimaria:  d.corPrimaria,
+      corPrimaria:     d.corPrimaria,
+      tipoImpressao:   d.tipoImpressao,
     },
   })
 

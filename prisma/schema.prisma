@@ -34,9 +34,10 @@ model User {
   authTokens    AuthToken[]
   resgates      Resgate[]
   logsEventos   LogEvento[]
-  chavesCancel  Chave[]     @relation("CanceladoPor")
-  campanhasCria Campanha[]  @relation("CriadoPor")
-  lotesGerados  LoteChave[] @relation("GeradoPor")
+  chavesCancel           Chave[]                @relation("CanceladoPor")
+  campanhasCria          Campanha[]             @relation("CriadoPor")
+  lotesGerados           LoteChave[]            @relation("GeradoPor")
+  impressoesAprovadas    SolicitacaoImpressao[] @relation("ImpressaoAprovacao")
 
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
@@ -149,13 +150,17 @@ model Loja {
   stripePriceId          String?
   stripeCurrentPeriodEnd DateTime?
 
-  usuarios    User[]
-  campanhas   Campanha[]
-  lotes       LoteChave[]
-  chaves      Chave[]
-  resgates    Resgate[]
-  logsEventos LogEvento[]
-  layouts     Layout[]
+  // Impressão: PROPRIO = lojista imprime sozinho | ADMIN_COURTESYFY = solicita ao admin
+  tipoImpressao TipoImpressao @default(PROPRIO)
+
+  usuarios               User[]
+  campanhas              Campanha[]
+  lotes                  LoteChave[]
+  chaves                 Chave[]
+  resgates               Resgate[]
+  logsEventos            LogEvento[]
+  layouts                Layout[]
+  solicitacoesImpressao  SolicitacaoImpressao[]
 
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
@@ -183,8 +188,9 @@ model Layout {
   raioCantos     Int         @default(8)
   padrao         Boolean     @default(false)
 
-  loja      Loja       @relation(fields: [lojaId], references: [id])
-  campanhas Campanha[]
+  loja                  Loja                   @relation(fields: [lojaId], references: [id])
+  campanhas             Campanha[]
+  solicitacoesImpressao SolicitacaoImpressao[]
 
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
@@ -210,13 +216,14 @@ model Campanha {
   landingPageSlug  String?        @unique
   criadoPorId      String?
 
-  loja        Loja        @relation(fields: [lojaId], references: [id])
-  layout      Layout?     @relation(fields: [layoutId], references: [id])
-  criadoPor   User?       @relation("CriadoPor", fields: [criadoPorId], references: [id])
-  lotes       LoteChave[]
-  chaves      Chave[]
-  resgates    Resgate[]
-  logsEventos LogEvento[]
+  loja                  Loja                   @relation(fields: [lojaId], references: [id])
+  layout                Layout?                @relation(fields: [layoutId], references: [id])
+  criadoPor             User?                  @relation("CriadoPor", fields: [criadoPorId], references: [id])
+  lotes                 LoteChave[]
+  chaves                Chave[]
+  resgates              Resgate[]
+  logsEventos           LogEvento[]
+  solicitacoesImpressao SolicitacaoImpressao[]
 
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
@@ -240,10 +247,11 @@ model LoteChave {
   arquivoUrl   String?      @db.Text
   status       LoteStatus   @default(GERADO)
 
-  campanha  Campanha @relation(fields: [campanhaId], references: [id])
-  loja      Loja     @relation(fields: [lojaId], references: [id])
-  geradoPor User?    @relation("GeradoPor", fields: [geradoPorId], references: [id])
-  chaves    Chave[]
+  campanha              Campanha               @relation(fields: [campanhaId], references: [id])
+  loja                  Loja                   @relation(fields: [lojaId], references: [id])
+  geradoPor             User?                  @relation("GeradoPor", fields: [geradoPorId], references: [id])
+  chaves                Chave[]
+  solicitacoesImpressao SolicitacaoImpressao[]
 
   criadoEm DateTime @default(now())
 
@@ -452,6 +460,56 @@ enum StatusResgate {
   CONFIRMADO
   RECUSADO
   ESTORNADO
+}
+
+// ─────────────────────────────────────────
+// SOLICITAÇÕES DE IMPRESSÃO
+// ─────────────────────────────────────────
+
+model SolicitacaoImpressao {
+  id              String            @id @default(cuid())
+  lojaId          String
+  campanhaId      String
+  loteId          String
+  layoutId        String
+  quantidadeCards Int
+  folhasEstimadas Int
+  observacaoLoja  String?           @db.Text
+  status          StatusSolicitacao @default(PENDENTE)
+  observacaoAdmin String?           @db.Text
+  aprovadoPorId   String?
+  aprovadoEm      DateTime?
+
+  loja        Loja      @relation(fields: [lojaId],     references: [id])
+  campanha    Campanha  @relation(fields: [campanhaId],  references: [id])
+  lote        LoteChave @relation(fields: [loteId],     references: [id])
+  layout      Layout    @relation(fields: [layoutId],   references: [id])
+  aprovadoPor User?     @relation("ImpressaoAprovacao", fields: [aprovadoPorId], references: [id])
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@index([lojaId])
+  @@index([campanhaId])
+  @@index([loteId])
+  @@index([layoutId])
+  @@index([aprovadoPorId])
+  @@index([status])
+  @@map("solicitacoes_impressao")
+}
+
+enum StatusSolicitacao {
+  PENDENTE
+  EM_ANALISE
+  APROVADA
+  REJEITADA
+  IMPRESSA
+  ENTREGUE
+}
+
+enum TipoImpressao {
+  PROPRIO
+  ADMIN_COURTESYFY
 }
 
 enum TamanhoCard {

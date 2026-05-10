@@ -28,6 +28,7 @@ export default async function ConfiguracoesPage() {
       cnpjCpf: true, logradouro: true, numero: true, complemento: true,
       bairro: true, cidade: true, estado: true, cep: true,
       siteUrl: true, logoUrl: true, plano: true, status: true, criadoEm: true,
+      tipoImpressao: true,
     },
   })
 
@@ -98,7 +99,7 @@ export default async function ConfiguracoesPage() {
 
       {/* ── Form ── */}
       <div className="dash-card p-4 sm:p-6">
-        <ConfiguracoesForm loja={loja} />
+        <ConfiguracoesForm loja={loja} tipoImpressao={loja.tipoImpressao} />
       </div>
     </div>
   )

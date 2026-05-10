@@ -4,7 +4,7 @@ import { useActionState, useState } from "react"
 import { useFormStatus } from "react-dom"
 import { atualizarLoja } from "../_actions/atualizar-loja"
 import type { ConfiguracaoLojaState } from "../_actions/atualizar-loja"
-import { CheckCircle } from "lucide-react"
+import { CheckCircle, Printer, PackageCheck } from "lucide-react"
 
 const UFS = [
   "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA",
@@ -42,9 +42,16 @@ type LojaData = {
   logoUrl: string | null
 }
 
-export function ConfiguracoesForm({ loja }: { loja: LojaData }) {
+export function ConfiguracoesForm({
+  loja,
+  tipoImpressao,
+}: {
+  loja: LojaData
+  tipoImpressao: "PROPRIO" | "ADMIN_COURTESYFY"
+}) {
   const [state, formAction] = useActionState<ConfiguracaoLojaState, FormData>(atualizarLoja, {})
   const [logoUrl, setLogoUrl] = useState(loja.logoUrl ?? "")
+  const [impressao, setImpressao] = useState<"PROPRIO" | "ADMIN_COURTESYFY">(tipoImpressao)
   const fe = state.fieldErrors ?? {}
 
   return (
@@ -252,6 +259,66 @@ export function ConfiguracoesForm({ loja }: { loja: LojaData }) {
             )}
           </div>
           {fe.logoUrl && <p className="text-red-500 text-xs mt-1">{fe.logoUrl[0]}</p>}
+        </div>
+      </section>
+
+      {/* Modo de Impressão */}
+      <section>
+        <h2 className="text-base font-semibold text-gray-900 mb-1">Modo de impressão</h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Define como os cards das campanhas serão impressos. Pode ser alterado a qualquer momento.
+        </p>
+        <input type="hidden" name="tipoImpressao" value={impressao} />
+        <div className="grid sm:grid-cols-2 gap-3">
+          {/* PROPRIO */}
+          <button
+            type="button"
+            onClick={() => setImpressao("PROPRIO")}
+            className={`flex items-start gap-3 rounded-2xl border-2 p-4 text-left transition-all ${
+              impressao === "PROPRIO"
+                ? "border-emerald-500 bg-emerald-50"
+                : "border-gray-200 hover:border-gray-300"
+            }`}
+          >
+            <div className={`mt-0.5 w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${
+              impressao === "PROPRIO" ? "bg-emerald-100" : "bg-gray-100"
+            }`}>
+              <Printer className={`w-4 h-4 ${impressao === "PROPRIO" ? "text-emerald-600" : "text-gray-400"}`} />
+            </div>
+            <div>
+              <p className={`text-sm font-semibold ${impressao === "PROPRIO" ? "text-emerald-700" : "text-gray-700"}`}>
+                Imprimir por conta própria
+              </p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Você mesmo imprime os cards. Faça o download do PDF gerado na plataforma. Grátis.
+              </p>
+            </div>
+          </button>
+
+          {/* ADMIN_COURTESYFY */}
+          <button
+            type="button"
+            onClick={() => setImpressao("ADMIN_COURTESYFY")}
+            className={`flex items-start gap-3 rounded-2xl border-2 p-4 text-left transition-all ${
+              impressao === "ADMIN_COURTESYFY"
+                ? "border-emerald-500 bg-emerald-50"
+                : "border-gray-200 hover:border-gray-300"
+            }`}
+          >
+            <div className={`mt-0.5 w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${
+              impressao === "ADMIN_COURTESYFY" ? "bg-emerald-100" : "bg-gray-100"
+            }`}>
+              <PackageCheck className={`w-4 h-4 ${impressao === "ADMIN_COURTESYFY" ? "text-emerald-600" : "text-gray-400"}`} />
+            </div>
+            <div>
+              <p className={`text-sm font-semibold ${impressao === "ADMIN_COURTESYFY" ? "text-emerald-700" : "text-gray-700"}`}>
+                Solicitar ao Courtesyfy
+              </p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                O Courtesyfy imprime e entrega os cards para você. Sujeito a disponibilidade e pagamento.
+              </p>
+            </div>
+          </button>
         </div>
       </section>
 
