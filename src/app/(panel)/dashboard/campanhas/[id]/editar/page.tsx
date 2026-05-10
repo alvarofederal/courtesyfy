@@ -55,18 +55,18 @@ export default async function EditarCampanhaPage({
       {/* Breadcrumb */}
       <Link
         href={`/dashboard/campanhas/${id}`}
-        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm dash-muted hover:text-emerald-500 mb-6 transition-colors"
       >
         <ChevronLeft className="w-4 h-4" />
         {campanha.nome}
       </Link>
 
       <div className="mb-8">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Editar campanha</h1>
-        <p className="text-gray-500 text-sm mt-0.5">Altere os detalhes desta campanha</p>
+        <h1 className="text-xl sm:text-2xl font-bold dash-title">Editar campanha</h1>
+        <p className="dash-subtitle text-sm mt-0.5">Altere os detalhes desta campanha</p>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6">
+      <div className="dash-card p-4 sm:p-6">
         <CampanhaForm
           action={action}
           isEditing
