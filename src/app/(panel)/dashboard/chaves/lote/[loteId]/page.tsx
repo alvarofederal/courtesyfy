@@ -39,7 +39,7 @@ export default async function LoteDetailPage({
   const totalChaves = await db.chave.count({ where: { loteId } })
   const totalPages = Math.ceil(totalChaves / PAGE_SIZE)
 
-  const chaves = await db.chave.findMany({
+  const chavesRaw = await db.chave.findMany({
     where: { loteId },
     orderBy: { criadoEm: "asc" },
     skip: (page - 1) * PAGE_SIZE,
@@ -49,8 +49,38 @@ export default async function LoteDetailPage({
       codigo: true,
       status: true,
       landingUrl: true,
+      resgate: {
+        select: {
+          beneficioEntregue: true,
+          resgatadoEm: true,
+          campanha: {
+            select: {
+              tipoBeneficio: true,
+              valorBeneficio: true,
+              descricaoPremio: true,
+            },
+          },
+        },
+      },
     },
   })
+
+  // Normaliza Decimal → number para serialização segura
+  const chaves = chavesRaw.map((c) => ({
+    ...c,
+    resgate: c.resgate
+      ? {
+          ...c.resgate,
+          campanha: {
+            ...c.resgate.campanha,
+            valorBeneficio:
+              c.resgate.campanha.valorBeneficio != null
+                ? Number(c.resgate.campanha.valorBeneficio)
+                : null,
+          },
+        }
+      : null,
+  }))
 
   // stats do lote inteiro
   const statsRaw = await db.chave.groupBy({
