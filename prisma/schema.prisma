@@ -38,6 +38,7 @@ model User {
   campanhasCria          Campanha[]             @relation("CriadoPor")
   lotesGerados           LoteChave[]            @relation("GeradoPor")
   impressoesAprovadas    SolicitacaoImpressao[] @relation("ImpressaoAprovacao")
+  pagamentosConfirmados  SolicitacaoImpressao[] @relation("ImpressaoPagamento")
 
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
@@ -480,11 +481,19 @@ model SolicitacaoImpressao {
   aprovadoPorId   String?
   aprovadoEm      DateTime?
 
-  loja        Loja      @relation(fields: [lojaId],     references: [id])
-  campanha    Campanha  @relation(fields: [campanhaId],  references: [id])
-  lote        LoteChave @relation(fields: [loteId],     references: [id])
-  layout      Layout    @relation(fields: [layoutId],   references: [id])
-  aprovadoPor User?     @relation("ImpressaoAprovacao", fields: [aprovadoPorId], references: [id])
+  // Pagamento
+  valorCobrado             Decimal?  @db.Decimal(10, 2)
+  pixChave                 String?   @db.VarChar(150)
+  pixNome                  String?   @db.VarChar(100)
+  pagamentoConfirmadoPorId String?
+  pagamentoConfirmadoEm    DateTime?
+
+  loja                   Loja      @relation(fields: [lojaId],                    references: [id])
+  campanha               Campanha  @relation(fields: [campanhaId],                references: [id])
+  lote                   LoteChave @relation(fields: [loteId],                    references: [id])
+  layout                 Layout    @relation(fields: [layoutId],                  references: [id])
+  aprovadoPor            User?     @relation("ImpressaoAprovacao",               fields: [aprovadoPorId],            references: [id])
+  pagamentoConfirmadoPor User?     @relation("ImpressaoPagamento",               fields: [pagamentoConfirmadoPorId], references: [id])
 
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
@@ -494,6 +503,7 @@ model SolicitacaoImpressao {
   @@index([loteId])
   @@index([layoutId])
   @@index([aprovadoPorId])
+  @@index([pagamentoConfirmadoPorId])
   @@index([status])
   @@map("solicitacoes_impressao")
 }
@@ -501,6 +511,7 @@ model SolicitacaoImpressao {
 enum StatusSolicitacao {
   PENDENTE
   EM_ANALISE
+  AGUARDANDO_PAGAMENTO
   APROVADA
   REJEITADA
   IMPRESSA

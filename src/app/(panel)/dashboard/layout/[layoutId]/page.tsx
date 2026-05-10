@@ -5,7 +5,7 @@ import { db } from "@/lib/prisma"
 import { ChevronLeft } from "lucide-react"
 import { LayoutForm } from "../_components/layout-form"
 import { atualizarLayout } from "../_actions/layout-actions"
-import type { TamanhoCard, EstiloCard } from "../_components/layout-form"
+import type { TamanhoCard, EstiloCard } from "../_components/card-renderer"
 
 export default async function EditarLayoutPage({
   params,

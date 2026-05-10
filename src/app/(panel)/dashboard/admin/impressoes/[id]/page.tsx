@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/prisma"
 import {
   ChevronLeft, Store, Megaphone, Layers, Key, Printer, Calendar,
-  Mail, Phone, Globe, MapPin, Clock, CheckCircle2, XCircle, Search, Truck,
+  Mail, Phone, Globe, MapPin, Clock, CheckCircle2, XCircle, Search, Truck, Banknote,
 } from "lucide-react"
 import { AdminStatusForm } from "./_components/admin-status-form"
 import { adminAtualizarSolicitacao } from "../../../impressao/_actions/impressao-actions"
@@ -14,12 +14,13 @@ import { adminAtualizarSolicitacao } from "../../../impressao/_actions/impressao
 // ─────────────────────────────────────────
 
 const STATUS_CONFIG = {
-  PENDENTE:    { label: "Pendente",    icon: Clock,         color: "text-amber-600",   bg: "bg-amber-50",   border: "border-amber-200"   },
-  EM_ANALISE:  { label: "Em análise",  icon: Search,        color: "text-blue-600",    bg: "bg-blue-50",    border: "border-blue-200"    },
-  APROVADA:    { label: "Aprovada",    icon: CheckCircle2,  color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200" },
-  REJEITADA:   { label: "Rejeitada",   icon: XCircle,       color: "text-red-600",     bg: "bg-red-50",     border: "border-red-200"     },
-  IMPRESSA:    { label: "Impressa",    icon: Printer,       color: "text-purple-600",  bg: "bg-purple-50",  border: "border-purple-200"  },
-  ENTREGUE:    { label: "Entregue",    icon: Truck,         color: "text-gray-500",    bg: "bg-gray-50",    border: "border-gray-200"    },
+  PENDENTE:             { label: "Pendente",           icon: Clock,         color: "text-amber-600",   bg: "bg-amber-50",   border: "border-amber-200"   },
+  EM_ANALISE:           { label: "Em análise",         icon: Search,        color: "text-blue-600",    bg: "bg-blue-50",    border: "border-blue-200"    },
+  AGUARDANDO_PAGAMENTO: { label: "Aguard. pagamento",  icon: Banknote,      color: "text-orange-600",  bg: "bg-orange-50",  border: "border-orange-200"  },
+  APROVADA:             { label: "Aprovada",           icon: CheckCircle2,  color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200" },
+  REJEITADA:            { label: "Rejeitada",          icon: XCircle,       color: "text-red-600",     bg: "bg-red-50",     border: "border-red-200"     },
+  IMPRESSA:             { label: "Impressa",           icon: Printer,       color: "text-purple-600",  bg: "bg-purple-50",  border: "border-purple-200"  },
+  ENTREGUE:             { label: "Entregue",           icon: Truck,         color: "text-gray-500",    bg: "bg-gray-50",    border: "border-gray-200"    },
 } as const
 
 type StatusKey = keyof typeof STATUS_CONFIG
@@ -34,7 +35,7 @@ const TAMANHO_LABEL: Record<string, string> = {
   MDF:     "MDF 90×90 mm",
 }
 
-const STATUS_FLOW: StatusKey[] = ["PENDENTE", "EM_ANALISE", "APROVADA", "IMPRESSA", "ENTREGUE"]
+const STATUS_FLOW: StatusKey[] = ["PENDENTE", "EM_ANALISE", "AGUARDANDO_PAGAMENTO", "APROVADA", "IMPRESSA", "ENTREGUE"]
 
 // ─────────────────────────────────────────
 // INFO CARD COMPONENT
@@ -120,7 +121,8 @@ export default async function AdminImpressaoDetalhe({ params }: { params: Promis
           _count: { select: { chaves: true } },
         },
       },
-      aprovadoPor: { select: { name: true, email: true } },
+      aprovadoPor:            { select: { name: true, email: true } },
+      pagamentoConfirmadoPor: { select: { name: true, email: true } },
     },
   })
 
@@ -349,7 +351,31 @@ export default async function AdminImpressaoDetalhe({ params }: { params: Promis
                 <span className="text-xs dash-muted">Tamanho do card</span>
                 <span className="text-sm font-medium dash-subtitle">{TAMANHO_LABEL[sol.layout.tamanhoCard] ?? sol.layout.tamanhoCard}</span>
               </div>
+              {sol.valorCobrado != null && (
+                <div className="flex justify-between pt-2 border-t border-emerald-200 dark:border-emerald-500/20">
+                  <span className="text-xs font-semibold dash-subtitle">Valor cobrado</span>
+                  <span className="text-base font-bold text-emerald-700 dark:text-emerald-400">
+                    R$ {Number(sol.valorCobrado).toFixed(2).replace(".", ",")}
+                  </span>
+                </div>
+              )}
             </div>
+
+            {/* PIX info quando aguardando */}
+            {sol.pixChave && (
+              <div className="mt-3 pt-3 border-t border-emerald-200 dark:border-emerald-500/20 space-y-1">
+                <p className="text-xs font-semibold dash-subtitle flex items-center gap-1">
+                  <Banknote className="w-3.5 h-3.5" /> PIX configurado
+                </p>
+                <div className="flex items-center gap-1 text-xs dash-muted">
+                  <span>Chave:</span>
+                  <span className="font-medium dash-subtitle">{sol.pixChave}</span>
+                </div>
+                {sol.pixNome && (
+                  <p className="text-xs dash-muted">Titular: <span className="font-medium dash-subtitle">{sol.pixNome}</span></p>
+                )}
+              </div>
+            )}
 
             {sol.observacaoLoja && (
               <div className="mt-3 pt-3 border-t border-emerald-200 dark:border-emerald-500/20">
@@ -371,6 +397,11 @@ export default async function AdminImpressaoDetalhe({ params }: { params: Promis
               action={adminAtualizarSolicitacao}
               aprovadoPor={sol.aprovadoPor ? (sol.aprovadoPor.name ?? sol.aprovadoPor.email ?? null) : null}
               aprovadoEm={sol.aprovadoEm}
+              valorCobrado={sol.valorCobrado != null ? Number(sol.valorCobrado) : null}
+              pixChave={sol.pixChave ?? null}
+              pixNome={sol.pixNome ?? null}
+              pagamentoConfirmadoPor={sol.pagamentoConfirmadoPor ? (sol.pagamentoConfirmadoPor.name ?? sol.pagamentoConfirmadoPor.email ?? null) : null}
+              pagamentoConfirmadoEm={sol.pagamentoConfirmadoEm}
             />
           </div>
         </div>

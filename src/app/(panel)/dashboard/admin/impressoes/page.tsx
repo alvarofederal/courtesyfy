@@ -3,7 +3,7 @@ import Link from "next/link"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/prisma"
 import {
-  Printer, Clock, CheckCircle2, XCircle, Search, Truck, ChevronRight,
+  Printer, Clock, CheckCircle2, XCircle, Search, Truck, ChevronRight, Banknote,
 } from "lucide-react"
 
 // ─────────────────────────────────────────
@@ -11,16 +11,17 @@ import {
 // ─────────────────────────────────────────
 
 const STATUS_CONFIG = {
-  PENDENTE:    { label: "Pendente",    icon: Clock,         color: "text-amber-600",   bg: "bg-amber-50",   border: "border-amber-200"   },
-  EM_ANALISE:  { label: "Em análise",  icon: Search,        color: "text-blue-600",    bg: "bg-blue-50",    border: "border-blue-200"    },
-  APROVADA:    { label: "Aprovada",    icon: CheckCircle2,  color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200" },
-  REJEITADA:   { label: "Rejeitada",   icon: XCircle,       color: "text-red-600",     bg: "bg-red-50",     border: "border-red-200"     },
-  IMPRESSA:    { label: "Impressa",    icon: Printer,       color: "text-purple-600",  bg: "bg-purple-50",  border: "border-purple-200"  },
-  ENTREGUE:    { label: "Entregue",    icon: Truck,         color: "text-gray-500",    bg: "bg-gray-50",    border: "border-gray-200"    },
+  PENDENTE:             { label: "Pendente",          icon: Clock,         color: "text-amber-600",   bg: "bg-amber-50",   border: "border-amber-200"   },
+  EM_ANALISE:           { label: "Em análise",        icon: Search,        color: "text-blue-600",    bg: "bg-blue-50",    border: "border-blue-200"    },
+  AGUARDANDO_PAGAMENTO: { label: "Aguard. pagamento", icon: Banknote,      color: "text-orange-600",  bg: "bg-orange-50",  border: "border-orange-200"  },
+  APROVADA:             { label: "Aprovada",          icon: CheckCircle2,  color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200" },
+  REJEITADA:            { label: "Rejeitada",         icon: XCircle,       color: "text-red-600",     bg: "bg-red-50",     border: "border-red-200"     },
+  IMPRESSA:             { label: "Impressa",          icon: Printer,       color: "text-purple-600",  bg: "bg-purple-50",  border: "border-purple-200"  },
+  ENTREGUE:             { label: "Entregue",          icon: Truck,         color: "text-gray-500",    bg: "bg-gray-50",    border: "border-gray-200"    },
 } as const
 
 type StatusKey = keyof typeof STATUS_CONFIG
-const STATUS_ORDER: StatusKey[] = ["PENDENTE", "EM_ANALISE", "APROVADA", "REJEITADA", "IMPRESSA", "ENTREGUE"]
+const STATUS_ORDER: StatusKey[] = ["PENDENTE", "EM_ANALISE", "AGUARDANDO_PAGAMENTO", "APROVADA", "REJEITADA", "IMPRESSA", "ENTREGUE"]
 
 // ─────────────────────────────────────────
 // PAGE
@@ -46,8 +47,8 @@ export default async function AdminImpressoesPage() {
     return acc
   }, {} as Record<StatusKey, number>)
 
-  const pendentes = solicitacoes.filter(s => ["PENDENTE", "EM_ANALISE"].includes(s.status))
-  const historico = solicitacoes.filter(s => !["PENDENTE", "EM_ANALISE"].includes(s.status))
+  const pendentes = solicitacoes.filter(s => ["PENDENTE", "EM_ANALISE", "AGUARDANDO_PAGAMENTO"].includes(s.status))
+  const historico = solicitacoes.filter(s => !["PENDENTE", "EM_ANALISE", "AGUARDANDO_PAGAMENTO"].includes(s.status))
 
   return (
     <div>

@@ -68,7 +68,7 @@ export default async function LoteDetailPage({
       {/* Breadcrumb */}
       <Link
         href={`/dashboard/chaves?campanhaId=${lote.campanhaId}`}
-        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm dash-muted hover:text-emerald-500 mb-6 transition-colors"
       >
         <ChevronLeft className="w-4 h-4" />
         Chaves — {lote.campanha.nome}
@@ -77,12 +77,12 @@ export default async function LoteDetailPage({
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{nomeLote}</h1>
-          <p className="text-gray-500 text-sm mt-0.5">
+          <h1 className="text-2xl font-bold dash-title">{nomeLote}</h1>
+          <p className="dash-muted text-sm mt-0.5">
             Campanha:{" "}
             <Link
               href={`/dashboard/campanhas/${lote.campanha.id}`}
-              className="text-emerald-600 hover:underline"
+              className="text-emerald-500 hover:text-emerald-400 transition-colors"
             >
               {lote.campanha.nome}
             </Link>
@@ -98,35 +98,32 @@ export default async function LoteDetailPage({
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total",      value: totalChaves,          color: "text-gray-900" },
-          { label: "Disponíveis", value: stats.GERADA ?? 0,   color: "text-gray-600" },
-          { label: "Ativadas",   value: stats.ATIVADA ?? 0,   color: "text-amber-600" },
-          { label: "Resgatadas", value: stats.RESGATADA ?? 0, color: "text-emerald-600" },
+          { label: "Total",       value: totalChaves,          color: "dash-title" },
+          { label: "Disponíveis", value: stats.GERADA ?? 0,    color: "dash-subtitle" },
+          { label: "Ativadas",    value: stats.ATIVADA ?? 0,   color: "text-amber-500" },
+          { label: "Resgatadas",  value: stats.RESGATADA ?? 0, color: "text-emerald-500" },
         ].map((s) => (
-          <div
-            key={s.label}
-            className="bg-white rounded-2xl border border-gray-100 p-4 text-center"
-          >
+          <div key={s.label} className="dash-card p-4 text-center">
             <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+            <p className="text-xs dash-muted mt-0.5">{s.label}</p>
           </div>
         ))}
       </div>
 
       {/* Meta do lote */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
-        <div className="flex flex-wrap gap-6 text-sm">
-          <div className="flex items-center gap-2 text-gray-500">
+      <div className="dash-card p-5 mb-6">
+        <div className="flex flex-wrap gap-6 text-sm dash-muted">
+          <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4" />
             Gerado em {new Date(lote.criadoEm).toLocaleString("pt-BR")}
           </div>
           {lote.geradoPor && (
-            <div className="flex items-center gap-2 text-gray-500">
+            <div className="flex items-center gap-2">
               <Hash className="w-4 h-4" />
               Por {lote.geradoPor.name}
             </div>
           )}
-          <div className="flex items-center gap-2 text-gray-500">
+          <div className="flex items-center gap-2">
             <Key className="w-4 h-4" />
             {totalChaves} chaves
           </div>
@@ -134,9 +131,9 @@ export default async function LoteDetailPage({
       </div>
 
       {/* Grid de chaves / QR codes */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-5">
+      <div className="dash-card p-5">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-gray-900">
+          <h2 className="font-semibold dash-title">
             Chaves{totalPages > 1 ? ` — página ${page} de ${totalPages}` : ""}
           </h2>
           {totalPages > 1 && (
@@ -144,7 +141,7 @@ export default async function LoteDetailPage({
               {page > 1 && (
                 <Link
                   href={`/dashboard/chaves/lote/${loteId}?page=${page - 1}`}
-                  className="px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600 transition-colors"
+                  className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 dash-subtitle transition-colors"
                 >
                   ← Anterior
                 </Link>
@@ -152,7 +149,7 @@ export default async function LoteDetailPage({
               {page < totalPages && (
                 <Link
                   href={`/dashboard/chaves/lote/${loteId}?page=${page + 1}`}
-                  className="px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600 transition-colors"
+                  className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 dash-subtitle transition-colors"
                 >
                   Próxima →
                 </Link>
@@ -172,8 +169,8 @@ export default async function LoteDetailPage({
                 href={`/dashboard/chaves/lote/${loteId}?page=${p}`}
                 className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${
                   p === page
-                    ? "bg-black text-white"
-                    : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                    ? "bg-emerald-500 text-white"
+                    : "border border-gray-200 dark:border-white/10 dash-subtitle hover:bg-gray-50 dark:hover:bg-white/5"
                 }`}
               >
                 {p}

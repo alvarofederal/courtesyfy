@@ -111,6 +111,31 @@ export type AdminAtualizarState = {
   success?: boolean
 }
 
+const VALID_STATUS = [
+  "PENDENTE",
+  "EM_ANALISE",
+  "AGUARDANDO_PAGAMENTO",
+  "APROVADA",
+  "REJEITADA",
+  "IMPRESSA",
+  "ENTREGUE",
+] as const
+
+type StatusValue = typeof VALID_STATUS[number]
+
+const adminSchema = z.object({
+  id:              z.string().min(1),
+  status:          z.enum(VALID_STATUS),
+  observacaoAdmin: z.string().max(500).optional(),
+  // Campos de pagamento (obrigatórios somente quando AGUARDANDO_PAGAMENTO)
+  valorCobrado:    z.preprocess(
+    v => (v === "" || v === null || v === undefined ? undefined : Number(v)),
+    z.number().min(0.01).optional(),
+  ),
+  pixChave: z.string().max(150).optional(),
+  pixNome:  z.string().max(100).optional(),
+})
+
 export async function adminAtualizarSolicitacao(
   _prev: AdminAtualizarState,
   formData: FormData,
@@ -118,29 +143,67 @@ export async function adminAtualizarSolicitacao(
   const session = await auth()
   if (session?.user?.role !== "SUPER_ADMIN") return { error: "Não autorizado" }
 
-  const id     = formData.get("id") as string
-  const status = formData.get("status") as string
-  const obs    = (formData.get("observacaoAdmin") as string) || null
+  const result = adminSchema.safeParse({
+    id:              formData.get("id"),
+    status:          formData.get("status"),
+    observacaoAdmin: formData.get("observacaoAdmin") || undefined,
+    valorCobrado:    formData.get("valorCobrado"),
+    pixChave:        formData.get("pixChave") || undefined,
+    pixNome:         formData.get("pixNome")  || undefined,
+  })
 
-  const validStatus = ["PENDENTE", "EM_ANALISE", "APROVADA", "REJEITADA", "IMPRESSA", "ENTREGUE"]
-  if (!validStatus.includes(status)) return { error: "Status inválido" }
+  if (!result.success) {
+    const msgs = Object.values(result.error.flatten().fieldErrors).flat().join("; ")
+    return { error: msgs || "Dados inválidos" }
+  }
 
-  const sol = await db.solicitacaoImpressao.findUnique({ where: { id } })
+  const d = result.data
+
+  // Validação de negócio: AGUARDANDO_PAGAMENTO exige valor e chave PIX
+  if (d.status === "AGUARDANDO_PAGAMENTO") {
+    if (!d.valorCobrado) return { error: "Informe o valor a cobrar" }
+    if (!d.pixChave)     return { error: "Informe a chave PIX" }
+  }
+
+  const sol = await db.solicitacaoImpressao.findUnique({ where: { id: d.id } })
   if (!sol) return { error: "Solicitação não encontrada" }
 
-  const isAprovando = status === "APROVADA" && sol.status !== "APROVADA"
+  const isAprovando      = d.status === "APROVADA" && sol.status !== "APROVADA"
+  const isAguardandoPag  = d.status === "AGUARDANDO_PAGAMENTO"
+
+  // Monta o payload de pagamento
+  const pagamentoData = isAguardandoPag
+    ? {
+        valorCobrado: d.valorCobrado,
+        pixChave:     d.pixChave ?? null,
+        pixNome:      d.pixNome  ?? null,
+      }
+    : {}
+
+  // Monta o payload de aprovação (quem confirmou o pagamento)
+  const aprovacaoData = isAprovando
+    ? { aprovadoPorId: session.user.id, aprovadoEm: new Date() }
+    : {}
+
+  // Se está confirmando pagamento (AGUARDANDO_PAGAMENTO → APROVADA)
+  const confirmacoePagData =
+    isAprovando && sol.status === "AGUARDANDO_PAGAMENTO"
+      ? { pagamentoConfirmadoPorId: session.user.id, pagamentoConfirmadoEm: new Date() }
+      : {}
 
   await db.solicitacaoImpressao.update({
-    where: { id },
+    where: { id: d.id },
     data: {
-      status:          status as "PENDENTE" | "EM_ANALISE" | "APROVADA" | "REJEITADA" | "IMPRESSA" | "ENTREGUE",
-      observacaoAdmin: obs,
-      aprovadoPorId:   isAprovando ? session.user.id : undefined,
-      aprovadoEm:      isAprovando ? new Date() : undefined,
+      status:          d.status as StatusValue,
+      observacaoAdmin: d.observacaoAdmin ?? null,
+      ...pagamentoData,
+      ...aprovacaoData,
+      ...confirmacoePagData,
     },
   })
 
   revalidatePath("/dashboard/admin/impressoes")
-  revalidatePath(`/dashboard/admin/impressoes/${id}`)
+  revalidatePath(`/dashboard/admin/impressoes/${d.id}`)
+  revalidatePath("/dashboard/impressao")
   return { success: true }
 }

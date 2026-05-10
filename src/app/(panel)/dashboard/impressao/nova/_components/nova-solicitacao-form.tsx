@@ -106,7 +106,7 @@ export function NovaSolicitacaoForm({
   useEffect(() => { setLoteId("") }, [campanhaId])
 
   return (
-    <form action={formAction} className="space-y-6 max-w-2xl">
+    <form action={formAction} className="space-y-6">
       {state.error && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm">
           {state.error}
