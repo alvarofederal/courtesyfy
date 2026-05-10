@@ -338,7 +338,7 @@ export default async function ChaveLandingPage({
               <div>
                 <p className="font-bold text-white text-lg">Pronto para resgatar!</p>
                 <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.45)" }}>
-                  Mostre este código ao atendente da loja.
+                  Mostre este código ao lojista para resgatar.
                 </p>
               </div>
               <div className="rounded-2xl py-5 px-4" style={{ background: `${cor}10`, border: `1px solid ${cor}20` }}>
@@ -351,7 +351,7 @@ export default async function ChaveLandingPage({
             <>
               <h2 className="text-base font-bold text-white mb-1">Ativar minha chave</h2>
               <p className="text-xs mb-5" style={{ color: "rgba(255,255,255,0.38)" }}>
-                Informe seu contato para ativar. Depois é só apresentar o código ao lojista.
+                Informe seu contato para ativar. Depois é só apresentar o código ao lojista da loja.
               </p>
               <AtivacaoForm codigo={codigo} corPrimaria={cor} />
             </>
