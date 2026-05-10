@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/prisma"
 import { Plus, Star, Pencil, Layers } from "lucide-react"
 import { ExcluirLayoutBtn } from "./_components/excluir-layout-btn"
+import { LayoutMiniPreview } from "./_components/layout-mini-preview"
 
 const TAMANHO_LABEL: Record<string, string> = {
   MINI:    "Mini 63×38 mm",
@@ -25,11 +26,18 @@ export default async function LayoutListPage() {
   const session = await auth()
   if (!session?.user?.lojaId) redirect("/login")
 
+  const loja = await db.loja.findUnique({
+    where: { id: session.user.lojaId },
+    select: { nomeExibicao: true, nome: true },
+  })
+
   const layouts = await db.layout.findMany({
     where: { lojaId: session.user.lojaId },
     orderBy: [{ padrao: "desc" }, { criadoEm: "desc" }],
     include: { _count: { select: { campanhas: true } } },
   })
+
+  const nomeLoja = loja?.nomeExibicao ?? loja?.nome ?? "Sua Loja"
 
   return (
     <div>
@@ -66,48 +74,44 @@ export default async function LayoutListPage() {
           {layouts.map((layout) => (
             <div key={layout.id} className="dash-card p-5 flex flex-col gap-4">
 
-              {/* Color swatch + name */}
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-10 h-10 rounded-xl flex-shrink-0 border border-black/5 dark:border-white/10"
-                  style={{ backgroundColor: layout.corPrimaria }}
+              {/* Mini card preview */}
+              <div className="w-full overflow-hidden rounded-xl">
+                <LayoutMiniPreview
+                  corPrimaria={layout.corPrimaria}
+                  corFundo={layout.corFundo}
+                  corTexto={layout.corTexto}
+                  corSecundaria={layout.corSecundaria}
+                  imagem1Url={layout.imagem1Url}
+                  imagem2Url={layout.imagem2Url}
+                  opacidadeFundo={layout.opacidadeFundo}
+                  brilho={layout.brilho}
+                  saturacao={layout.saturacao}
+                  contraste={layout.contraste}
+                  raioCantos={layout.raioCantos}
+                  tamanhoCard={layout.tamanhoCard}
+                  estiloCard={layout.estiloCard}
+                  nomeLoja={nomeLoja}
+                  displayWidth={320}
                 />
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <p className="text-sm font-semibold dash-title truncate">{layout.nome}</p>
-                    {layout.padrao && (
-                      <Star className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 fill-amber-400" />
-                    )}
-                  </div>
-                  <p className="text-xs dash-muted font-mono">{layout.corPrimaria}</p>
-                </div>
               </div>
 
-              {/* Tags */}
-              <div className="flex flex-wrap gap-1.5">
-                <span className="text-xs dash-muted bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-full">
-                  {TAMANHO_LABEL[layout.tamanhoCard as string] ?? layout.tamanhoCard}
-                </span>
-                <span className="text-xs dash-muted bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-full">
-                  {ESTILO_LABEL[layout.estiloCard as string] ?? layout.estiloCard}
-                </span>
-              </div>
-
-              {/* Image thumbs */}
-              {(layout.imagem1Url || layout.imagem2Url) && (
-                <div className="flex gap-2">
-                  {[layout.imagem1Url, layout.imagem2Url].map((img, i) =>
-                    img ? (
-                      <img
-                        key={i}
-                        src={img}
-                        alt=""
-                        className="w-10 h-10 rounded-lg object-cover border border-black/5 dark:border-white/10"
-                      />
-                    ) : null,
+              {/* Name + tags */}
+              <div>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <p className="text-sm font-semibold dash-title truncate">{layout.nome}</p>
+                  {layout.padrao && (
+                    <Star className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 fill-amber-400" />
                   )}
                 </div>
-              )}
+                <div className="flex flex-wrap gap-1.5">
+                  <span className="text-xs dash-muted bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-full">
+                    {TAMANHO_LABEL[layout.tamanhoCard as string] ?? layout.tamanhoCard}
+                  </span>
+                  <span className="text-xs dash-muted bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-full">
+                    {ESTILO_LABEL[layout.estiloCard as string] ?? layout.estiloCard}
+                  </span>
+                </div>
+              </div>
 
               {/* Meta */}
               <p className="text-xs dash-muted">
