@@ -154,6 +154,12 @@ model Loja {
   // Impressão: PROPRIO = lojista imprime sozinho | ADMIN_COURTESYFY = solicita ao admin
   tipoImpressao TipoImpressao @default(PROPRIO)
 
+  // Totem de resgate público
+  totemLayoutId  String?
+  totemTitulo    String?  @db.VarChar(100)
+  totemSubtitulo String?  @db.VarChar(200)
+  totemLayout    Layout?  @relation("LojaTotemLayout", fields: [totemLayoutId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
   usuarios               User[]
   campanhas              Campanha[]
   lotes                  LoteChave[]
@@ -166,6 +172,7 @@ model Loja {
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 
+  @@index([totemLayoutId])
   @@map("lojas")
 }
 
@@ -192,6 +199,7 @@ model Layout {
   loja                  Loja                   @relation(fields: [lojaId], references: [id])
   campanhas             Campanha[]
   solicitacoesImpressao SolicitacaoImpressao[]
+  lojasTotem            Loja[]                 @relation("LojaTotemLayout")
 
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
