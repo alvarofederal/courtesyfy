@@ -1,4 +1,4 @@
-# Basemedical - Backlog de Funcionalidades
+# Courtesyfy - Backlog de Funcionalidades
 
 ## Como usar este arquivo
 
@@ -10,118 +10,82 @@ Use prioridades: 🔴 Crítico | 🟠 Alta | 🟡 Média | 🟢 Baixa
 
 ## Em Andamento Agora
 
-### 🔴 Relatórios Dinâmicos (TODO.md)
-**Descrição:** Tela de relatórios com filtros por data, gráficos e exportação CSV
-**Componentes:**
-- API route para dados de relatório → ⬜ pendente
-- Filtros de data (date pickers) → ⬜ pendente
-- Gráficos com Recharts → ✅ biblioteca instalada
-- Cards de resumo → ⬜ pendente
-- Exportação CSV → ⬜ pendente
-**Arquivo:** `src/app/(panel)/dashboard/reports/`
+### 🔴 Stripe / Cobrança
+**Descrição:** Cobrança recorrente por plano. Sem isso não há receita.
+→ ver `features.md`
+
+### 🔴 API pública `/api/chaves/validar`
+**Descrição:** Endpoint REST para integração com totem/PDV externo.
+→ ver `features.md`
 
 ---
 
 ## Próximos a Iniciar
 
-### 🟠 Lembretes Automáticos de Consulta
-**Descrição:** Envio automático de lembrete 24h antes da consulta via WhatsApp/SMS
-**Dependências:** Twilio (já integrado), Cron job ou webhook
-**Complexidade:** Média
-**Notas:** Sistema de Reminder já existe no banco (`Reminder` model)
+### 🟠 Email de boas-vindas ao novo lojista
+**Descrição:** Ao concluir o onboarding, enviar email com links rápidos (criar campanha, gerar chaves, tutorial).
 
-### 🟠 Melhoria no Fluxo de Cancelamento
-**Descrição:** Permitir cancelamento com motivo e notificar profissional
-**Arquivos relevantes:** `src/app/(public)/profissional/[id]/cancelar/`
+### 🟠 Notificação ao lojista quando chave é resgatada
+**Descrição:** Email ou push para o lojista cada vez que uma chave é resgatada na sua loja.
 
-### 🟠 Notificações Push (Web)
-**Descrição:** Notificações no browser para novos agendamentos
-**Dependências:** Service Worker, Push API
+### 🟠 Cancelamento manual de chaves pelo lojista
+**Descrição:** Botão para cancelar chaves individuais ou lotes inteiros no dashboard.
+
+### 🟠 Filtros avançados na lista de chaves
+**Descrição:** Filtrar por status, campanha, período, lote. Busca por código.
 
 ---
 
 ## Backlog Geral
 
 ### UX/UI
-- 🟡 Tema escuro (dark mode)
+- 🟡 Onboarding interativo com tour guiado para novos lojistas
 - 🟡 Melhorar responsividade mobile do dashboard
-- 🟡 Onboarding interativo com tour guiado
 - 🟢 Animações de transição entre páginas
 
-### Funcionalidades
-- 🟡 Busca avançada com filtros (especialidade, localização, preço)
-- 🟡 Sistema de favoritos para pacientes
-- 🟡 Histórico de consultas para pacientes (sem login)
-- 🟡 QR Code para agenda pública
-- 🟢 Integração com Google Calendar
-- 🟢 Integração com Outlook Calendar
+### Campanhas e Chaves
+- 🟡 Duplicar campanha (clonar configurações)
+- 🟡 Múltiplos layouts por campanha (A/B)
+- 🟡 Importação de lotes via CSV
+- 🟢 QR Code customizado com logo da loja
+
+### Relatórios
+- 🟡 Filtros por período nos relatórios
+- 🟡 Export CSV dos relatórios
+- 🟡 Gráfico de resgates por hora do dia
+
+### Clientes
+- 🟡 Área do cliente com histórico de chaves ativadas
+- 🟡 Re-envio de email com código para o cliente
+- 🟢 Integração com WhatsApp Business API (envio de código por mensagem)
 
 ### Administrativo
-- 🟡 Dashboard de métricas mais detalhado (admin)
+- 🟡 Logs de auditoria por usuário
 - 🟡 Sistema de suporte/tickets integrado
-- 🟢 Logs de auditoria por usuário
+- 🟢 Métricas de uso por plano (para calibrar pricing)
 
-### Performance
+### Performance e Escala
 - 🟡 Paginação cursor-based nas listas
-- 🟡 Cache de perfis públicos com ISR
+- 🟡 Cache das páginas públicas /c/[codigo] com ISR
 - 🟢 Otimização de queries N+1
 
 ### Segurança
-- 🟠 Autenticação 2FA (TOTP)
-- 🟡 LGPD - Exportação/exclusão de dados
-- 🟡 Rate limiting mais granular por endpoint
+- 🟠 Rate limiting no endpoint /c/[codigo] (anti-bruteforce)
+- 🟡 LGPD — exportação e exclusão de dados de clientes
+- 🟡 2FA para lojistas
 
 ---
 
 ## Ideias Futuras (não priorizadas)
 
-- Multi-idioma (pt-BR padrão, en-US)
-- App mobile React Native
-- Marketplace de templates para landing page
-- IA para sugestão de horários ideais
-- Integração com CFM/CRO para validação de registro profissional
-- Módulo financeiro (controle de receitas)
-- Prontuário eletrônico simplificado
-- Telemedicina (videochamada)
+- White-label por loja (domínio customizado: cortesias.minhaloja.com.br)
+- Multi-unidade e franquias (uma conta, várias lojas)
+- API para integração com ecommerce (WooCommerce, Shopify)
+- Sorteio automatizado no fechamento da campanha
+- Programa de indicação entre lojistas
+- App mobile para operadores (validação offline)
+- Relatórios avançados com BI embutido
 
 ---
 
-## Ideias da Cortesia Condicional (landing → eligibility)
-
-Discutidas durante implementação da feature em 2026-04. Vale priorizar conforme
-métricas iniciais de conversão da landing `/para/medicos`.
-
-### 🟡 A) Sequência de pré-expiração crescente
-Substituir o banner único de 14 dias por sequência:
-- 14d antes: verde discreto + dado social ("3 colegas seus assinaram esta semana")
-- 7d: amber "decida nesta semana"
-- 3d: vermelho persistente (toast)
-- Dia 0: modal bloqueante "escolha um plano pra continuar" (não desliga features, exige ação)
-
-Mais conversivo que aviso único.
-
-### 🟡 B) Email de valor concreto na expiração
-Quando cortesia expira (ou 7 dias antes), email com NÚMEROS reais:
-> "Você criou 47 agendamentos. Salvou ~7h de WhatsApp. R$ X estimados em consultas."
-
-Reduz fricção de pagar — ROI explícito.
-
-### 🟠 C) Programa de Embaixador (referral)
-Profissional com cortesia ativa pode indicar 1 colega via link
-`/para/medicos?ref=PROF-ID`. Quando o colega cumpre o desafio, ambos ganham
-+30 dias somados na cortesia.
-- Métricas: indicações por embaixador, conversão por canal
-- Crescimento orgânico baixo custo
-
-### 🟢 D) Cortesia "Pioneer" (escassez controlada)
-Primeiros 100 profissionais que ativaram cortesia recebem 15% perpétuo de
-desconto ao virarem pagantes. Cria exclusividade + lock-in. Custo limitado.
-
-### 🟡 E) Selo público "Profissional aprovado pela Basemedical"
-Selo digital no perfil público (`/profissional/[slug]`) com data de aprovação.
-- Pra ele: status → quer manter ativo → assina
-- Pra plataforma: marketing duplo (pacientes vendo selo)
-
----
-
-*Atualizado em: 2026-04-27*
+*Atualizado em: 2026-05-12*

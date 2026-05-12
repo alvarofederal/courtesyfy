@@ -13,7 +13,7 @@ Tornar o Courtesyfy a plataforma de referência para gestão de campanhas promoc
 **Infraestrutura:**
 - [x] Autenticação (email, Google, GitHub) — herdado do Basemedical
 - [x] Verificação de email
-- [ ] Limpar código do domínio médico (Basemedical)
+- [x] Limpar código do domínio médico (Basemedical)
 - [ ] Novo schema Prisma para o domínio Courtesyfy
 
 **Loja:**

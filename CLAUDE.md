@@ -96,10 +96,10 @@ npm run build  # Verifica antes de enviar
 
 Ver `development/features.md` para o status atual.
 
-**Resumo rápido (atualizado 2026-05-02):**
-- Projeto em transição de Basemedical → Courtesyfy
-- Limpeza de tudo que é domínio médico (manter apenas auth)
-- Início do desenvolvimento do sistema de cortesias do zero
+**Resumo rápido (atualizado 2026-05-12):**
+- MVP do sistema de cortesias concluído e em produção
+- Próximas prioridades: Stripe/cobrança e API pública de validação
+- Ver `development/features.md` e `planning/backlog.md` para detalhes
 
 ---
 

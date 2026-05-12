@@ -34,7 +34,7 @@ export const VerificationEmailTemplate = ({
         <Container style={container}>
           {/* Header com gradiente */}
           <Section style={header}>
-            <Heading style={headerTitle}>🏥 Courtesyfy</Heading>
+            <Heading style={headerTitle}>🎫 Courtesyfy</Heading>
           </Section>
 
           {/* Conteúdo */}

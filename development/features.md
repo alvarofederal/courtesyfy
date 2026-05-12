@@ -1,4 +1,4 @@
-# Basemedical - Features em Desenvolvimento
+# Courtesyfy - Features em Desenvolvimento
 
 ## Como usar este arquivo
 
@@ -9,108 +9,67 @@ Quando concluir, mova o item para `releases.md` ou archive.
 
 ## 🔴 Em Andamento
 
-### Sistema de Cortesias (Plano COURTESY)
-**Início:** Abril 2026
-**Branch:** claude/bold-yonath-fcaa13
+### Stripe / Cobrança
+**Início:** —
 **Prioridade:** Alta
 
 **Contexto:**
-Novo plano `COURTESY` para conceder acesso gratuito ao nível PROFESSIONAL a parceiros/divulgadores. Admin concede via `/admin/courtesies`. Usuário vê botão flutuante no perfil com status e expiração.
+Integrar Stripe para cobrança recorrente dos lojistas. Sem isso não há receita.
 
 **Progresso:**
-- [x] Adicionar `COURTESY` ao enum `Plan` (schema Prisma)
-- [x] Criar model `Courtesy` (userId, grantedByAdminId, expiresAt, revokedAt, reason)
-- [x] Estender `PLANS` config com COURTESY (espelha PROFESSIONAL: 10 serviços, 10 endereços)
-- [x] Helper `isPremiumPlan()` em `src/utils/permissions/`
-- [x] Página admin `/admin/courtesies` (concede + revoga + lista)
-- [x] `FloatingCourtesyButton` no perfil do usuário
-- [x] Modal com info/solicitação
-- [ ] Rodar `npx prisma db push` + `prisma generate` (manual do dev)
-- [ ] Atualizar hardcoded `=== 'PROFESSIONAL'` (18 pontos) para usar `isPremiumPlan()` — Fase 2
-- [ ] Teste E2E: admin concede → usuário vê botão com status ativo
-
-**Arquivos criados:**
-- `src/app/(panel)/dashboard/courtesies/_components/floating-courtesy-button.tsx`
-- `src/app/(panel)/dashboard/courtesies/_components/courtesy-info-modal.tsx`
-- `src/app/(panel)/dashboard/courtesies/_actions/courtesy-actions.ts`
-- `src/app/(panel)/dashboard/courtesies/_data_access/get-courtesy.ts`
-- `src/app/admin/courtesies/page.tsx`
-- `src/app/admin/courtesies/_components/grant-courtesy-form.tsx`
-- `src/app/admin/courtesies/_components/courtesies-table.tsx`
-- `src/app/admin/courtesies/_actions/grant-courtesy.ts`
-- `src/app/admin/courtesies/_data_access/list-courtesies.ts`
-- `src/app/api/admin/courtesies/search/route.ts`
-- `src/utils/permissions/isPremiumPlan.ts`
-
-**Arquivos modificados (mínimo):**
-- `prisma/schema.prisma` (enum Plan + model Courtesy + relation User.courtesy)
-- `src/utils/plans/index.ts` (PLANS.COURTESY)
-- `src/utils/permissions/get-plans.ts` (PLANS_LIMITS.COURTESY)
-- `src/utils/permissions/canPermission.ts` (PLAN_PROP com "COURTESY")
-- `src/app/(panel)/dashboard/profile/page.tsx` (renderiza FloatingCourtesyButton)
-
-**Regra de concessão:**
-Admin só pode conceder se usuário NÃO tiver Subscription Stripe ativa real (não-placeholder). A concessão cria `Courtesy` + faz upsert de `Subscription` com `plan=COURTESY`, `stripeCustomerId=courtesy_<userId>`, `stripeSubscriptionId=courtesy_<userId>`, `stripeCurrentPeriodEnd=expiresAt`.
+- [ ] Definir planos e preços (ESSENCIAL / PROFISSIONAL / EMPRESARIAL)
+- [ ] Criar produtos e preços no Stripe Dashboard
+- [ ] Checkout via Stripe (novo lojista)
+- [ ] Webhook para ativar/bloquear conta após pagamento
+- [ ] Portal do cliente (gerenciar assinatura)
+- [ ] Bloquear features por plano (limites de campanha, chaves etc.)
 
 ---
 
-### Relatórios Dinâmicos
-**Início:** Março 2026
-**Branch:** develop
-**Responsável:** Time de dev
+### API pública `/api/chaves/validar`
+**Início:** —
+**Prioridade:** Alta
 
 **Contexto:**
-Tela de relatórios em `/dashboard/reports/` com dados dinâmicos, filtros e export.
+Endpoint REST para lojistas que têm totem ou PDV próprio integrarem a validação de chaves sem usar o dashboard.
 
 **Progresso:**
-- [x] Análise e brainstorming
-- [x] Aprovação do layout
-- [x] Instalação do Recharts
-- [ ] API route `/api/reports` para buscar dados
-- [ ] Date pickers para filtro de período
-- [ ] Gráficos de agendamentos (Recharts)
-- [ ] Cards de resumo (total, receita, cancelamentos)
-- [ ] Tabela de dados detalhada
-- [ ] Export CSV
-
-**Arquivos relevantes:**
-- `src/app/(panel)/dashboard/reports/page.tsx`
-- `src/app/api/reports/route.ts` (a criar)
-- `src/app/(panel)/dashboard/reports/_components/` (a criar)
-- `src/app/(panel)/dashboard/reports/_data_access/` (a criar)
-
-**Dados necessários da API:**
-```typescript
-// Estrutura esperada
-{
-  appointments: {
-    total: number
-    completed: number
-    cancelled: number
-    pending: number
-    byMonth: { month: string, count: number }[]
-  }
-  revenue: {
-    total: number
-    byMonth: { month: string, amount: number }[]
-  }
-  topServices: { name: string, count: number }[]
-  period: { from: Date, to: Date }
-}
-```
+- [ ] `POST /api/chaves/validar` — recebe código, retorna status + benefício
+- [ ] Autenticação via API Key da loja
+- [ ] Rate limiting por loja
+- [ ] Documentação básica
 
 ---
 
 ## ✅ Concluídas Recentemente
 
-### Perfil em Acordion
-**Concluído:** Março 2026
-**Descrição:** Perfil do usuário refatorado para usar accordion sem valor padrão aberto.
-**Arquivo:** `src/app/(panel)/dashboard/profile/`
+### Email de confirmação ao cliente na ativação
+**Concluído:** Maio 2026
+**Descrição:** Ao ativar uma chave, se o cliente informou e-mail, dispara email com código, benefício, validade e instruções de resgate. Fire-and-forget — falha não bloqueia ativação.
 
-### Correção Confeti
-**Concluído:** Março 2026
-**Descrição:** Ajuste no tempo de explosão do confeti (UX de celebração)
+### Página /c/[codigo] com layout da campanha
+**Concluído:** Maio 2026
+**Descrição:** A página pública de resgate agora carrega o layout vinculado à campanha (cores, imagem de fundo, estilo, raio dos cards). Fallback: layout padrão da loja → cores da loja.
+
+### Migração de chaves entre campanhas
+**Concluído:** Maio 2026
+**Descrição:** Lojista pode migrar chaves não resgatadas de campanhas expiradas/encerradas para campanhas ativas. QR Codes físicos continuam funcionando.
+
+### Vigência de campanhas + trava de geração
+**Concluído:** Maio 2026
+**Descrição:** Indicadores visuais de campanha expirada/expirando nas listas. Bloqueio de geração de chaves para campanhas expiradas.
+
+### Datas de criação e validade nas listas de chaves
+**Concluído:** Maio 2026
+**Descrição:** Coluna de data de criação e indicador de validade (com cores) nas listas de lotes e chaves.
+
+### Página /resgatar — digitação + scanner QR
+**Concluído:** Maio 2026
+**Descrição:** Página pública para o cliente digitar ou escanear um QR Code e ser redirecionado para a página da chave.
+
+### Dark mode completo + separação admin vs lojista
+**Concluído:** Maio 2026
+**Descrição:** Design system com tokens dark mode em todas as páginas. Configurações do admin separadas das configurações da loja.
 
 ---
 
@@ -125,7 +84,6 @@ Tela de relatórios em `/dashboard/reports/` com dados dinâmicos, filtros e exp
 ```markdown
 ### Nome da Feature
 **Início:** [data]
-**Branch:** feature/nome-da-feature
 **Prioridade:** Alta/Média/Baixa
 
 **Contexto:**
@@ -141,4 +99,4 @@ Tela de relatórios em `/dashboard/reports/` com dados dinâmicos, filtros e exp
 
 ---
 
-*Atualizado em: 2026-03-10*
+*Atualizado em: 2026-05-12*
