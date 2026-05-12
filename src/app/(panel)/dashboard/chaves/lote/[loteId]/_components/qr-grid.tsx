@@ -2,7 +2,7 @@
 
 import { QRCodeSVG } from "qrcode.react"
 import { useState } from "react"
-import { Copy, Check, Gift } from "lucide-react"
+import { Copy, Check, Gift, Eye, EyeOff } from "lucide-react"
 import { CancelarChaveBtn } from "./cancelar-chave-btn"
 
 type ResgateInfo = {
@@ -83,27 +83,53 @@ const statusLabels: Record<string, string> = {
   CANCELADA:  "Cancelada",
 }
 
+const STATUS_ATIVAS = ["GERADA", "CONSULTADA", "ATIVADA"]
+const STATUS_TERMINAIS = ["RESGATADA", "EXPIRADA", "CANCELADA"]
+
 /* ── componente principal ────────────────────────────────────────── */
 export function QrGrid({ chaves }: Props) {
-  const [view, setView] = useState<"tabela" | "qrcodes">("tabela")
+  const [view, setView]         = useState<"tabela" | "qrcodes">("tabela")
+  const [showAll, setShowAll]   = useState(false)
+
+  const ativas    = chaves.filter(c => STATUS_ATIVAS.includes(c.status))
+  const terminais = chaves.filter(c => STATUS_TERMINAIS.includes(c.status))
+  const visíveis  = showAll ? chaves : ativas
 
   return (
     <div>
-      {/* Toggle de visualização */}
-      <div className="flex gap-1 mb-4 bg-gray-100 dark:bg-white/[0.05] p-1 rounded-xl w-fit">
-        {(["tabela", "qrcodes"] as const).map((v) => (
-          <button
-            key={v}
-            onClick={() => setView(v)}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize ${
-              view === v
-                ? "bg-white dark:bg-white/10 text-gray-900 dark:text-white shadow-sm"
-                : "text-gray-500 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/70"
-            }`}
-          >
-            {v === "tabela" ? "Tabela" : "QR Codes"}
-          </button>
-        ))}
+      {/* Controles */}
+      <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+        {/* Toggle tabela / QR */}
+        <div className="flex gap-1 bg-gray-100 dark:bg-white/[0.05] p-1 rounded-xl">
+          {(["tabela", "qrcodes"] as const).map((v) => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize ${
+                view === v
+                  ? "bg-white dark:bg-white/10 text-gray-900 dark:text-white shadow-sm"
+                  : "text-gray-500 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/70"
+              }`}
+            >
+              {v === "tabela" ? "Tabela" : "QR Codes"}
+            </button>
+          ))}
+        </div>
+
+        {/* Filtro ativas / todas */}
+        <button
+          onClick={() => setShowAll(s => !s)}
+          className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors ${
+            showAll
+              ? "border-emerald-300 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10"
+              : "border-gray-200 dark:border-white/10 dash-subtitle hover:border-gray-300 dark:hover:border-white/20"
+          }`}
+        >
+          {showAll
+            ? <><Eye className="w-3.5 h-3.5" />Todas ({chaves.length})</>
+            : <><EyeOff className="w-3.5 h-3.5" />Ativas ({ativas.length}){terminais.length > 0 && <span className="ml-1 opacity-60">· {terminais.length} arquivadas</span>}</>
+          }
+        </button>
       </div>
 
       {view === "tabela" ? (
@@ -128,7 +154,17 @@ export function QrGrid({ chaves }: Props) {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50 dark:divide-white/[0.04]">
-              {chaves.map((chave) => (
+              {visíveis.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="py-10 text-center text-sm dash-muted">
+                    Todas as chaves deste lote foram resgatadas, expiradas ou canceladas.{" "}
+                    <button onClick={() => setShowAll(true)} className="text-emerald-500 font-medium hover:text-emerald-400">
+                      Ver todas
+                    </button>
+                  </td>
+                </tr>
+              )}
+              {visíveis.map((chave) => (
                 <tr
                   key={chave.id}
                   className="hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors"
@@ -191,7 +227,15 @@ export function QrGrid({ chaves }: Props) {
       ) : (
         /* ── Vista QR Codes ── */
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {chaves.map((chave) => (
+          {visíveis.length === 0 && (
+            <div className="col-span-full py-10 text-center text-sm dash-muted">
+              Nenhuma chave ativa.{" "}
+              <button onClick={() => setShowAll(true)} className="text-emerald-500 font-medium hover:text-emerald-400">
+                Ver todas
+              </button>
+            </div>
+          )}
+          {visíveis.map((chave) => (
             <div
               key={chave.id}
               className="dash-card p-3 flex flex-col items-center gap-2 hover:border-emerald-200 dark:hover:border-emerald-500/30 transition-colors"

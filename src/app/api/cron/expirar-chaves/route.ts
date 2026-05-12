@@ -1,11 +1,28 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/prisma"
 
-// Chamado pelo Vercel Cron ou qualquer agendador externo.
-// Protegido por CRON_SECRET para evitar execuções não autorizadas.
+/**
+ * Expiração automática de chaves e campanhas vencidas.
+ *
+ * Vercel Cron chama com:  Authorization: Bearer <CRON_SECRET>
+ * Chamadas manuais podem usar: x-cron-secret: <CRON_SECRET>
+ *
+ * vercel.json:  { "path": "/api/cron/expirar-chaves", "schedule": "0 3 * * *" }
+ * → roda todos os dias às 03:00 UTC (meia-noite BRT)
+ */
 export async function GET(request: Request) {
-  const secret = request.headers.get("x-cron-secret")
-  if (secret !== process.env.CRON_SECRET) {
+  const secret = process.env.CRON_SECRET
+
+  // Aceita tanto o header do Vercel Cron quanto chamadas manuais
+  const authHeader  = request.headers.get("authorization")
+  const secretHeader = request.headers.get("x-cron-secret")
+
+  const autorizado =
+    (secret && authHeader === `Bearer ${secret}`) ||
+    (secret && secretHeader === secret) ||
+    process.env.NODE_ENV === "development"  // dev: sem autenticação
+
+  if (!autorizado) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
@@ -29,11 +46,8 @@ export async function GET(request: Request) {
     data: { status: "ENCERRADA" },
   })
 
-  // 3. Registrar log de expiração (um log por campanha encerrada, se necessário)
-  // Evitamos N logs individuais por chave — apenas contamos
-
   console.log(
-    `[cron/expirar-chaves] ${chavesExpiradas} chaves expiradas, ${campanhasEncerradas} campanhas encerradas`,
+    `[cron/expirar-chaves] ${chavesExpiradas} chaves expiradas, ${campanhasEncerradas} campanhas encerradas — ${agora.toISOString()}`,
   )
 
   return NextResponse.json({
