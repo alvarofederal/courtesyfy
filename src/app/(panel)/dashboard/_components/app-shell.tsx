@@ -19,6 +19,8 @@ import {
   Printer,
   MonitorSmartphone,
   ScanLine,
+  CreditCard,
+  Zap,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { TopNavbar } from "./top-navbar"
@@ -45,6 +47,7 @@ const lojistaNav: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/dashboard/totem",         label: "Totem",         icon: MonitorSmartphone  },
   { href: "/dashboard/impressao",     label: "Impressão",     icon: Printer            },
   { href: "/dashboard/relatorios",    label: "Relatórios",    icon: BarChart3       },
+  { href: "/dashboard/planos",        label: "Meu Plano",     icon: Zap             },
 ]
 
 const adminNav: { href: string; label: string; icon: LucideIcon }[] = [
@@ -55,7 +58,8 @@ const adminNav: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/dashboard/chaves",               label: "Chaves",     icon: Key       },
   { href: "/dashboard/admin/impressoes",     label: "Impressões",    icon: Printer  },
   { href: "/dashboard/relatorios",           label: "Relatórios",    icon: BarChart3 },
-  { href: "/dashboard/admin/configuracoes", label: "Configurações", icon: Settings },
+  { href: "/dashboard/admin/stripe",        label: "Stripe",        icon: CreditCard },
+  { href: "/dashboard/admin/configuracoes", label: "Configurações", icon: Settings   },
 ]
 
 /* ─── Sidebar — sempre dark (identidade de marca) ──────────────── */
