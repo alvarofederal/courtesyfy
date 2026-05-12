@@ -210,6 +210,21 @@ function Navbar() {
 
         {/* CTAs */}
         <div className="flex items-center gap-3">
+          {/* Resgatar — link destacado para clientes */}
+          <Link
+            href="/resgatar"
+            className="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full transition-all hover:scale-[1.03] active:scale-95"
+            style={{
+              background: "rgba(16,185,129,0.10)",
+              border: "1px solid rgba(16,185,129,0.28)",
+              color: "#10b981",
+            }}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 3v.01M5 8H4a1 1 0 00-1 1v10a1 1 0 001 1h3m10-3v3m0 0H9m10 0h.01" />
+            </svg>
+            Resgatar
+          </Link>
           <Link href="/login" className="text-sm font-medium text-white/50 hover:text-white transition-colors px-3 py-1.5">
             Entrar
           </Link>
@@ -1001,6 +1016,7 @@ export default function LandingPage() {
           </p>
 
           <div className="flex items-center gap-6 text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
+            <Link href="/resgatar" className="hover:text-white transition-colors" style={{ color: "#10b981" }}>Resgatar benefício</Link>
             <Link href="/login" className="hover:text-white transition-colors">Entrar</Link>
             <Link href="/register" className="hover:text-white transition-colors">Cadastrar</Link>
           </div>
