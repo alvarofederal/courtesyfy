@@ -22,7 +22,7 @@ export default async function ChavesPage({ searchParams }: { searchParams: Promi
   const lotes = await db.loteChave.findMany({
     where: { lojaId: session.user.lojaId!, ...(campanhaId ? { campanhaId } : {}) },
     orderBy: { criadoEm: "desc" },
-    include: { campanha: { select: { nome: true, status: true } }, _count: { select: { chaves: true } } },
+    include: { campanha: { select: { nome: true, status: true, expiraEm: true } }, _count: { select: { chaves: true } } },
   })
 
   const statsRaw = await db.chave.groupBy({
@@ -89,10 +89,11 @@ export default async function ChavesPage({ searchParams }: { searchParams: Promi
               const ativadas  = stats.ATIVADA   ?? 0
               const resgatadas= stats.RESGATADA  ?? 0
               const geradas   = stats.GERADA     ?? 0
+              const expirado  = new Date() > new Date(lote.campanha.expiraEm)
               return (
                 <Link key={lote.id} href={`/dashboard/chaves/lote/${lote.id}`}
                   className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-colors group">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 dash-icon-blue group-hover:opacity-80 transition-opacity">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:opacity-80 transition-opacity ${expirado ? "bg-red-50 dark:bg-red-500/10 text-red-400 dark:text-red-400" : "dash-icon-blue"}`}>
                     <Package className="w-5 h-5" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -101,8 +102,22 @@ export default async function ChavesPage({ searchParams }: { searchParams: Promi
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${LOTE_STATUS[lote.status]?.className ?? "bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-white/60"}`}>
                         {LOTE_STATUS[lote.status]?.label ?? lote.status}
                       </span>
+                      {expirado && (
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400">
+                          Expirado
+                        </span>
+                      )}
                     </div>
-                    <p className="text-xs dash-muted">{lote.campanha.nome} · {new Date(lote.criadoEm).toLocaleDateString("pt-BR")}</p>
+                    <p className="text-xs dash-muted">
+                      {lote.campanha.nome}
+                      {" · "}
+                      Criado {new Date(lote.criadoEm).toLocaleDateString("pt-BR")}
+                      {" · "}
+                      <span className={expirado ? "text-red-500 dark:text-red-400 font-medium" : ""}>
+                        {expirado ? "Expirou" : "Válido até"}{" "}
+                        {new Date(lote.campanha.expiraEm).toLocaleDateString("pt-BR")}
+                      </span>
+                    </p>
                   </div>
                   <div className="flex items-center gap-4 text-xs flex-shrink-0 hidden sm:flex">
                     <div className="text-center">

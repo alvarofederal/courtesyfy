@@ -29,7 +29,7 @@ export default async function LoteDetailPage({
   const lote = await db.loteChave.findUnique({
     where: { id: loteId },
     include: {
-      campanha: { select: { id: true, nome: true, status: true } },
+      campanha: { select: { id: true, nome: true, status: true, expiraEm: true } },
       geradoPor: { select: { name: true } },
     },
   })
@@ -48,6 +48,7 @@ export default async function LoteDetailPage({
       id: true,
       codigo: true,
       status: true,
+      criadoEm: true,
       landingUrl: true,
       resgate: {
         select: {
@@ -141,24 +142,45 @@ export default async function LoteDetailPage({
       </div>
 
       {/* Meta do lote */}
-      <div className="dash-card p-5 mb-6">
-        <div className="flex flex-wrap gap-6 text-sm dash-muted">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
-            Gerado em {new Date(lote.criadoEm).toLocaleString("pt-BR")}
-          </div>
-          {lote.geradoPor && (
-            <div className="flex items-center gap-2">
-              <Hash className="w-4 h-4" />
-              Por {lote.geradoPor.name}
+      {(() => {
+        const expirado = new Date() > lote.campanha.expiraEm
+        return (
+          <div className={`dash-card p-5 mb-6 ${expirado ? "border-red-200 dark:border-red-500/30" : ""}`}>
+            <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm dash-muted">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                Gerado em {new Date(lote.criadoEm).toLocaleString("pt-BR")}
+              </div>
+              {lote.geradoPor && (
+                <div className="flex items-center gap-2">
+                  <Hash className="w-4 h-4" />
+                  Por {lote.geradoPor.name}
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <Key className="w-4 h-4" />
+                {totalChaves} chaves
+              </div>
+              <div className={`flex items-center gap-2 font-medium ${
+                expirado
+                  ? "text-red-600 dark:text-red-400"
+                  : new Date() > new Date(lote.campanha.expiraEm.getTime() - 3 * 24 * 60 * 60 * 1000)
+                    ? "text-amber-600 dark:text-amber-400"
+                    : "text-emerald-600 dark:text-emerald-400"
+              }`}>
+                <Calendar className="w-4 h-4" />
+                {expirado ? "Expirou em" : "Válidas até"}{" "}
+                {new Date(lote.campanha.expiraEm).toLocaleDateString("pt-BR")}
+                {expirado && (
+                  <span className="ml-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400">
+                    Expirado
+                  </span>
+                )}
+              </div>
             </div>
-          )}
-          <div className="flex items-center gap-2">
-            <Key className="w-4 h-4" />
-            {totalChaves} chaves
           </div>
-        </div>
-      </div>
+        )
+      })()}
 
       {/* Grid de chaves / QR codes */}
       <div className="dash-card p-5">
@@ -188,7 +210,7 @@ export default async function LoteDetailPage({
           )}
         </div>
 
-        <QrGrid chaves={chaves} />
+        <QrGrid chaves={chaves} expiraEm={lote.campanha.expiraEm} />
 
         {/* Paginação inferior */}
         {totalPages > 1 && (

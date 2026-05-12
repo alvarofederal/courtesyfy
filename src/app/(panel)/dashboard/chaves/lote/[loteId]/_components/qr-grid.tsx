@@ -2,7 +2,7 @@
 
 import { QRCodeSVG } from "qrcode.react"
 import { useState } from "react"
-import { Copy, Check, Gift, Eye, EyeOff } from "lucide-react"
+import { Copy, Check, Gift, Eye, EyeOff, AlertTriangle } from "lucide-react"
 import { CancelarChaveBtn } from "./cancelar-chave-btn"
 
 type ResgateInfo = {
@@ -19,12 +19,14 @@ type Chave = {
   id: string
   codigo: string
   status: string
+  criadoEm: Date
   landingUrl: string | null
   resgate: ResgateInfo | null
 }
 
 interface Props {
   chaves: Chave[]
+  expiraEm?: Date
 }
 
 /* ── helpers ─────────────────────────────────────────────────────── */
@@ -40,6 +42,17 @@ function formatBeneficio(r: ResgateInfo): string {
     case "CASHBACK":            return `Cashback: R$ ${valorBeneficio?.toFixed(2) ?? "–"}`
     default:                    return tipoBeneficio
   }
+}
+
+function fmtDate(d: Date) {
+  return new Date(d).toLocaleDateString("pt-BR")
+}
+
+function fmtDateTime(d: Date) {
+  return new Date(d).toLocaleString("pt-BR", {
+    day: "2-digit", month: "2-digit", year: "2-digit",
+    hour: "2-digit", minute: "2-digit",
+  })
 }
 
 /* ── sub-componentes ─────────────────────────────────────────────── */
@@ -83,20 +96,48 @@ const statusLabels: Record<string, string> = {
   CANCELADA:  "Cancelada",
 }
 
-const STATUS_ATIVAS = ["GERADA", "CONSULTADA", "ATIVADA"]
+const STATUS_ATIVAS    = ["GERADA", "CONSULTADA", "ATIVADA"]
 const STATUS_TERMINAIS = ["RESGATADA", "EXPIRADA", "CANCELADA"]
 
 /* ── componente principal ────────────────────────────────────────── */
-export function QrGrid({ chaves }: Props) {
-  const [view, setView]         = useState<"tabela" | "qrcodes">("tabela")
-  const [showAll, setShowAll]   = useState(false)
+export function QrGrid({ chaves, expiraEm }: Props) {
+  const [view, setView]       = useState<"tabela" | "qrcodes">("tabela")
+  const [showAll, setShowAll] = useState(false)
 
   const ativas    = chaves.filter(c => STATUS_ATIVAS.includes(c.status))
   const terminais = chaves.filter(c => STATUS_TERMINAIS.includes(c.status))
   const visíveis  = showAll ? chaves : ativas
 
+  const expirado       = expiraEm ? new Date() > new Date(expiraEm) : false
+  const expiraEm3dias  = expiraEm
+    ? new Date() > new Date(new Date(expiraEm).getTime() - 3 * 24 * 60 * 60 * 1000)
+    : false
+
   return (
     <div>
+      {/* Banner de campanha expirada */}
+      {expirado && (
+        <div className="flex items-center gap-2 mb-4 px-3 py-2.5 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/25 text-red-600 dark:text-red-400 text-sm">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          <span>
+            A campanha expirou em{" "}
+            <strong>{expiraEm ? fmtDate(expiraEm) : "–"}</strong>.
+            Estas chaves não podem mais ser resgatadas.
+          </span>
+        </div>
+      )}
+
+      {/* Aviso: menos de 3 dias para expirar */}
+      {!expirado && expiraEm3dias && expiraEm && (
+        <div className="flex items-center gap-2 mb-4 px-3 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/25 text-amber-700 dark:text-amber-400 text-sm">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          <span>
+            Atenção: a campanha expira em{" "}
+            <strong>{fmtDate(expiraEm)}</strong>.
+          </span>
+        </div>
+      )}
+
       {/* Controles */}
       <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
         {/* Toggle tabela / QR */}
@@ -144,6 +185,14 @@ export function QrGrid({ chaves }: Props) {
                 <th className="text-left py-2.5 px-3 text-xs font-medium dash-muted uppercase tracking-wide">
                   Status
                 </th>
+                <th className="text-left py-2.5 px-3 text-xs font-medium dash-muted uppercase tracking-wide hidden sm:table-cell">
+                  Criado em
+                </th>
+                {expiraEm && (
+                  <th className="text-left py-2.5 px-3 text-xs font-medium dash-muted uppercase tracking-wide hidden md:table-cell">
+                    Validade
+                  </th>
+                )}
                 <th className="text-left py-2.5 px-3 text-xs font-medium dash-muted uppercase tracking-wide">
                   Benefício resgatado
                 </th>
@@ -156,7 +205,7 @@ export function QrGrid({ chaves }: Props) {
             <tbody className="divide-y divide-gray-50 dark:divide-white/[0.04]">
               {visíveis.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-10 text-center text-sm dash-muted">
+                  <td colSpan={expiraEm ? 7 : 6} className="py-10 text-center text-sm dash-muted">
                     Todas as chaves deste lote foram resgatadas, expiradas ou canceladas.{" "}
                     <button onClick={() => setShowAll(true)} className="text-emerald-500 font-medium hover:text-emerald-400">
                       Ver todas
@@ -183,6 +232,28 @@ export function QrGrid({ chaves }: Props) {
                     </span>
                   </td>
 
+                  {/* Criado em */}
+                  <td className="py-2.5 px-3 hidden sm:table-cell">
+                    <span className="text-xs dash-muted">
+                      {fmtDate(chave.criadoEm)}
+                    </span>
+                  </td>
+
+                  {/* Validade (campanha) */}
+                  {expiraEm && (
+                    <td className="py-2.5 px-3 hidden md:table-cell">
+                      <span className={`text-xs font-medium ${
+                        expirado
+                          ? "text-red-600 dark:text-red-400"
+                          : expiraEm3dias
+                            ? "text-amber-600 dark:text-amber-400"
+                            : "dash-muted"
+                      }`}>
+                        {fmtDate(expiraEm)}
+                      </span>
+                    </td>
+                  )}
+
                   {/* Benefício resgatado */}
                   <td className="py-2.5 px-3">
                     {chave.status === "RESGATADA" && chave.resgate ? (
@@ -192,10 +263,7 @@ export function QrGrid({ chaves }: Props) {
                           {formatBeneficio(chave.resgate)}
                         </span>
                         <span className="text-xs dash-muted">
-                          {new Date(chave.resgate.resgatadoEm).toLocaleString("pt-BR", {
-                            day: "2-digit", month: "2-digit", year: "2-digit",
-                            hour: "2-digit", minute: "2-digit",
-                          })}
+                          {fmtDateTime(chave.resgate.resgatadoEm)}
                         </span>
                       </div>
                     ) : (
@@ -262,6 +330,18 @@ export function QrGrid({ chaves }: Props) {
               <span className={`text-xs font-medium px-2 py-0.5 rounded-full text-center ${statusColors[chave.status] ?? statusColors.CANCELADA}`}>
                 {statusLabels[chave.status] ?? chave.status}
               </span>
+
+              {/* Datas */}
+              <div className="text-center">
+                <p className="text-[10px] dash-muted">
+                  Criado {fmtDate(chave.criadoEm)}
+                </p>
+                {expiraEm && (
+                  <p className={`text-[10px] font-medium ${expirado ? "text-red-500" : "dash-muted"}`}>
+                    {expirado ? "Expirou" : "Válido até"} {fmtDate(expiraEm)}
+                  </p>
+                )}
+              </div>
 
               {chave.status === "RESGATADA" && chave.resgate && (
                 <span className="text-xs text-emerald-600 dark:text-emerald-400 text-center leading-tight">
