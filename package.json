@@ -87,7 +87,7 @@
     "@types/qrcode.react": "^1.0.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "baseline-browser-mapping": "^2.10.21",
+    "baseline-browser-mapping": "^2.10.29",
     "install": "^0.13.0",
     "prisma": "5.17.0",
     "tailwindcss": "^4",
