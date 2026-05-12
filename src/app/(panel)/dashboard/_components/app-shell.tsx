@@ -53,9 +53,9 @@ const adminNav: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/dashboard/usuarios",      label: "Usuários",      icon: Users           },
   { href: "/dashboard/campanhas",            label: "Campanhas",  icon: Megaphone },
   { href: "/dashboard/chaves",               label: "Chaves",     icon: Key       },
-  { href: "/dashboard/admin/impressoes",     label: "Impressões", icon: Printer   },
-  { href: "/dashboard/relatorios",           label: "Relatórios", icon: BarChart3 },
-  { href: "/dashboard/configuracoes",        label: "Configurações", icon: Settings },
+  { href: "/dashboard/admin/impressoes",     label: "Impressões",    icon: Printer  },
+  { href: "/dashboard/relatorios",           label: "Relatórios",    icon: BarChart3 },
+  { href: "/dashboard/admin/configuracoes", label: "Configurações", icon: Settings },
 ]
 
 /* ─── Sidebar — sempre dark (identidade de marca) ──────────────── */

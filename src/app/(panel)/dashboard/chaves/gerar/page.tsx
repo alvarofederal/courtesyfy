@@ -47,42 +47,42 @@ export default async function GerarLotePage({
             ? `/dashboard/campanhas/${params.campanhaId}`
             : "/dashboard/chaves"
         }
-        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm dash-muted hover:text-emerald-500 mb-6 transition-colors"
       >
         <ChevronLeft className="w-4 h-4" />
         {params.campanhaId ? "Voltar para campanha" : "Chaves"}
       </Link>
 
       <div className="mb-8">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Gerar lote de chaves</h1>
-        <p className="text-gray-500 text-sm mt-0.5">
+        <h1 className="text-xl sm:text-2xl font-bold dash-title">Gerar lote de chaves</h1>
+        <p className="dash-subtitle text-sm mt-0.5">
           Cada chave recebe um código único no formato{" "}
-          <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">
+          <code className="bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-white/70 px-1.5 py-0.5 rounded text-xs font-mono">
             XXXX-XXXX-XXXX-XXXX
           </code>{" "}
           com QR Code apontando para a landing page da campanha.
         </p>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6">
+      <div className="dash-card p-4 sm:p-6">
         <GerarLoteForm campanhas={campanhas} campanhaIdPadrão={params.campanhaId} />
       </div>
 
       {/* Info sobre os códigos */}
-      <div className="mt-4 bg-gray-50 rounded-2xl border border-gray-100 p-4 text-xs text-gray-500 space-y-1">
+      <div className="mt-4 dash-card p-4 text-xs dash-muted space-y-1">
         <p>
-          <strong className="text-gray-700">Formato:</strong> 16 caracteres alfanuméricos sem
+          <strong className="dash-subtitle">Formato:</strong> 16 caracteres alfanuméricos sem
           ambiguidade (sem 0/O, 1/I/L), agrupados em 4 blocos de 4.
         </p>
         <p>
-          <strong className="text-gray-700">Unicidade:</strong> Gerado com{" "}
-          <code className="bg-white px-1 rounded">crypto.randomBytes</code> — colisões verificadas
+          <strong className="dash-subtitle">Unicidade:</strong> Gerado com{" "}
+          <code className="bg-gray-100 dark:bg-white/10 px-1 rounded">crypto.randomBytes</code> — colisões verificadas
           automaticamente.
         </p>
         <p>
-          <strong className="text-gray-700">QR Code:</strong> Cada chave gera automaticamente um
+          <strong className="dash-subtitle">QR Code:</strong> Cada chave gera automaticamente um
           QR Code apontando para{" "}
-          <code className="bg-white px-1 rounded">/c/[codigo]</code>.
+          <code className="bg-gray-100 dark:bg-white/10 px-1 rounded">/c/[codigo]</code>.
         </p>
       </div>
     </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { QRCodeSVG } from "qrcode.react"
+import { Copy, Check, ExternalLink, QrCode, MonitorSmartphone } from "lucide-react"
 
 interface Props {
   lojaId: string
@@ -26,7 +27,6 @@ export function TotemLinkCard({ lojaId }: Props) {
     })
   }
 
-  // Fecha modal com Escape
   useEffect(() => {
     if (!qrOpen) return
     function handler(e: KeyboardEvent) {
@@ -36,7 +36,6 @@ export function TotemLinkCard({ lojaId }: Props) {
     return () => document.removeEventListener("keydown", handler)
   }, [qrOpen])
 
-  // Trava scroll do body
   useEffect(() => {
     document.body.style.overflow = qrOpen ? "hidden" : ""
     return () => { document.body.style.overflow = "" }
@@ -44,45 +43,47 @@ export function TotemLinkCard({ lojaId }: Props) {
 
   return (
     <>
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-5 mb-6">
+      <div className="dash-card p-4 sm:p-5">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
-            </svg>
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <MonitorSmartphone className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-900">Link do Totem de Resgate</p>
-            <p className="text-xs text-gray-500 mt-0.5 mb-3">
+            <p className="text-sm font-semibold dash-title">Link do Totem de Resgate</p>
+            <p className="text-xs dash-muted mt-0.5 mb-3">
               Exiba este link em um totem, tablet ou tela da loja para seus clientes resgatarem os benefícios.
             </p>
             <div className="flex flex-wrap items-center gap-2">
-              <code className="flex-1 min-w-0 text-xs bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-600 truncate font-mono">
+              <code className="flex-1 min-w-0 text-xs bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 dash-muted truncate font-mono">
                 {url}
               </code>
               <button
                 onClick={copyUrl}
-                className={`flex-shrink-0 text-xs font-semibold px-3 py-2 rounded-xl transition-colors ${
-                  copied ? "bg-emerald-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                className={`flex-shrink-0 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl transition-colors ${
+                  copied
+                    ? "bg-emerald-500 text-white"
+                    : "bg-gray-100 dark:bg-white/[0.07] text-gray-700 dark:text-white/70 hover:bg-gray-200 dark:hover:bg-white/[0.12]"
                 }`}
               >
-                {copied ? "Copiado!" : "Copiar"}
+                {copied
+                  ? <><Check className="w-3.5 h-3.5" />Copiado!</>
+                  : <><Copy className="w-3.5 h-3.5" />Copiar</>
+                }
               </button>
               <a
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-shrink-0 text-xs font-semibold px-3 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                className="flex-shrink-0 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl bg-gray-100 dark:bg-white/[0.07] text-gray-700 dark:text-white/70 hover:bg-gray-200 dark:hover:bg-white/[0.12] transition-colors"
               >
+                <ExternalLink className="w-3.5 h-3.5" />
                 Abrir
               </a>
               <button
                 onClick={() => setQrOpen(true)}
-                className="flex-shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                className="flex-shrink-0 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
               >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 3v.01M5 8H4a1 1 0 00-1 1v10a1 1 0 001 1h3m10-3v3m0 0H9m10 0h.01" />
-                </svg>
+                <QrCode className="w-3.5 h-3.5" />
                 QR Code
               </button>
             </div>
@@ -99,10 +100,8 @@ export function TotemLinkCard({ lojaId }: Props) {
         >
           <div
             ref={modalRef}
-            className="relative rounded-3xl shadow-2xl p-8 flex flex-col items-center gap-6 w-full max-w-xs"
-            style={{ backgroundColor: "rgba(255,255,255,0.95)" }}
+            className="relative bg-white rounded-3xl shadow-2xl p-8 flex flex-col items-center gap-6 w-full max-w-xs"
           >
-            {/* Fechar */}
             <button
               onClick={() => setQrOpen(false)}
               className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
@@ -120,19 +119,16 @@ export function TotemLinkCard({ lojaId }: Props) {
               </p>
             </div>
 
-            {/* QR Code com fundo transparente */}
-            <div className="p-3 rounded-2xl" style={{ backgroundColor: "rgba(255,255,255,0.0)" }}>
-              {url && (
-                <QRCodeSVG
-                  value={url}
-                  size={220}
-                  bgColor="transparent"
-                  fgColor="#111827"
-                  level="M"
-                  marginSize={1}
-                />
-              )}
-            </div>
+            {url && (
+              <QRCodeSVG
+                value={url}
+                size={220}
+                bgColor="transparent"
+                fgColor="#111827"
+                level="M"
+                marginSize={1}
+              />
+            )}
 
             <div className="text-center w-full">
               <code className="text-xs text-gray-400 font-mono break-all">{url}</code>
