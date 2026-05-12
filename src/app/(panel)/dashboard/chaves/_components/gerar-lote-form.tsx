@@ -5,7 +5,7 @@ import { useFormStatus } from "react-dom"
 import { gerarLote } from "../_actions/gerar-lote"
 import type { GerarLoteState } from "../_actions/gerar-lote"
 
-type Campanha = { id: string; nome: string; quantidadeChaves: number; chavesGeradas: number }
+type Campanha = { id: string; nome: string; expiraEm: Date; quantidadeChaves: number; chavesGeradas: number }
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -45,9 +45,10 @@ export function GerarLoteForm({ campanhas, campanhaIdPadrão }: Props) {
           Campanha <span className="text-red-500">*</span>
         </label>
         {campanhas.length === 0 ? (
-          <p className="text-sm dash-muted bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3">
-            Nenhuma campanha ativa. Crie e ative uma campanha primeiro.
-          </p>
+          <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl px-4 py-3 text-sm text-amber-700 dark:text-amber-400">
+            Nenhuma campanha vigente encontrada. Todas as campanhas podem ter expirado ou atingido o limite de chaves.{" "}
+            <a href="/dashboard/campanhas/nova" className="underline font-medium hover:opacity-80">Criar nova campanha</a>.
+          </div>
         ) : (
           <select
             name="campanhaId"
@@ -58,10 +59,11 @@ export function GerarLoteForm({ campanhas, campanhaIdPadrão }: Props) {
               Selecione uma campanha...
             </option>
             {campanhas.map((c) => {
-              const restantes = c.quantidadeChaves - c.chavesGeradas
+              const restantes  = c.quantidadeChaves - c.chavesGeradas
+              const validade   = new Date(c.expiraEm).toLocaleDateString("pt-BR")
               return (
                 <option key={c.id} value={c.id} disabled={restantes <= 0}>
-                  {c.nome} — {restantes > 0 ? `${restantes} vagas` : "limite atingido"}
+                  {c.nome} — {restantes > 0 ? `${restantes} vagas` : "limite atingido"} · válida até {validade}
                 </option>
               )
             })}

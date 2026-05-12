@@ -17,15 +17,19 @@ export default async function GerarLotePage({
 
   const params = await searchParams
 
+  const agora = new Date()
+
   const campanhasRaw = await db.campanha.findMany({
     where: {
       lojaId: session.user.lojaId!,
       status: { in: ["ATIVA", "PAUSADA", "RASCUNHO"] },
+      expiraEm: { gt: agora }, // apenas campanhas ainda vigentes
     },
     orderBy: { criadoEm: "desc" },
     select: {
       id: true,
       nome: true,
+      expiraEm: true,
       quantidadeChaves: true,
       _count: { select: { chaves: true } },
     },
@@ -34,6 +38,7 @@ export default async function GerarLotePage({
   const campanhas = campanhasRaw.map((c) => ({
     id: c.id,
     nome: c.nome,
+    expiraEm: c.expiraEm,
     quantidadeChaves: c.quantidadeChaves,
     chavesGeradas: c._count.chaves,
   }))

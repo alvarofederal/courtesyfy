@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/prisma"
-import { Plus, Megaphone, ArrowRight } from "lucide-react"
+import { Plus, Megaphone, ArrowRight, AlertTriangle, Clock } from "lucide-react"
 import { StatusBadge } from "./_components/status-badge"
 import { TipoBeneficioBadge } from "./_components/tipo-beneficio-badge"
 
@@ -20,7 +20,7 @@ export default async function CampanhasPage({ searchParams }: { searchParams: Pr
   const session = await auth()
   if (!session?.user?.lojaId) redirect("/login")
 
-  const params      = await searchParams
+  const params       = await searchParams
   const statusFilter = params.status ?? ""
 
   const campanhas = await db.campanha.findMany({
@@ -32,6 +32,8 @@ export default async function CampanhasPage({ searchParams }: { searchParams: Pr
       _count: { select: { chaves: true } },
     },
   })
+
+  const agora = new Date()
 
   return (
     <div>
@@ -74,7 +76,9 @@ export default async function CampanhasPage({ searchParams }: { searchParams: Pr
             {statusFilter ? "Nenhuma campanha com este status" : "Nenhuma campanha criada ainda"}
           </h2>
           <p className="dash-subtitle text-sm max-w-sm mx-auto mb-6">
-            {statusFilter ? "Tente outro filtro ou crie uma nova campanha." : "Crie sua primeira campanha para começar a distribuir chaves promocionais."}
+            {statusFilter
+              ? "Tente outro filtro ou crie uma nova campanha."
+              : "Crie sua primeira campanha para começar a distribuir chaves promocionais."}
           </p>
           {!statusFilter && (
             <Link href="/dashboard/campanhas/nova"
@@ -86,29 +90,75 @@ export default async function CampanhasPage({ searchParams }: { searchParams: Pr
       ) : (
         <div className="dash-card overflow-hidden">
           <div className="divide-y dash-divider">
-            {campanhas.map((c) => (
-              <Link key={c.id} href={`/dashboard/campanhas/${c.id}`}
-                className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-colors group">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 dash-icon-emerald group-hover:opacity-80 transition-opacity">
-                  <Megaphone className="w-5 h-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <p className="font-semibold dash-title text-sm truncate">{c.nome}</p>
-                    <StatusBadge status={c.status} />
+            {campanhas.map((c) => {
+              const expirado      = agora > new Date(c.expiraEm)
+              const expiraEm3dias = !expirado && agora > new Date(new Date(c.expiraEm).getTime() - 3 * 24 * 60 * 60 * 1000)
+              const vigente       = !expirado && agora >= new Date(c.inicioEm)
+              const naoIniciada   = !expirado && agora < new Date(c.inicioEm)
+
+              return (
+                <Link key={c.id} href={`/dashboard/campanhas/${c.id}`}
+                  className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-colors group">
+
+                  {/* Ícone com cor de estado */}
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:opacity-80 transition-opacity ${
+                    expirado ? "bg-red-50 dark:bg-red-500/10 text-red-400" :
+                    expiraEm3dias ? "bg-amber-50 dark:bg-amber-500/10 text-amber-500" :
+                    "dash-icon-emerald"
+                  }`}>
+                    {expirado ? <AlertTriangle className="w-5 h-5" /> :
+                     expiraEm3dias ? <Clock className="w-5 h-5" /> :
+                     <Megaphone className="w-5 h-5" />}
                   </div>
-                  <div className="flex items-center gap-3 text-xs dash-muted">
-                    <TipoBeneficioBadge tipo={c.tipoBeneficio} />
-                    <span>{new Date(c.inicioEm).toLocaleDateString("pt-BR")} → {new Date(c.expiraEm).toLocaleDateString("pt-BR")}</span>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                      <p className="font-semibold dash-title text-sm truncate">{c.nome}</p>
+                      <StatusBadge status={c.status} />
+                      {/* Badge de vigência */}
+                      {expirado && (
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400">
+                          Expirada
+                        </span>
+                      )}
+                      {expiraEm3dias && (
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400">
+                          Expira em breve
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-3 text-xs dash-muted flex-wrap">
+                      <TipoBeneficioBadge tipo={c.tipoBeneficio} />
+                      {/* Datas com cor */}
+                      <span className={
+                        expirado      ? "text-red-500 dark:text-red-400 font-medium" :
+                        expiraEm3dias ? "text-amber-600 dark:text-amber-400 font-medium" :
+                        naoIniciada   ? "dash-muted" :
+                        "text-emerald-600 dark:text-emerald-500 font-medium"
+                      }>
+                        {expirado      ? "Expirou" :
+                         naoIniciada   ? "Início" :
+                         vigente       ? "Vigente até" :
+                         "Válida até"}{" "}
+                        {new Date(c.expiraEm).toLocaleDateString("pt-BR")}
+                      </span>
+                      <span className="dash-muted">
+                        Criada {new Date(c.inicioEm).toLocaleDateString("pt-BR")}
+                      </span>
+                    </div>
                   </div>
-                </div>
-                <div className="text-right flex-shrink-0 hidden sm:block">
-                  <p className="text-sm font-semibold dash-title">{c._count.chaves} / {c.quantidadeChaves}</p>
-                  <p className="text-xs dash-muted">chaves geradas</p>
-                </div>
-                <ArrowRight className="w-4 h-4 text-gray-300 dark:text-white/20 group-hover:text-emerald-500 transition-colors flex-shrink-0" />
-              </Link>
-            ))}
+
+                  {/* Contadores */}
+                  <div className="text-right flex-shrink-0 hidden sm:block">
+                    <p className="text-sm font-semibold dash-title">{c._count.chaves} / {c.quantidadeChaves}</p>
+                    <p className="text-xs dash-muted">chaves geradas</p>
+                  </div>
+
+                  <ArrowRight className="w-4 h-4 text-gray-300 dark:text-white/20 group-hover:text-emerald-500 transition-colors flex-shrink-0" />
+                </Link>
+              )
+            })}
           </div>
         </div>
       )}

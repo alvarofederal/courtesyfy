@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/prisma"
-import { ChevronLeft, Pencil, Key, Calendar, Hash } from "lucide-react"
+import { ChevronLeft, Pencil, Key, Calendar, Hash, ArrowRightLeft, AlertTriangle } from "lucide-react"
 import { StatusBadge } from "../_components/status-badge"
 import { TipoBeneficioBadge } from "../_components/tipo-beneficio-badge"
 import { AcoesCampanha } from "../_components/acoes-campanha"
@@ -27,13 +27,17 @@ function ProgressBar({ value, max, color }: { value: number; max: number; color:
 
 export default async function CampanhaDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ migrado?: string }>
 }) {
   const session = await auth()
   if (!session?.user?.lojaId) redirect("/login")
 
-  const { id } = await params
+  const { id }       = await params
+  const sp           = await searchParams
+  const qtdMigrado   = sp.migrado ? parseInt(sp.migrado, 10) : 0
 
   const campanha = await db.campanha.findUnique({
     where: { id },
@@ -56,8 +60,10 @@ export default async function CampanhaDetailPage({
     db.chave.count({ where: { campanhaId: id, status: "EXPIRADA" } }),
   ])
 
-  const totalGeradas = campanha._count.chaves
-  const encerrada = campanha.status === "ENCERRADA" || campanha.status === "CANCELADA"
+  const totalGeradas  = campanha._count.chaves
+  const encerrada     = campanha.status === "ENCERRADA" || campanha.status === "CANCELADA"
+  const expirada      = new Date() > campanha.expiraEm
+  const chavesPendentes = geradas + ativadas // ainda não resgatadas
 
   const taxaAtivacao =
     totalGeradas > 0 ? Math.round(((ativadas + resgatadas) / totalGeradas) * 100) : 0
@@ -81,25 +87,74 @@ export default async function CampanhaDetailPage({
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             <h1 className="text-xl sm:text-2xl font-bold dash-title">{campanha.nome}</h1>
             <StatusBadge status={campanha.status} />
+            {expirada && (
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400">
+                Expirada
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <TipoBeneficioBadge tipo={campanha.tipoBeneficio} />
-            <span className="dash-muted text-sm">
+            <span className={`text-sm font-medium ${expirada ? "text-red-500 dark:text-red-400" : "dash-muted"}`}>
               {new Date(campanha.inicioEm).toLocaleDateString("pt-BR")} →{" "}
               {new Date(campanha.expiraEm).toLocaleDateString("pt-BR")}
+              {expirada && " (expirada)"}
             </span>
           </div>
         </div>
-        {!encerrada && (
-          <Link
-            href={`/dashboard/campanhas/${id}/editar`}
-            className="inline-flex items-center gap-2 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 dash-subtitle text-sm font-medium px-4 py-2 rounded-xl transition-colors flex-shrink-0"
-          >
-            <Pencil className="w-3.5 h-3.5" />
-            Editar
-          </Link>
-        )}
+        <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+          {!encerrada && !expirada && (
+            <Link
+              href={`/dashboard/campanhas/${id}/editar`}
+              className="inline-flex items-center gap-2 border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 dash-subtitle text-sm font-medium px-4 py-2 rounded-xl transition-colors"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              Editar
+            </Link>
+          )}
+          {(expirada || encerrada) && chavesPendentes > 0 && (
+            <Link
+              href={`/dashboard/campanhas/${id}/migrar`}
+              className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl transition-colors bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-500/20"
+            >
+              <ArrowRightLeft className="w-3.5 h-3.5" />
+              Migrar {chavesPendentes} chave{chavesPendentes !== 1 ? "s" : ""}
+            </Link>
+          )}
+        </div>
       </div>
+
+      {/* Banner de sucesso de migração */}
+      {qtdMigrado > 0 && (
+        <div className="flex items-center gap-3 mb-6 px-4 py-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30">
+          <ArrowRightLeft className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+          <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+            {qtdMigrado} chave{qtdMigrado !== 1 ? "s" : ""} migrada{qtdMigrado !== 1 ? "s" : ""} com sucesso!
+            Os QR Codes nos cartões físicos agora apontam para esta campanha.
+          </p>
+        </div>
+      )}
+
+      {/* Banner de campanha expirada com chaves pendentes */}
+      {(expirada || encerrada) && chavesPendentes > 0 && (
+        <div className="flex items-start gap-3 mb-6 px-4 py-3.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30">
+          <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">
+              {chavesPendentes} chave{chavesPendentes !== 1 ? "s" : ""} ainda não resgatada{chavesPendentes !== 1 ? "s" : ""}
+            </p>
+            <p className="text-xs text-amber-600 dark:text-amber-400/80 mt-0.5">
+              Esta campanha expirou mas ainda há chaves que os clientes não usaram. Migre-as para uma campanha ativa — os QR Codes nos cartões físicos continuarão funcionando.
+            </p>
+          </div>
+          <Link
+            href={`/dashboard/campanhas/${id}/migrar`}
+            className="flex-shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white transition-colors"
+          >
+            Migrar agora
+          </Link>
+        </div>
+      )}
 
       {/* Ações de status */}
       <div className="mb-6">

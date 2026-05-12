@@ -61,6 +61,7 @@ export async function gerarLote(
     select: {
       lojaId: true,
       status: true,
+      expiraEm: true,
       quantidadeChaves: true,
       _count: { select: { chaves: true } },
     },
@@ -71,7 +72,11 @@ export async function gerarLote(
   }
 
   if (campanha.status === "ENCERRADA" || campanha.status === "CANCELADA") {
-    return { error: "Não é possível gerar chaves para uma campanha encerrada" }
+    return { error: "Não é possível gerar chaves para uma campanha encerrada ou cancelada." }
+  }
+
+  if (new Date() > campanha.expiraEm) {
+    return { error: "Esta campanha já expirou. Crie uma nova campanha ou migre as chaves existentes para continuar." }
   }
 
   const jaGeradas = campanha._count.chaves
