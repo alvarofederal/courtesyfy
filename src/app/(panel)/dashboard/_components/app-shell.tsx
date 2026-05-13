@@ -43,6 +43,7 @@ const lojistaNav: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/dashboard/campanhas",     label: "Campanhas",     icon: Megaphone       },
   { href: "/dashboard/chaves",        label: "Chaves",        icon: Key             },
   { href: "/dashboard/resgates",      label: "Resgates",      icon: ShoppingBag        },
+  { href: "/dashboard/clientes",      label: "Clientes",      icon: Users              },
   { href: "/dashboard/validar",       label: "Validar",       icon: ScanLine           },
   { href: "/dashboard/totem",         label: "Totem",         icon: MonitorSmartphone  },
   { href: "/dashboard/impressao",     label: "Impressão",     icon: Printer            },

@@ -287,6 +287,32 @@ export default function LandingPage() {
     return () => clearInterval(id)
   }, [])
 
+  const [loadingKit, setLoadingKit]   = useState<string | null>(null)
+  const [pedidoOk,   setPedidoOk]     = useState(false)
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.search.includes("pedido=sucesso")) {
+      setPedidoOk(true)
+    }
+  }, [])
+
+  async function handlePedido(priceId: string) {
+    setLoadingKit(priceId)
+    try {
+      const res  = await fetch("/api/checkout-produto", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ priceId }),
+      })
+      const data = await res.json() as { url?: string; error?: string }
+      if (data.url) window.location.href = data.url
+      else          alert(data.error ?? "Erro ao iniciar pagamento")
+    } catch {
+      alert("Erro de conexão. Tente novamente.")
+    } finally {
+      setLoadingKit(null)
+    }
+  }
+
   const features = [
     { icon: Key,       title: "Chaves que não se repetem",      desc: "Cada código gerado é único no planeta. Sem duplicata, sem reuso. Seu cliente sabe que a cortesia é exclusiva — e isso vale mais do que qualquer desconto genérico." },
     { icon: QrCode,    title: "Página de resgate com sua marca", desc: "Não é uma tela fria. É uma experiência bonita, com seu logo e identidade, no celular do cliente. O momento do resgate vira memória da sua loja." },
@@ -299,26 +325,53 @@ export default function LandingPage() {
   const plans = [
     {
       name: "Essencial",
-      price: "R$ 79,90",
-      period: "/mês",
-      desc: "Imprima por conta",
+      price: "Grátis",
+      period: "",
+      desc: "Para começar",
       highlight: false,
-      features: ["3 campanhas ativas", "100 chaves/mês para imprimir", "PDF otimizado para impressão", "QR Code personalizado", "Página de resgate"],
+      cta: "Criar conta grátis",
+      href: "/register",
+      features: [
+        "1 campanha ativa",
+        "Até 500 chaves/mês",
+        "QR Codes básicos",
+        "Dashboard de resgates",
+      ],
     },
     {
       name: "Profissional",
-      price: "R$ 159,90",
+      price: "R$ 99",
       period: "/mês",
       desc: "Mais popular",
       highlight: true,
-      features: ["Campanhas ilimitadas", "5.000 chaves/mês para imprimir", "Layout de card personalizável", "Analytics avançado por campanha", "Múltiplos operadores", "Exportação para qualquer gráfica"],
+      cta: "Começar 14 dias grátis",
+      href: "/register?plano=PROFISSIONAL",
+      features: [
+        "Campanhas ilimitadas",
+        "Chaves ilimitadas",
+        "Layout personalizado",
+        "Relatórios avançados",
+        "Migração de chaves",
+        "Totem de resgate",
+        "Suporte prioritário",
+      ],
     },
     {
       name: "Empresarial",
-      price: "Consulte",
-      desc: "Para grandes redes",
+      price: "R$ 199",
+      period: "/mês",
+      desc: "Para redes e franquias",
       highlight: false,
-      features: ["White label completo", "API para integração", "Multi-unidades", "SLA dedicado", "Onboarding presencial"],
+      cta: "Falar com a equipe",
+      href: "/register?plano=EMPRESARIAL",
+      features: [
+        "Tudo do Profissional",
+        "Multi-unidades",
+        "API de integração",
+        "White label completo",
+        "SLA dedicado",
+        "Onboarding presencial",
+      ],
     },
   ]
 
@@ -331,35 +384,32 @@ export default function LandingPage() {
       unitPrice: "R$ 0,50",
       accentColor: "#10b981",
       kits: [
-        { label: "Kit 100 peças",  price: "R$ 49,90" },
-        { label: "Kit 250 peças",  price: "R$ 109,90" },
-        { label: "Kit 500 peças",  price: "R$ 199,90" },
+        { label: "Kit 50 peças",  price: "R$ 29,90",  priceId: "price_1TWRj8ADOPgqdFscOo8TXt9E" },
+        { label: "Kit 100 peças", price: "R$ 49,90",  priceId: "price_1TWPygADOPgqdFscrSl0Zv33" },
       ],
     },
     {
-      tier: "Intermediária",
+      tier: "Intermediária — Plataforma inclusa",
       icon: Key,
       name: "MDF Chaveiro 7×3,5cm",
       desc: "Brinde funcional que o cliente guarda no chaveiro. Alta recorrência em campanhas sazonais.",
       unitPrice: "R$ 2,50",
       accentColor: "#f59e0b",
       kits: [
-        { label: "Kit 10 peças",   price: "R$ 25,00" },
-        { label: "Kit 50 peças",   price: "R$ 125,00" },
-        { label: "Kit 100 peças",  price: "R$ 250,00" },
+        { label: "Kit 10 peças",  price: "R$ 25,00",  priceId: "price_1TWSdeADOPgqdFscWnQROXy0" },
+        { label: "Kit 100 peças", price: "R$ 250,00", priceId: "price_1TWSePADOPgqdFscUBGuY1fW" },
       ],
     },
     {
-      tier: "Premium",
+      tier: "Premium — Plataforma inclusa",
       icon: Sparkles,
       name: "MDF Quadrado 9×9cm",
       desc: "Peça sublimada decorativa. Campanhas especiais, lançamentos, presentes — sua marca em destaque.",
       unitPrice: "R$ 4,40",
       accentColor: "#a78bfa",
       kits: [
-        { label: "Kit 10 peças",   price: "R$ 44,00" },
-        { label: "Kit 25 peças",   price: "R$ 110,00" },
-        { label: "Kit 50 peças",   price: "R$ 220,00" },
+        { label: "Kit 10 peças",  price: "R$ 44,00",  priceId: "price_1TWSflADOPgqdFscqsvC4ixr" },
+        { label: "Kit 50 peças",  price: "R$ 220,00", priceId: "price_1TWShDADOPgqdFscroWKHG7t" },
       ],
     },
   ]
@@ -378,6 +428,16 @@ export default function LandingPage() {
       </div>
 
       <Navbar />
+
+      {/* Banner de pedido confirmado */}
+      {pedidoOk && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-3 rounded-2xl text-sm font-semibold shadow-xl"
+          style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.4)", color: "#10b981", backdropFilter: "blur(12px)" }}>
+          <CheckCircle2 className="w-4 h-4" />
+          Pedido realizado! Entraremos em contato em breve.
+          <button onClick={() => setPedidoOk(false)} className="ml-2 opacity-60 hover:opacity-100">✕</button>
+        </div>
+      )}
 
       {/* ═══ HERO ═══════════════════════════════════════════════ */}
       <section className="relative min-h-[100dvh] flex items-center overflow-hidden">
@@ -790,28 +850,39 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                {/* Kits */}
-                <div className="space-y-2.5 mb-7">
-                  {mat.kits.map((k) => (
-                    <div key={k.label} className="flex items-center justify-between">
-                      <span className="text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>{k.label}</span>
-                      <span className="text-sm font-semibold text-white">{k.price}</span>
-                    </div>
-                  ))}
+                {/* Kits com botão de compra */}
+                <div className="space-y-2 mb-2">
+                  {mat.kits.map((k) => {
+                    const isLoading = loadingKit === k.priceId
+                    return (
+                      <button
+                        key={k.label}
+                        onClick={() => handlePedido(k.priceId)}
+                        disabled={!!loadingKit}
+                        className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all hover:scale-[1.01] active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                        style={{
+                          background: `${mat.accentColor}10`,
+                          border: `1px solid ${mat.accentColor}28`,
+                        }}
+                      >
+                        <span className="text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>{k.label}</span>
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-sm font-bold text-white">{k.price}</span>
+                          <span
+                            className="text-xs font-semibold px-2.5 py-1 rounded-lg transition-colors"
+                            style={{
+                              background: isLoading ? `${mat.accentColor}20` : `${mat.accentColor}18`,
+                              color: mat.accentColor,
+                              border: `1px solid ${mat.accentColor}30`,
+                            }}
+                          >
+                            {isLoading ? "…" : "Pedir →"}
+                          </span>
+                        </div>
+                      </button>
+                    )
+                  })}
                 </div>
-
-                {/* CTA */}
-                <Link
-                  href="/register"
-                  className="block text-center text-sm font-semibold py-3 rounded-xl transition-all hover:scale-[1.02] active:scale-95"
-                  style={{
-                    background: `${mat.accentColor}14`,
-                    color: mat.accentColor,
-                    border: `1px solid ${mat.accentColor}30`,
-                  }}
-                >
-                  Solicitar pedido
-                </Link>
               </motion.div>
             ))}
           </div>
@@ -926,14 +997,14 @@ export default function LandingPage() {
                   ))}
                 </ul>
                 <Link
-                  href="/register"
+                  href={plan.href}
                   className="block text-center text-sm font-semibold py-3 rounded-xl transition-all hover:scale-[1.02] active:scale-95"
                   style={plan.highlight
                     ? { background: "linear-gradient(135deg, #10b981, #059669)", color: "#000", boxShadow: "0 0 20px rgba(16,185,129,0.3)" }
                     : { background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.8)", border: "1px solid rgba(255,255,255,0.1)" }
                   }
                 >
-                  {plan.highlight ? "Assinar agora" : "Começar"}
+                  {plan.cta}
                 </Link>
               </motion.div>
             ))}
