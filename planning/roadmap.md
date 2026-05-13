@@ -6,85 +6,93 @@ Tornar o Courtesyfy a plataforma de referência para gestão de campanhas promoc
 
 ---
 
-## MVP (v1.0.0 — Em desenvolvimento, maio 2026)
+## MVP (v1.0.0 — Concluído, Maio 2026)
 
-### P0 — Essenciais para o MVP
+### P0 — Essenciais para o MVP ✅ TODOS ENTREGUES
 
 **Infraestrutura:**
-- [x] Autenticação (email, Google, GitHub) — herdado do Basemedical
+- [x] Autenticação (email, Google)
 - [x] Verificação de email
-- [x] Limpar código do domínio médico (Basemedical)
-- [ ] Novo schema Prisma para o domínio Courtesyfy
+- [x] Schema Prisma para o domínio Courtesyfy
 
 **Loja:**
-- [ ] Cadastro de loja com dados básicos e logo
-- [ ] Cadastro de usuários operadores da loja
-- [ ] Configuração de identidade visual (cor primária, logo)
+- [x] Cadastro de loja com dados básicos e logo
+- [x] Planos: Essencial / Profissional / Empresarial
+- [x] Cobrança via Stripe (assinatura mensal)
+- [x] Webhook Stripe (ativar/suspender assinatura)
 
 **Campanhas:**
-- [ ] Criação de campanha (nome, tipo de benefício, validade, quantidade de chaves)
-- [ ] Tipos: desconto percentual, desconto fixo, brinde, sorteio, frete grátis, cashback
-- [ ] Listagem e gestão de campanhas
+- [x] Criação de campanha (nome, tipo de benefício, validade, quantidade)
+- [x] Tipos: desconto percentual, desconto fixo, brinde, sorteio, frete grátis, cashback
+- [x] Listagem e gestão de campanhas com indicadores de vigência
+- [x] Migração de chaves entre campanhas
 
 **Chaves:**
-- [ ] Geração de lote de chaves únicas (formato `XXXX-XXXX-XXXX-XXXX`)
-- [ ] Geração de QR Code por chave apontando para `/c/[codigo]`
-- [ ] Exportação para impressão em A4
-- [ ] Exportação CSV com chaves e URLs
+- [x] Geração de lote de chaves únicas (`XXXX-XXXX-XXXX-XXXX`)
+- [x] QR Code por chave apontando para `/c/[codigo]`
+- [x] Exportação para impressão em A4 e CSV
 
 **Landing page pública:**
-- [ ] Página `/c/[codigo]` com identidade visual da loja
-- [ ] Exibição do benefício, regras e validade
-- [ ] Formulário de ativação (coleta tel/email do cliente)
+- [x] Página `/c/[codigo]` com identidade visual da campanha/loja
+- [x] Formulário de ativação (coleta tel/email do cliente)
+- [x] Email de confirmação ao cliente (Resend)
 
 **Validação e Resgate:**
-- [ ] Tela de validação rápida para operador (digitar ou escanear QR)
-- [ ] Ciclo completo: GERADA → ATIVADA → RESGATADA
-- [ ] Histórico de resgates com data, hora e operador
+- [x] Tela de validação rápida para operador
+- [x] Ciclo completo: GERADA → ATIVADA → RESGATADA
+- [x] Modo totem para auto-atendimento
+- [x] Histórico de resgates
 
-**Sistema:**
-- [ ] Transições de status da chave
-- [ ] Logs de eventos em todas as ações relevantes
-- [ ] API pública `/api/chaves/validar` para QR externos
+**Clientes:**
+- [x] Listagem de clientes com busca
+- [x] Detalhe do cliente com histórico de chaves
 
----
+**Produtos físicos:**
+- [x] Kits de impressão (Offset, Chaveiro MDF, Quadrado MDF)
+- [x] Checkout público sem autenticação
+- [x] Landing page com CTAs conectados ao Stripe
 
-## P1 — Logo após o MVP (Q3 2026)
-
-- [ ] Dashboard com métricas por campanha (taxa de ativação, conversão)
-- [ ] Filtros por status, campanha, período e lote
-- [ ] Cancelamento manual de chaves pelo lojista
-- [ ] Expiração automática via cron job (`/api/cron/expirar-chaves`)
-- [ ] Landing page personalizada com logo e cores da loja
-- [ ] Layouts de impressão para adesivo, cartão e etiqueta
-- [ ] Importação e exportação CSV de lotes de chaves
-- [ ] Painel super admin da plataforma
+**Super Admin:**
+- [x] Painel Stripe com MRR, assinantes, renovações, eventos
+- [x] Gerenciamento de produtos/preços Stripe no dashboard
 
 ---
 
-## P2 — Expansão comercial (Q4 2026+)
+## P1 — Pós-MVP (Q3 2026)
+
+- [ ] **API pública `/api/chaves/validar`** — endpoint REST com API Key para PDV/totem externo
+- [ ] **Cron de expiração automática** — `GET /api/cron/expirar-chaves` via Vercel Cron
+- [ ] **Dashboard com gráficos** — taxa de ativação, conversão, chaves por campanha (Recharts)
+- [ ] **Cancelamento manual de chaves** em lote pelo lojista
+- [ ] **Portal do cliente Stripe** — lojista gerencia própria assinatura (upgrade/downgrade/cancelar)
+- [ ] **Layouts de impressão** adicionais (adesivo, etiqueta, cartão de visita)
+- [ ] **Filtros avançados** por status, campanha, período e lote nas listagens
+
+---
+
+## P2 — Expansão Comercial (Q4 2026+)
 
 - [ ] White-label por loja (domínio customizado)
 - [ ] Múltiplos benefícios por campanha
-- [ ] API para integração com ecommerce e PDV
+- [ ] API de integração com ecommerce e PDV
 - [ ] Sorteio automatizado no fechamento do período
-- [ ] Área do cliente com histórico de chaves
 - [ ] Regras avançadas (produto, categoria, valor mínimo, período)
 - [ ] Multi-unidade e franquias
-- [ ] Cobrança recorrente por plano (Stripe)
-- [ ] App mobile para operadores
+- [ ] App mobile para operadores (PWA ou React Native)
+- [ ] LGPD — export/delete de dados do cliente
 
 ---
 
 ## KPIs a Monitorar
 
-- Número de lojas cadastradas
+- Número de lojas cadastradas e ativas (com assinatura paga)
+- MRR (receita recorrente mensal)
 - Campanhas ativas no período
 - Taxa de ativação: chaves ativadas / geradas
 - Taxa de conversão: chaves resgatadas / ativadas
 - Churn de assinaturas
-- NPS dos lojistas
+- Volume de kits físicos vendidos
 
 ---
 
-*Criado em: 2026-05-02 | Migrado de Basemedical para Courtesyfy*
+*Atualizado em: 2026-05-13*

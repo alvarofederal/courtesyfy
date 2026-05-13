@@ -1,11 +1,11 @@
-# Basemedical - Conhecimento das APIs
+# Courtesyfy — Conhecimento das APIs
 
 ## Arquitetura de API
 
-O Basemedical usa dois padrões de comunicação servidor-cliente:
+O Courtesyfy usa dois padrões de comunicação servidor-cliente:
 
-1. **Server Actions** → para mutações internas (formulários, CRUD)
-2. **API Routes** (`/api/*`) → para integrações externas e webhooks
+1. **Server Actions** → para mutações internas (formulários, CRUD do dashboard)
+2. **API Routes** (`/api/*`) → para integrações externas, webhooks e endpoints públicos
 
 ---
 
@@ -14,123 +14,137 @@ O Basemedical usa dois padrões de comunicação servidor-cliente:
 ### Autenticação
 | Endpoint | Método | Descrição |
 |----------|--------|-----------|
-| `/api/auth/[...nextauth]` | GET/POST | Handlers NextAuth (OAuth, signin, signout) |
+| `/api/auth/[...nextauth]` | GET/POST | Handlers NextAuth (OAuth Google, signin, signout) |
+| `/api/register` | POST | Registro de novo lojista |
 | `/api/verify-email` | POST | Verificação de email com token |
-| `/api/resend-verification` | POST | Reenviar email de verificação |
-| `/api/register` | POST | Registro de novo usuário |
 
-### Perfil e Profissionais
-| Endpoint | Método | Descrição |
-|----------|--------|-----------|
-| `/api/profile` | GET/PATCH | Perfil do usuário autenticado |
-| `/api/profissional/[id]` | GET | Dados públicos de profissional |
-| `/api/search` | GET | Busca de profissionais |
-| `/api/upload` | POST | Upload de imagem (Cloudinary) |
-| `/api/image` | GET | Servir imagem |
+### Chaves e Validação
+| Endpoint | Método | Auth | Descrição |
+|----------|--------|------|-----------|
+| `/api/chaves/validar` | POST | API Key | Validação pública via QR/código — **a implementar** |
+| `/api/cron/expirar-chaves` | GET | CRON_SECRET | Expiração automática de chaves — **a implementar** |
 
-### Agenda e Agendamentos
-| Endpoint | Método | Descrição |
-|----------|--------|-----------|
-| `/api/schedule` | GET | Listar disponibilidade |
-| `/api/schedule/slots` | POST | Criar slots disponíveis |
-| `/api/schedule/[id]` | PATCH/DELETE | Editar/remover slot |
-| `/api/appointments` | GET/POST | Listar/criar agendamentos |
+### Stripe e Pagamentos
+| Endpoint | Método | Auth | Descrição |
+|----------|--------|------|-----------|
+| `/api/checkout-produto` | POST | Nenhuma (allowlist) | Checkout público de kits físicos |
+| `/api/webhook` | POST | Stripe signature | Sincroniza assinaturas após eventos Stripe |
 
-### Planos e Assinaturas
-| Endpoint | Método | Descrição |
-|----------|--------|-----------|
-| `/api/plans` | GET | Listar planos disponíveis |
-| `/api/webhook` | POST | Webhook do Stripe (pagamentos) |
-| `/api/webhook/whatsapp` | POST | Webhook do Twilio (WhatsApp) |
+#### `/api/checkout-produto`
+Permite que qualquer visitante da landing page compre kits de impressão sem estar logado.
+Valida o `priceId` contra uma allowlist de IDs configurados no `.env` antes de criar a sessão.
 
-### Conteúdo e Features
-| Endpoint | Método | Descrição |
-|----------|--------|-----------|
-| `/api/reviews` | GET/POST | Reviews de profissional |
-| `/api/reviews/[id]` | PATCH/DELETE | Moderar review |
-| `/api/landing-page` | GET/PATCH | Customização de landing page |
-| `/api/waitlist/add` | POST | Adicionar à waitlist |
-| `/api/send` | POST | Envio de email/notificação |
+```typescript
+// Body
+{ priceId: string }
 
-### Administração
-| Endpoint | Método | Descrição |
-|----------|--------|-----------|
-| `/api/admin/courtesies/search` | GET | Buscar usuários para conceder cortesia (admin) |
-| `/api/users` | GET | Listar usuários (admin) |
-| `/api/users/[id]` | GET/PATCH/DELETE | Gerenciar usuário (admin) |
-| `/api/professions` | GET/POST | Gerenciar profissões |
-| `/api/specialty` | GET/POST | Gerenciar especialidades |
-| `/api/type-services` | GET/POST | Gerenciar tipos de serviço |
-| `/api/onboarding` | POST | Completar onboarding |
-| `/api/reports` | GET | Dados de relatórios *(a criar)* |
-| `/api/revalidate` | POST | Revalidar cache Next.js |
+// Resposta sucesso
+{ url: string }  // URL do Stripe Checkout
+
+// Resposta erro
+{ error: string }
+```
+
+**Price IDs permitidos:** todos os 6 kits definidos em `STRIPE_PRICE_*` no `.env`.
+
+### Upload
+| Endpoint | Método | Auth | Descrição |
+|----------|--------|------|-----------|
+| `/api/upload` | POST | Sessão | Upload de imagem para Cloudinary (logos de loja) |
 
 ---
 
-## Integrações Externas
+## Server Actions — Padrão
 
-### Stripe
-**Config:** `src/utils/stripe.ts`, `src/utils/stripe-config.ts`
-**Webhook:** `/api/webhook`
-
-Eventos tratados no webhook:
-- `customer.subscription.created`
-- `customer.subscription.updated`
-- `customer.subscription.deleted`
-- `invoice.payment_succeeded`
-- `invoice.payment_failed`
-
-**Como verificar assinatura:**
 ```typescript
-import Stripe from 'stripe'
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+"use server"
+
+import { auth } from "@/lib/auth"
+import { db } from "@/lib/prisma"
+import { z } from "zod"
+import { revalidatePath } from "next/cache"
+
+const Schema = z.object({ campo: z.string().min(1) })
+
+export async function minhaAction(data: unknown) {
+  const session = await auth()
+  if (!session?.user?.lojaId) return { error: "Não autorizado" }
+
+  const parsed = Schema.safeParse(data)
+  if (!parsed.success) return { error: "Dados inválidos" }
+
+  // verificar permissão de plano se necessário
+  // await verificarLimitePlano(session.user.lojaId, "campanhas")
+
+  await db.model.create({
+    data: { ...parsed.data, lojaId: session.user.lojaId },
+  })
+
+  revalidatePath("/dashboard/feature")
+  return { ok: true }
+}
 ```
 
-**Preços dos planos (configurado no Stripe Dashboard):**
-- FREE: gratuito
-- PROFESSIONAL: valor mensal (configurado no Stripe)
-
-### Resend (Email)
-**Config:** `src/lib/email.ts`
-**Templates:** `src/components/emails/`
+### Server Actions admin (Super Admin)
 
 ```typescript
-import { sendEmail } from "@/lib/email"
+"use server"
 
-await sendEmail({
-  to: "user@example.com",
-  subject: "Assunto",
-  react: <EmailTemplate ... />
-})
-```
+import { auth } from "@/lib/auth"
 
-### Twilio (SMS/WhatsApp)
-**Config:** `src/lib/whatsapp.ts`
-**Webhook:** `/api/webhook/whatsapp`
+async function assertAdmin() {
+  const session = await auth()
+  if (session?.user?.role !== "SUPER_ADMIN") throw new Error("Não autorizado")
+}
 
-```typescript
-import { sendWhatsApp } from "@/lib/whatsapp"
-
-await sendWhatsApp({
-  to: "+5511999999999",
-  message: "Sua consulta é amanhã às 10h"
-})
-```
-
-### Cloudinary (Upload)
-**Uso:** Via API Route `/api/upload`
-
-```typescript
-// Client-side: enviar FormData para /api/upload
-const formData = new FormData()
-formData.append('file', file)
-const res = await fetch('/api/upload', { method: 'POST', body: formData })
-const { url } = await res.json()
+export async function acaoAdmin(...) {
+  await assertAdmin()
+  // ...
+}
 ```
 
 ---
 
-## Padrão de Response das API Routes
+## Stripe — Actions de Admin
+
+Localizadas em `src/app/(panel)/dashboard/admin/stripe/produtos/_actions.ts`:
+
+| Action | O que faz |
+|--------|-----------|
+| `atualizarProduto(id, { nome, descricao })` | Atualiza nome/descrição no Stripe |
+| `arquivarProduto(id)` | Define `active: false` no produto |
+| `atualizarNicknamePreco(priceId, nickname)` | Atualiza nickname do preço |
+| `arquivarPreco(priceId)` | Define `active: false` no preço |
+| `criarPreco(produtoId, { amount, currency, recurring, interval, nickname })` | Cria novo preço (retorna `priceId`) |
+| `criarProduto({ nome, descricao })` | Cria novo produto (retorna `produtoId`) |
+
+> ⚠️ **Preços Stripe são imutáveis para valor** — só nickname pode ser editado.
+> Para mudar valor: arquivar o preço antigo e criar um novo.
+
+---
+
+## Webhook Stripe
+
+**Rota:** `POST /api/webhook`
+**Segurança:** Verifica assinatura com `STRIPE_SECRET_WEBHOOK_KEY`
+
+Eventos tratados:
+| Evento | Ação |
+|--------|------|
+| `checkout.session.completed` | Ativa plano após pagamento de assinatura ou produto |
+| `customer.subscription.updated` | Atualiza plano da loja |
+| `customer.subscription.deleted` | Suspende loja (plano → ESSENCIAL ou `status: SUSPENSO`) |
+| `invoice.payment_succeeded` | Renova assinatura ativa |
+| `invoice.payment_failed` | Marca pagamento pendente |
+
+**Teste local:**
+```bash
+stripe listen --api-key sk_test_51TWPs2... --forward-to localhost:3000/api/webhook
+```
+
+---
+
+## Padrão de Resposta das API Routes
 
 ```typescript
 // Sucesso
@@ -151,50 +165,53 @@ return NextResponse.json({ error: "Erro interno" }, { status: 500 })
 
 ---
 
-## Autenticação nas API Routes
+## Integrações Externas
+
+### Stripe
+**Config:** `src/lib/stripe.ts`
 
 ```typescript
-import { auth } from "@/lib/auth"
+import { stripe } from "@/lib/stripe"
 
-export async function GET(request: Request) {
-  const session = await auth()
-  if (!session?.user) {
-    return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
-  }
+// Exemplos
+await stripe.products.list({ active: true, limit: 50 })
+await stripe.prices.list({ product: prodId, active: true })
+await stripe.checkout.sessions.create({ mode: "payment", ... })
+```
 
-  const userId = session.user.id
-  // ...
-}
+### Resend (Email)
+**Config:** `src/lib/email.ts` (ou similar)
+
+```typescript
+import { Resend } from "resend"
+const resend = new Resend(process.env.RESEND_API_KEY)
+
+await resend.emails.send({
+  from: "noreply@courtesyfy.com",
+  to: cliente.email,
+  subject: "Sua cortesia foi ativada!",
+  react: <EmailTemplate ... />,
+})
+```
+
+### Cloudinary (Upload)
+```typescript
+// Enviar FormData para /api/upload
+const formData = new FormData()
+formData.append("file", file)
+const { url } = await fetch("/api/upload", { method: "POST", body: formData }).then(r => r.json())
+```
+
+### Twilio (WhatsApp)
+```typescript
+import { sendWhatsApp } from "@/lib/whatsapp"
+
+await sendWhatsApp({
+  to: "+5511999999999",
+  message: "Sua cortesia foi ativada com sucesso!",
+})
 ```
 
 ---
 
-## Server Actions - Padrão
-
-```typescript
-"use server"
-
-import { auth } from "@/lib/auth"
-import { db } from "@/lib/prisma"
-import { z } from "zod"
-import { revalidatePath } from "next/cache"
-
-const Schema = z.object({ ... })
-
-export async function action(formData: FormData) {
-  const session = await auth()
-  if (!session?.user) return { error: "Não autorizado" }
-
-  const parsed = Schema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) return { error: parsed.error.flatten() }
-
-  await db.model.create({ data: { ...parsed.data, userId: session.user.id } })
-  revalidatePath("/dashboard/feature")
-
-  return { success: true }
-}
-```
-
----
-
-*Atualizado em: 2026-03-10*
+*Atualizado em: 2026-05-13*

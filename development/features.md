@@ -1,75 +1,95 @@
-# Courtesyfy - Features em Desenvolvimento
+# Courtesyfy — Features em Desenvolvimento
 
 ## Como usar este arquivo
 
 Liste aqui as features que estão **ativamente em desenvolvimento**.
-Quando concluir, mova o item para `releases.md` ou archive.
+Quando concluir, mova o item para `releases.md`.
 
 ---
 
 ## 🔴 Em Andamento
-
-### Stripe / Cobrança
-**Início:** —
-**Prioridade:** Alta
-
-**Contexto:**
-Integrar Stripe para cobrança recorrente dos lojistas. Sem isso não há receita.
-
-**Progresso:**
-- [ ] Definir planos e preços (ESSENCIAL / PROFISSIONAL / EMPRESARIAL)
-- [ ] Criar produtos e preços no Stripe Dashboard
-- [ ] Checkout via Stripe (novo lojista)
-- [ ] Webhook para ativar/bloquear conta após pagamento
-- [ ] Portal do cliente (gerenciar assinatura)
-- [ ] Bloquear features por plano (limites de campanha, chaves etc.)
-
----
 
 ### API pública `/api/chaves/validar`
 **Início:** —
 **Prioridade:** Alta
 
 **Contexto:**
-Endpoint REST para lojistas que têm totem ou PDV próprio integrarem a validação de chaves sem usar o dashboard.
+Endpoint REST para lojistas que têm totem ou PDV próprio integrarem a validação de chaves
+sem usar o dashboard do Courtesyfy.
 
 **Progresso:**
 - [ ] `POST /api/chaves/validar` — recebe código, retorna status + benefício
 - [ ] Autenticação via API Key da loja
 - [ ] Rate limiting por loja
-- [ ] Documentação básica
+- [ ] Documentação básica do endpoint
+
+---
+
+### Expiração automática de chaves (cron)
+**Início:** —
+**Prioridade:** Alta
+
+**Contexto:**
+Chaves de campanhas encerradas devem mudar automaticamente para status EXPIRADA.
+Hoje depende de ação manual ou trigger no acesso.
+
+**Progresso:**
+- [ ] `GET /api/cron/expirar-chaves` — atualiza chaves GERADA/ATIVADA de campanhas vencidas
+- [ ] Proteger endpoint com `CRON_SECRET` no header
+- [ ] Configurar Vercel Cron Job (diário, madrugada)
 
 ---
 
 ## ✅ Concluídas Recentemente
 
+### Gerenciamento de produtos Stripe no dashboard
+**Concluído:** Maio 2026
+**Descrição:** Tela `/dashboard/admin/stripe/produtos` permite editar nome/descrição de produtos,
+editar nickname de preços, arquivar preço/produto e criar novos — tudo via Stripe API sem sair do Courtesyfy.
+**Arquivos:** `src/app/(panel)/dashboard/admin/stripe/produtos/`
+
+### Tela de Clientes
+**Concluído:** Maio 2026
+**Descrição:** Lista de clientes com busca por nome/email/telefone e detalhe por cliente
+com histórico completo de chaves, stats e campanhas participadas.
+**Arquivos:** `src/app/(panel)/dashboard/clientes/`
+
+### Produtos físicos (kits de impressão) + landing page CTAs
+**Concluído:** Maio 2026
+**Descrição:** 3 linhas de produtos físicos (Offset, Chaveiro, Quadrado) com 6 price IDs no Stripe.
+Checkout público via `/api/checkout-produto` com allowlist. Landing page com preços e botões de compra.
+**Arquivos:** `src/app/api/checkout-produto/route.ts`, `src/app/page.tsx`
+
+### Admin Stripe expandido
+**Concluído:** Maio 2026
+**Descrição:** Painel Stripe com MRR calculado por plano, renovações nos próximos 7 dias,
+lojas suspensas, lista completa de assinantes (até 100) e histórico de eventos.
+**Arquivos:** `src/app/(panel)/dashboard/admin/stripe/page.tsx`
+
+### Stripe — nova conta Courtesyfy
+**Concluído:** Maio 2026
+**Descrição:** Migração para conta `acct_1TWPs2ADOPgqdFsc`. Planos Profissional (R$99) e Empresarial (R$199)
+criados. Webhook configurado. Todos os price IDs no `.env`.
+
 ### Email de confirmação ao cliente na ativação
 **Concluído:** Maio 2026
-**Descrição:** Ao ativar uma chave, se o cliente informou e-mail, dispara email com código, benefício, validade e instruções de resgate. Fire-and-forget — falha não bloqueia ativação.
+**Descrição:** Ao ativar uma chave, dispara email com código, benefício, validade e instruções. Fire-and-forget.
 
 ### Página /c/[codigo] com layout da campanha
 **Concluído:** Maio 2026
-**Descrição:** A página pública de resgate agora carrega o layout vinculado à campanha (cores, imagem de fundo, estilo, raio dos cards). Fallback: layout padrão da loja → cores da loja.
+**Descrição:** A página pública carrega o layout vinculado à campanha (cores, imagem, estilo).
 
 ### Migração de chaves entre campanhas
 **Concluído:** Maio 2026
-**Descrição:** Lojista pode migrar chaves não resgatadas de campanhas expiradas/encerradas para campanhas ativas. QR Codes físicos continuam funcionando.
+**Descrição:** Lojista pode migrar chaves não resgatadas para campanhas ativas.
 
 ### Vigência de campanhas + trava de geração
 **Concluído:** Maio 2026
-**Descrição:** Indicadores visuais de campanha expirada/expirando nas listas. Bloqueio de geração de chaves para campanhas expiradas.
-
-### Datas de criação e validade nas listas de chaves
-**Concluído:** Maio 2026
-**Descrição:** Coluna de data de criação e indicador de validade (com cores) nas listas de lotes e chaves.
-
-### Página /resgatar — digitação + scanner QR
-**Concluído:** Maio 2026
-**Descrição:** Página pública para o cliente digitar ou escanear um QR Code e ser redirecionado para a página da chave.
+**Descrição:** Indicadores visuais de campanha expirada. Bloqueio de geração para campanhas expiradas.
 
 ### Dark mode completo + separação admin vs lojista
 **Concluído:** Maio 2026
-**Descrição:** Design system com tokens dark mode em todas as páginas. Configurações do admin separadas das configurações da loja.
+**Descrição:** Design system com tokens dark mode em todas as páginas.
 
 ---
 
@@ -79,24 +99,4 @@ Endpoint REST para lojistas que têm totem ou PDV próprio integrarem a validaç
 
 ---
 
-## Padrão para adicionar nova feature
-
-```markdown
-### Nome da Feature
-**Início:** [data]
-**Prioridade:** Alta/Média/Baixa
-
-**Contexto:**
-[Descrição do problema que resolve e por que é necessária]
-
-**Progresso:**
-- [ ] Item 1
-- [ ] Item 2
-
-**Arquivos relevantes:**
-- [lista de arquivos]
-```
-
----
-
-*Atualizado em: 2026-05-12*
+*Atualizado em: 2026-05-13*

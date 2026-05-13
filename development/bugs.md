@@ -1,68 +1,62 @@
-# Courtesyfy - Bugs e Issues
+# Courtesyfy — Bugs e Issues
 
 ## Como usar este arquivo
 
-Registre bugs conhecidos aqui com contexto suficiente para reproduced e corrigido.
-Formato de severidade: 🔴 Crítico (quebra funcionalidade) | 🟠 Alto (impacta UX) | 🟡 Médio | 🟢 Baixo
+Registre bugs conhecidos aqui com contexto suficiente para reproduzir e corrigir.
+Severidade: 🔴 Crítico (quebra funcionalidade) | 🟠 Alto (impacta UX) | 🟡 Médio | 🟢 Baixo
 
 ---
 
 ## Bugs Ativos
 
-*Registre bugs aqui quando identificados*
+*Nenhum bug crítico registrado no momento.*
 
-### Template para registro de bug:
+---
+
+## Issues de Performance Conhecidas
+
+- Potencial N+1 em queries de listagem de chaves (monitorar com crescimento)
+- Falta de cache (ISR) nas páginas públicas `/c/[codigo]`
+
+---
+
+## Issues de UX Conhecidas
+
+- Mobile: algumas telas do dashboard ainda não estão totalmente otimizadas
+- Formulários longos sem auto-save (dados perdidos se página fechar)
+
+---
+
+## Template para registrar novo bug
 
 ```markdown
 ### [ID] Nome do Bug
 **Severidade:** 🔴/🟠/🟡/🟢
 **Status:** Identificado / Em análise / Em correção / Aguardando validação
-**Data:** [data de identificação]
+**Data:** [data]
 
 **Descrição:**
 [O que está acontecendo de errado]
 
 **Como reproduzir:**
 1. Passo 1
-2. Passo 2
-3. Resultado observado
-4. Resultado esperado
-
-**Ambiente:**
-- Browser/device onde ocorre
-- Dados necessários para reproduzir
+2. Resultado observado vs esperado
 
 **Arquivos suspeitos:**
-- [caminhos dos arquivos]
-
-**Possível causa:**
-[Hipótese sobre a causa]
+- [caminhos]
 ```
 
 ---
 
 ## Bugs Resolvidos
 
-### Confeti - Tempo de explosão
-**Severidade:** 🟢
-**Resolvido em:** v1.0.2 (Março 2026)
-**Descrição:** O confeti estava disparando no tempo errado após ação de sucesso.
-**Correção:** Ajuste no timeout/delay da animação.
+### Role SUPER_ADMIN na tela de produtos Stripe
+**Severidade:** 🔴
+**Resolvido em:** Maio 2026
+**Descrição:** Página `/dashboard/admin/stripe/produtos` usava `"ADMIN"` para verificar permissão,
+causando redirect para `/dashboard` (lista de lojas) para o super admin.
+**Correção:** Trocado para `"SUPER_ADMIN"` em `page.tsx` e `_actions.ts`.
 
 ---
 
-## Issues de Performance Conhecidas
-
-- Potencial N+1 em queries de listagem (não crítico ainda, monitorar com crescimento)
-- Falta de cache nas páginas públicas de profissionais (ISR ainda não configurado)
-
----
-
-## Issues de UX Conhecidas
-
-- Mobile: algumas telas do dashboard não estão totalmente otimizadas para mobile
-- Formulários longos sem auto-save (dados perdidos se página fechar acidentalmente)
-
----
-
-*Atualizado em: 2026-03-10*
+*Atualizado em: 2026-05-13*
