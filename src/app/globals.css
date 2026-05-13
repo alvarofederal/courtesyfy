@@ -271,6 +271,20 @@
 .dark label { color: rgba(255,255,255,0.70); }
 .dark h2:not(.no-dark) { color: #fff; }
 
+/* ── Select options — garante visibilidade em qualquer modo ── */
+/* Sem essa regra, <option> herda color:#fff do .dark select e fica invisível
+   no dropdown (texto branco sobre fundo branco do sistema operacional).    */
+select option,
+select optgroup {
+  background-color: #ffffff;
+  color: #111827;
+}
+.dark select option,
+.dark select optgroup {
+  background-color: #0d1a10;
+  color: #f0f0f0;
+}
+
 .scroll-text {
   animation: marquee 10s linear infinite;
   white-space: nowrap; /* Para que o texto não quebre em várias linhas */
