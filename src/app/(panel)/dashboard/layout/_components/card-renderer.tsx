@@ -8,7 +8,8 @@ import { QRCodeSVG } from "qrcode.react"
 
 export type TamanhoCard  = "MINI" | "CARTAO" | "PADRAO" | "COUPON" | "VOUCHER" | "MEIO_A4" | "MDF"
 export type EstiloCard   = "CLASSICO" | "MODERNO" | "MINIMALISTA" | "GRADIENTE" | "NEON"
-export type PosicaoChave = "TL" | "TR" | "BL" | "BR" | null
+/** null = sem overlay (chave no layout normal do template) */
+export type PosicaoChave = "top" | "bottom" | "left" | "right" | null
 
 export interface CardSize {
   label: string
@@ -22,14 +23,16 @@ export interface CardSize {
   rows: number
 }
 
+// preW/preH = dimensão interna de renderização (2× a resolução visual para alta definição)
+// A escala de exibição é calculada: scale = containerPx / preW
 export const CARD_SIZES: Record<TamanhoCard, CardSize> = {
-  MINI:    { label: "Mini",    desc: "63×38 mm · 21/folha",  mmW:  63, mmH:  38, preW: 252, preH: 152, perFolha: 21, cols: 3, rows: 7 },
-  CARTAO:  { label: "Cartão",  desc: "70×35 mm · 14/folha",  mmW:  70, mmH:  35, preW: 280, preH: 140, perFolha: 14, cols: 2, rows: 7 },
-  PADRAO:  { label: "Padrão",  desc: "85×55 mm · 10/folha",  mmW:  85, mmH:  55, preW: 340, preH: 220, perFolha: 10, cols: 2, rows: 5 },
-  COUPON:  { label: "Cupom",   desc: "95×68 mm · 8/folha",   mmW:  95, mmH:  68, preW: 380, preH: 272, perFolha:  8, cols: 2, rows: 4 },
-  VOUCHER: { label: "Voucher", desc: "190×68 mm · 4/folha",  mmW: 190, mmH:  68, preW: 570, preH: 204, perFolha:  4, cols: 1, rows: 4 },
-  MEIO_A4: { label: "Meio A4", desc: "190×138 mm · 2/folha", mmW: 190, mmH: 138, preW: 570, preH: 414, perFolha:  2, cols: 1, rows: 2 },
-  MDF:     { label: "MDF",     desc: "90×90 mm · 6/folha",   mmW:  90, mmH:  90, preW: 360, preH: 360, perFolha:  6, cols: 2, rows: 3 },
+  MINI:    { label: "Mini",    desc: "63×38 mm · 21/folha",  mmW:  63, mmH:  38, preW:  504, preH:  304, perFolha: 21, cols: 3, rows: 7 },
+  CARTAO:  { label: "Cartão",  desc: "70×35 mm · 14/folha",  mmW:  70, mmH:  35, preW:  560, preH:  280, perFolha: 14, cols: 2, rows: 7 },
+  PADRAO:  { label: "Padrão",  desc: "85×55 mm · 10/folha",  mmW:  85, mmH:  55, preW:  680, preH:  440, perFolha: 10, cols: 2, rows: 5 },
+  COUPON:  { label: "Cupom",   desc: "95×68 mm · 8/folha",   mmW:  95, mmH:  68, preW:  760, preH:  544, perFolha:  8, cols: 2, rows: 4 },
+  VOUCHER: { label: "Voucher", desc: "190×68 mm · 4/folha",  mmW: 190, mmH:  68, preW: 1140, preH:  408, perFolha:  4, cols: 1, rows: 4 },
+  MEIO_A4: { label: "Meio A4", desc: "190×138 mm · 2/folha", mmW: 190, mmH: 138, preW: 1140, preH:  828, perFolha:  2, cols: 1, rows: 2 },
+  MDF:     { label: "MDF",     desc: "90×90 mm · 6/folha",   mmW:  90, mmH:  90, preW:  720, preH:  720, perFolha:  6, cols: 2, rows: 3 },
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -63,7 +66,7 @@ export function imgFilter(b: number, s: number, c: number) {
   return `brightness(${b}%) saturate(${s}%) contrast(${c}%)`
 }
 
-/** Overlay da chave no canto escolhido */
+/** Overlay da chave centralizado na borda escolhida */
 export function KeyOverlayRenderer({
   codigo,
   posicao,
@@ -75,23 +78,29 @@ export function KeyOverlayRenderer({
   corPrimaria: string
   fontSize: number
 }) {
-  const corner: React.CSSProperties = {
-    TL: { top: 6, left: 6 },
-    TR: { top: 6, right: 6 },
-    BL: { bottom: 6, left: 6 },
-    BR: { bottom: 6, right: 6 },
+  // Cada posição centraliza o overlay na respectiva borda
+  const pos: React.CSSProperties = {
+    top:    { top: 8,    left: "50%", transform: "translateX(-50%)" },
+    bottom: { bottom: 8, left: "50%", transform: "translateX(-50%)" },
+    left:   { left: 8,  top:  "50%", transform: "translateY(-50%)" },
+    right:  { right: 8, top:  "50%", transform: "translateY(-50%)" },
   }[posicao]
+
   return (
     <div style={{
-      position: "absolute", zIndex: 10, ...corner,
-      background: "rgba(0,0,0,0.72)", borderRadius: 4,
-      padding: "3px 7px", border: `1px solid ${corPrimaria}88`,
+      position: "absolute", zIndex: 10, ...pos,
+      background: "rgba(0,0,0,0.75)",
+      borderRadius: Math.round(fontSize * 0.5),
+      padding: `${Math.round(fontSize * 0.3)}px ${Math.round(fontSize * 0.7)}px`,
+      border: `1px solid ${corPrimaria}99`,
+      backdropFilter: "blur(2px)",
     }}>
       <code style={{
         fontFamily: "monospace", fontSize, fontWeight: "bold",
-        color: "#ffffff", whiteSpace: "nowrap", letterSpacing: 1.2, display: "block",
+        color: "#ffffff", whiteSpace: "nowrap", letterSpacing: 1.4,
+        display: "block", lineHeight: 1,
       }}>
-        XXXX-YYYY-ZZZZ-WWWW
+        {codigo}
       </code>
     </div>
   )

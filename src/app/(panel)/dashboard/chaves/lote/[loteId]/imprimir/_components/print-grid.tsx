@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type PosicaoChave = "TL" | "TR" | "BL" | "BR"
+type PosicaoChave = "top" | "bottom" | "left" | "right"
 
 type Chave = {
   codigo: string
@@ -85,11 +85,11 @@ function KeyOverlay({
   brand: string
   fontSize?: number
 }) {
-  const corner: React.CSSProperties = {
-    TL: { top: 6, left: 6 },
-    TR: { top: 6, right: 6 },
-    BL: { bottom: 6, left: 6 },
-    BR: { bottom: 6, right: 6 },
+  const edgeStyle: React.CSSProperties = {
+    top:    { top: 6,    left: "50%", transform: "translateX(-50%)" },
+    bottom: { bottom: 6, left: "50%", transform: "translateX(-50%)" },
+    left:   { left: 6,  top: "50%",  transform: "translateY(-50%)" },
+    right:  { right: 6, top: "50%",  transform: "translateY(-50%)" },
   }[posicao]
 
   return (
@@ -97,7 +97,7 @@ function KeyOverlay({
       style={{
         position: "absolute",
         zIndex: 10,
-        ...corner,
+        ...edgeStyle,
         background: "rgba(0,0,0,0.72)",
         borderRadius: 4,
         padding: "3px 7px",
@@ -176,7 +176,7 @@ function CartaoCard({
           )}
           <KeyOverlay
             codigo={chave.codigo}
-            posicao={posicao ?? "BR"}
+            posicao={posicao ?? "bottom"}
             brand={brand}
             fontSize={9 * S}
           />
@@ -410,7 +410,7 @@ function MdfCard({
           )}
           <KeyOverlay
             codigo={chave.codigo}
-            posicao={posicao ?? "BR"}
+            posicao={posicao ?? "bottom"}
             brand={brand}
             fontSize={11 * S}
           />
@@ -574,67 +574,99 @@ function MdfCard({
   )
 }
 
-// ─── Seletor de posição da chave ──────────────────────────────────────────────
+// ─── D-Pad seletor de posição ─────────────────────────────────────────────────
+// Grade 3×3: setas nas bordas, ponto central = sem overlay
 
-const POSICAO_LABELS: Record<PosicaoChave, string> = {
-  TL: "↖ Sup. esquerdo",
-  TR: "↗ Sup. direito",
-  BL: "↙ Inf. esquerdo",
-  BR: "↘ Inf. direito",
-}
-
-function PosicaoSelector({
+function DPad({
   value,
   onChange,
 }: {
   value: PosicaoChave | null
   onChange: (p: PosicaoChave | null) => void
 }) {
+  const btnSize = 32
+
+  const btnStyle = (pos: PosicaoChave | null): React.CSSProperties => {
+    const active = value === pos
+    return {
+      width: btnSize,
+      height: btnSize,
+      borderRadius: pos === null ? "50%" : 7,
+      border: active ? "2px solid #10b981" : "1.5px solid #d1d5db",
+      background: active ? "#ecfdf5" : "#fff",
+      color: active ? "#065f46" : "#6b7280",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 0,
+      transition: "all 0.12s",
+    }
+  }
+
+  // SVG arrows
+  const ArrowUp = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="18 15 12 9 6 15" />
+    </svg>
+  )
+  const ArrowDown = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  )
+  const ArrowLeft = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
+  )
+  const ArrowRight = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="9 18 15 12 9 6" />
+    </svg>
+  )
+  const DotCenter = () => (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+      <circle cx="12" cy="12" r="5" />
+    </svg>
+  )
+
+  const cell = (content: React.ReactNode, pos: PosicaoChave | null) => (
+    <button
+      type="button"
+      onClick={() => onChange(value === pos ? null : pos)}
+      style={btnStyle(pos)}
+      title={pos ?? "Sem overlay"}
+    >
+      {content}
+    </button>
+  )
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <span style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>
         Posição da chave (overlay)
       </span>
-      {/* Grid visual 2×2 */}
       <div style={{
-        display: "grid", gridTemplateColumns: "1fr 1fr",
-        gap: 4, width: 180,
+        display: "grid",
+        gridTemplateColumns: `repeat(3, ${btnSize}px)`,
+        gridTemplateRows: `repeat(3, ${btnSize}px)`,
+        gap: 4,
+        width: btnSize * 3 + 8,
       }}>
-        {(["TL", "TR", "BL", "BR"] as PosicaoChave[]).map(pos => (
-          <button
-            key={pos}
-            type="button"
-            onClick={() => onChange(value === pos ? null : pos)}
-            style={{
-              padding: "5px 6px",
-              fontSize: 11,
-              fontWeight: value === pos ? 700 : 400,
-              borderRadius: 6,
-              border: value === pos
-                ? "1.5px solid #10b981"
-                : "1px solid #d1d5db",
-              background: value === pos ? "#ecfdf5" : "#fff",
-              color: value === pos ? "#065f46" : "#6b7280",
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {POSICAO_LABELS[pos]}
-          </button>
-        ))}
+        {/* Row 1: empty · top · empty */}
+        <div />
+        {cell(<ArrowUp />, "top")}
+        <div />
+        {/* Row 2: left · center · right */}
+        {cell(<ArrowLeft />, "left")}
+        {cell(<DotCenter />, null)}
+        {cell(<ArrowRight />, "right")}
+        {/* Row 3: empty · bottom · empty */}
+        <div />
+        {cell(<ArrowDown />, "bottom")}
+        <div />
       </div>
-      {value && (
-        <button
-          type="button"
-          onClick={() => onChange(null)}
-          style={{
-            fontSize: 11, color: "#ef4444", background: "none",
-            border: "none", cursor: "pointer", textAlign: "left", padding: 0,
-          }}
-        >
-          ✕ Remover overlay
-        </button>
-      )}
     </div>
   )
 }
@@ -789,12 +821,12 @@ export function PrintGrid({
               🖼️ Modo arte própria
             </label>
 
-            {/* Posição overlay */}
+            {/* Posição overlay — D-pad */}
             <div style={{
               background: "#fff", padding: "10px 14px", borderRadius: 10,
               border: "1.5px solid #e5e7eb",
             }}>
-              <PosicaoSelector value={posicao} onChange={setPosicao} />
+              <DPad value={posicao} onChange={setPosicao} />
             </div>
           </div>
 
