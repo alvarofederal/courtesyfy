@@ -6,8 +6,9 @@ import { QRCodeSVG } from "qrcode.react"
 // TYPES & CONSTANTS
 // ─────────────────────────────────────────────────────────────
 
-export type TamanhoCard = "MINI" | "CARTAO" | "PADRAO" | "COUPON" | "VOUCHER" | "MEIO_A4" | "MDF"
-export type EstiloCard  = "CLASSICO" | "MODERNO" | "MINIMALISTA" | "GRADIENTE" | "NEON"
+export type TamanhoCard  = "MINI" | "CARTAO" | "PADRAO" | "COUPON" | "VOUCHER" | "MEIO_A4" | "MDF"
+export type EstiloCard   = "CLASSICO" | "MODERNO" | "MINIMALISTA" | "GRADIENTE" | "NEON"
+export type PosicaoChave = "TL" | "TR" | "BL" | "BR" | null
 
 export interface CardSize {
   label: string
@@ -50,6 +51,8 @@ export interface CardProps {
   raioCantos: number
   nomeLoja: string
   nomeCampanha: string
+  posicaoChave?: PosicaoChave
+  modoLimpo?: boolean
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -58,6 +61,40 @@ export interface CardProps {
 
 export function imgFilter(b: number, s: number, c: number) {
   return `brightness(${b}%) saturate(${s}%) contrast(${c}%)`
+}
+
+/** Overlay da chave no canto escolhido */
+export function KeyOverlayRenderer({
+  codigo,
+  posicao,
+  corPrimaria,
+  fontSize,
+}: {
+  codigo: string
+  posicao: Exclude<PosicaoChave, null>
+  corPrimaria: string
+  fontSize: number
+}) {
+  const corner: React.CSSProperties = {
+    TL: { top: 6, left: 6 },
+    TR: { top: 6, right: 6 },
+    BL: { bottom: 6, left: 6 },
+    BR: { bottom: 6, right: 6 },
+  }[posicao]
+  return (
+    <div style={{
+      position: "absolute", zIndex: 10, ...corner,
+      background: "rgba(0,0,0,0.72)", borderRadius: 4,
+      padding: "3px 7px", border: `1px solid ${corPrimaria}88`,
+    }}>
+      <code style={{
+        fontFamily: "monospace", fontSize, fontWeight: "bold",
+        color: "#ffffff", whiteSpace: "nowrap", letterSpacing: 1.2, display: "block",
+      }}>
+        XXXX-YYYY-ZZZZ-WWWW
+      </code>
+    </div>
+  )
 }
 export function ini(nome: string) {
   return nome.split(/\s+/).slice(0, 2).map(w => w[0]).join("").toUpperCase() || "AB"
@@ -507,12 +544,59 @@ function CardNeon({
 // ROUTER — exported
 // ─────────────────────────────────────────────────────────────
 
+function CardLimpo({
+  size, corPrimaria, corFundo, img1, opacidade,
+  brilho: b, saturacao: s, contraste: c, raioCantos: r,
+  posicaoChave,
+}: CardProps) {
+  return (
+    <div style={{
+      width: size.preW, height: size.preH, borderRadius: r,
+      overflow: "hidden", background: corFundo, position: "relative",
+    }}>
+      {img1 && <img src={img1} alt="" style={{
+        position: "absolute", inset: 0, width: "100%", height: "100%",
+        objectFit: "cover", filter: imgFilter(b, s, c),
+        pointerEvents: "none",
+      }} />}
+      {posicaoChave && (
+        <KeyOverlayRenderer
+          codigo="XXXX-YYYY-ZZZZ-WWWW"
+          posicao={posicaoChave}
+          corPrimaria={corPrimaria}
+          fontSize={size.preH * 0.082}
+        />
+      )}
+    </div>
+  )
+}
+
 export function CardRenderer(props: CardProps & { estilo: EstiloCard }) {
+  if (props.modoLimpo) return <CardLimpo {...props} />
+  // Overlay adicional em qualquer estilo
+  const overlay = props.posicaoChave ? (
+    <KeyOverlayRenderer
+      codigo="XXXX-YYYY-ZZZZ-WWWW"
+      posicao={props.posicaoChave}
+      corPrimaria={props.corPrimaria}
+      fontSize={props.size.preH * 0.072}
+    />
+  ) : null
+
+  let card: React.ReactNode
   switch (props.estilo) {
-    case "MODERNO":     return <CardModerno {...props} />
-    case "MINIMALISTA": return <CardMinimalista {...props} />
-    case "GRADIENTE":   return <CardGradiente {...props} />
-    case "NEON":        return <CardNeon {...props} />
-    default:            return <CardClassico {...props} />
+    case "MODERNO":      card = <CardModerno {...props} />; break
+    case "MINIMALISTA":  card = <CardMinimalista {...props} />; break
+    case "GRADIENTE":    card = <CardGradiente {...props} />; break
+    case "NEON":         card = <CardNeon {...props} />; break
+    default:             card = <CardClassico {...props} />
   }
+
+  if (!overlay) return <>{card}</>
+  return (
+    <div style={{ position: "relative", display: "inline-block" }}>
+      {card}
+      {overlay}
+    </div>
+  )
 }

@@ -4,12 +4,12 @@ import { useActionState, useState, useTransition, useEffect } from "react"
 import { useFormStatus } from "react-dom"
 import {
   CheckCircle, Loader2, Upload, X, Star, LayoutGrid,
-  Palette, ImageIcon, Sliders, Maximize2, Info, Printer,
+  Palette, ImageIcon, Sliders, Maximize2, Info, Printer, ScanLine,
 } from "lucide-react"
 import type { LayoutState } from "../_actions/layout-actions"
 import {
   CardRenderer, CARD_SIZES, CardProps,
-  type TamanhoCard, type EstiloCard, type CardSize,
+  type TamanhoCard, type EstiloCard, type CardSize, type PosicaoChave,
 } from "./card-renderer"
 
 const ESTILOS: Record<EstiloCard, { label: string; desc: string }> = {
@@ -367,20 +367,22 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
   const [state, formAction] = useActionState<LayoutState, FormData>(action, {})
   const [, startTransition] = useTransition()
 
-  const [tamanho, setTamanho]     = useState<TamanhoCard>(initial?.tamanhoCard ?? "PADRAO")
-  const [estilo, setEstilo]       = useState<EstiloCard>(initial?.estiloCard ?? "CLASSICO")
-  const [corPrimaria, setCorPri]  = useState(initial?.corPrimaria ?? "#c8a96e")
-  const [corFundo, setCorFundo]   = useState(initial?.corFundo ?? "#fffdf7")
-  const [corTexto, setCorTexto]   = useState(initial?.corTexto ?? "#3a2510")
-  const [corSec, setCorSec]       = useState(initial?.corSecundaria ?? "#5a3e28")
-  const [opacidade, setOpacidade] = useState(initial?.opacidadeFundo ?? 20)
-  const [brilho, setBrilho]       = useState(initial?.brilho ?? 100)
-  const [saturacao, setSaturacao] = useState(initial?.saturacao ?? 100)
-  const [contraste, setContraste] = useState(initial?.contraste ?? 100)
-  const [raioCantos, setRaio]     = useState(initial?.raioCantos ?? 8)
+  const [tamanho, setTamanho]         = useState<TamanhoCard>(initial?.tamanhoCard ?? "PADRAO")
+  const [estilo, setEstilo]           = useState<EstiloCard>(initial?.estiloCard ?? "CLASSICO")
+  const [corPrimaria, setCorPri]      = useState(initial?.corPrimaria ?? "#c8a96e")
+  const [corFundo, setCorFundo]       = useState(initial?.corFundo ?? "#fffdf7")
+  const [corTexto, setCorTexto]       = useState(initial?.corTexto ?? "#3a2510")
+  const [corSec, setCorSec]           = useState(initial?.corSecundaria ?? "#5a3e28")
+  const [opacidade, setOpacidade]     = useState(initial?.opacidadeFundo ?? 20)
+  const [brilho, setBrilho]           = useState(initial?.brilho ?? 100)
+  const [saturacao, setSaturacao]     = useState(initial?.saturacao ?? 100)
+  const [contraste, setContraste]     = useState(initial?.contraste ?? 100)
+  const [raioCantos, setRaio]         = useState(initial?.raioCantos ?? 8)
+  const [posicaoChave, setPosicao]    = useState<PosicaoChave>(null)
+  const [modoLimpo, setModoLimpo]     = useState(false)
   const [nomeCampanha, setNomeCampanha] = useState("Campanha Exemplo")
-  const [previewTab, setPreviewTab] = useState<"card" | "folha">("card")
-  const [showModal, setShowModal]   = useState(false)
+  const [previewTab, setPreviewTab]   = useState<"card" | "folha">("card")
+  const [showModal, setShowModal]     = useState(false)
 
   const img1 = useImageUpload(initial?.imagem1Url ?? null)
   const img2 = useImageUpload(initial?.imagem2Url ?? null)
@@ -392,6 +394,8 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
     corSecundaria: corSec, img1: img1.url, img2: img2.url,
     opacidade, brilho, saturacao, contraste, raioCantos,
     nomeLoja, nomeCampanha,
+    posicaoChave,
+    modoLimpo,
   }
 
   return (
@@ -540,6 +544,72 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
             <SliderField label="Brilho"    name="brilho"    value={brilho}    min={0}  max={200} onChange={setBrilho} />
             <SliderField label="Saturação" name="saturacao" value={saturacao} min={0}  max={200} onChange={setSaturacao} />
             <SliderField label="Contraste" name="contraste" value={contraste} min={50} max={200} onChange={setContraste} />
+          </Section>
+
+          {/* 7. Posição da chave */}
+          <Section icon={ScanLine} title="Posição da Chave">
+            <p className="text-xs dash-muted -mt-2">
+              Escolha onde o código da chave aparece no card. O overlay é exibido sobre a imagem de fundo.
+            </p>
+
+            {/* Modo arte própria */}
+            <label className="flex items-center gap-3 cursor-pointer dash-card border p-3 rounded-xl transition-all hover:border-emerald-400">
+              <input
+                type="checkbox"
+                checked={modoLimpo}
+                onChange={e => setModoLimpo(e.target.checked)}
+                className="w-4 h-4 rounded accent-emerald-500"
+              />
+              <div>
+                <span className="text-sm font-semibold dash-subtitle flex items-center gap-1.5">
+                  🖼️ Modo arte própria
+                </span>
+                <p className="text-xs dash-muted mt-0.5">
+                  Oculta todo o conteúdo do template. Só aparece a imagem de fundo + chave overlay.
+                  Ideal para quem usa arte feita no Canva, Photoshop, etc.
+                </p>
+              </div>
+            </label>
+
+            {/* Seletor de posição: grade 2×2 */}
+            <div>
+              <p className="text-xs font-medium dash-muted mb-2">Posição do overlay da chave</p>
+              <div className="grid grid-cols-2 gap-2 max-w-xs">
+                {([
+                  { pos: "TL", label: "↖ Superior esquerdo" },
+                  { pos: "TR", label: "↗ Superior direito"  },
+                  { pos: "BL", label: "↙ Inferior esquerdo" },
+                  { pos: "BR", label: "↘ Inferior direito"  },
+                ] as { pos: PosicaoChave; label: string }[]).map(({ pos, label }) => (
+                  <button
+                    key={pos ?? ""}
+                    type="button"
+                    onClick={() => setPosicao(posicaoChave === pos ? null : pos)}
+                    className={`text-left p-2.5 rounded-xl border text-xs font-medium transition-all ${
+                      posicaoChave === pos
+                        ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                        : "dash-card border hover:border-emerald-300 dash-subtitle"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {posicaoChave && (
+                <button
+                  type="button"
+                  onClick={() => setPosicao(null)}
+                  className="text-xs text-red-400 hover:text-red-500 mt-2 block"
+                >
+                  ✕ Remover overlay
+                </button>
+              )}
+              {!posicaoChave && !modoLimpo && (
+                <p className="text-xs dash-muted mt-1.5">
+                  Nenhuma posição selecionada — a chave aparece no layout normal do template.
+                </p>
+              )}
+            </div>
           </Section>
 
           <div className="flex justify-end">
