@@ -12,6 +12,16 @@ import {
   type TamanhoCard, type EstiloCard, type CardSize, type PosicaoChave,
 } from "./card-renderer"
 
+// ─── Tipos de modo da chave ───────────────────────────────────────────────────
+
+/**
+ * none     — sem chave no preview
+ * tracking — chave segue o cursor livremente (até clicar para fixar)
+ * locked   — chave fixada; duplo-clique para redimensionar
+ * resizing — modo redimensionamento ativo (arrastar handle)
+ */
+type KeyMode = "none" | "tracking" | "locked" | "resizing"
+
 // ─── Estilos ─────────────────────────────────────────────────────────────────
 
 const ESTILOS: Record<EstiloCard, { label: string; desc: string }> = {
@@ -43,8 +53,8 @@ interface ModalProps {
 }
 
 function A4PrintModal({ onClose, tamanho, estilo, cardProps }: ModalProps) {
-  const def     = CARD_SIZES[tamanho]
-  const mmToPx  = 680 / 210
+  const def    = CARD_SIZES[tamanho]
+  const mmToPx = 680 / 210
   const { marginPx, gapPx, cardW, cardH, scale, canvasW, canvasH } = computeA4Layout(def, mmToPx)
 
   useEffect(() => {
@@ -145,30 +155,41 @@ function SheetPreview({ onOpenModal, tamanho, estilo, ...cardProps }: CardProps 
 }
 
 // ─── PREVIEW INTERATIVO — aba "Card" ─────────────────────────────────────────
-// Clique ou arraste para posicionar a chave no card.
-// Não abre modal. Sem overlay de hover.
+//
+// Estados da chave:
+//   none     → clique → tracking (chave segue o cursor)
+//   tracking → clique → locked   (chave fixada)
+//   locked   → clique → tracking (desfixar / reposicionar)
+//   locked   → duplo-clique → resizing (modo redimensionamento)
+//   resizing → clique (fora do handle) → locked
+//
+// Redimensionamento: arraste o handle ◢ no canto inferior-direito da badge.
 
 const PREVIEW_WIDTH = 520
 
-function InteractiveCardPreview({
-  cardProps,
-  estilo,
-  onSetKeyPos,
-}: {
+interface InteractivePreviewProps {
   cardProps: CardProps
   estilo: EstiloCard
-  onSetKeyPos: (pos: PosicaoChave) => void
-}) {
+  keyMode: KeyMode
+  onSetKeyPos:  (pos: PosicaoChave) => void
+  onSetKeyMode: (mode: KeyMode) => void
+  onSetKeyScale: (scale: number) => void
+}
+
+function InteractiveCardPreview({
+  cardProps, estilo, keyMode, onSetKeyPos, onSetKeyMode, onSetKeyScale,
+}: InteractivePreviewProps) {
   const def      = cardProps.size
-  const scale    = PREVIEW_WIDTH / def.preW
-  const displayW = Math.round(def.preW * scale)
-  const displayH = Math.round(def.preH * scale)
-  const wrapperRef = useRef<HTMLDivElement>(null)
-  const hasKey   = cardProps.posicaoChave !== null && cardProps.posicaoChave !== undefined
+  const cssScale = PREVIEW_WIDTH / def.preW
+  const displayW = Math.round(def.preW * cssScale)
+  const displayH = Math.round(def.preH * cssScale)
+  const wrapperRef     = useRef<HTMLDivElement>(null)
+  const pendingRef     = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
 
-  const posFromEvent = (clientX: number, clientY: number): { x: number; y: number } | null => {
+  // Converter coords de tela → percentual do card
+  const toPct = (clientX: number, clientY: number) => {
     const rect = wrapperRef.current?.getBoundingClientRect()
     if (!rect) return null
     return {
@@ -177,16 +198,71 @@ function InteractiveCardPreview({
     }
   }
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault()
-    const pos = posFromEvent(e.clientX, e.clientY)
+  // Chave segue o cursor no modo "tracking"
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (keyMode !== "tracking") return
+    const pos = toPct(e.clientX, e.clientY)
     if (pos) onSetKeyPos(pos)
+  }
 
-    document.body.style.cursor = "crosshair"
+  // Distinguir clique simples vs duplo via delay de 220ms
+  const handleClick = (e: React.MouseEvent) => {
+    const { clientX, clientY } = e // capturar antes de o evento ser reciclado
+
+    if (pendingRef.current) {
+      // Segundo clique dentro de 220ms → duplo-clique
+      clearTimeout(pendingRef.current)
+      pendingRef.current = null
+      if (keyMode === "locked")   onSetKeyMode("resizing")
+      if (keyMode === "resizing") onSetKeyMode("locked")
+      return
+    }
+
+    pendingRef.current = setTimeout(() => {
+      pendingRef.current = null
+      // Clique simples
+      if (keyMode === "none") {
+        const pos = toPct(clientX, clientY)
+        if (pos) { onSetKeyPos(pos); onSetKeyMode("tracking") }
+      } else if (keyMode === "tracking") {
+        onSetKeyMode("locked")
+      } else if (keyMode === "locked") {
+        onSetKeyMode("tracking") // desbloquear → reposicionar
+      } else if (keyMode === "resizing") {
+        onSetKeyMode("locked")  // concluir redimensionamento
+      }
+    }, 220)
+  }
+
+  // Estimar bounding box da KeyBadge no espaço CSS (para mostrar handles)
+  const getKeyBounds = () => {
+    const pos    = cardProps.posicaoChave
+    const kScale = cardProps.escalaChave ?? 1
+    if (!pos) return null
+    const fs      = def.preH * 0.065 * kScale
+    const preKeyW = 19 * fs * 0.585 + fs * 0.65 * 2 + 3   // texto + padding + borda
+    const preKeyH = fs + fs * 0.28 * 2 + 3
+    const cssW    = preKeyW * cssScale
+    const cssH    = preKeyH * cssScale
+    const cssCX   = (pos.x / 100) * displayW
+    const cssCY   = (pos.y / 100) * displayH
+    return { left: cssCX - cssW / 2, top: cssCY - cssH / 2, width: cssW, height: cssH }
+  }
+
+  // Arrastar handle de redimensionamento
+  const handleResizeMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+    const startX     = e.clientX
+    const startY     = e.clientY
+    const startScale = cardProps.escalaChave ?? 1
+    document.body.style.cursor = "nwse-resize"
 
     const onMove = (ev: MouseEvent) => {
-      const p = posFromEvent(ev.clientX, ev.clientY)
-      if (p) onSetKeyPos(p)
+      const dx       = ev.clientX - startX
+      const dy       = ev.clientY - startY
+      const newScale = clamp(startScale + (dx + dy) / 120, 0.35, 3.5)
+      onSetKeyScale(newScale)
     }
     const onUp = () => {
       document.body.style.cursor = ""
@@ -197,6 +273,32 @@ function InteractiveCardPreview({
     document.addEventListener("mouseup", onUp)
   }
 
+  const hasKey = !!cardProps.posicaoChave
+  const bounds = (keyMode === "resizing" || keyMode === "locked") ? getKeyBounds() : null
+
+  // Cores de borda por modo
+  const outlineStyle: React.CSSProperties = (() => {
+    if (keyMode === "tracking") return { outline: "2px solid #10b981", outlineOffset: 2 }
+    if (keyMode === "resizing") return { outline: `2px solid ${cardProps.corPrimaria}`, outlineOffset: 2 }
+    if (!hasKey)                return { outline: "2px dashed rgba(16,185,129,0.40)", outlineOffset: 2 }
+    return {}
+  })()
+
+  // Cursor por modo
+  const cursor = keyMode === "tracking" ? "crosshair"
+               : keyMode === "resizing" ? "default"
+               : "pointer"
+
+  // Tooltip de hint por modo
+  const hint = keyMode === "none"     ? "Clique para posicionar a chave"
+             : keyMode === "tracking" ? "Mova o mouse · Clique para fixar"
+             : keyMode === "locked"   ? "🔒 Fixada · Clique para mover · Duplo-clique para redimensionar"
+             : "↔ Arraste ◢ para redimensionar · Clique para concluir"
+
+  const hintColor = keyMode === "tracking" ? "rgba(16,185,129,0.90)"
+                  : keyMode === "resizing" ? `${cardProps.corPrimaria}dd`
+                  : "rgba(0,0,0,0.55)"
+
   return (
     <div className="flex flex-col items-center gap-2">
       <div
@@ -204,16 +306,17 @@ function InteractiveCardPreview({
         style={{
           width: displayW, height: displayH,
           overflow: "hidden", position: "relative",
-          cursor: "crosshair",
-          outline: hasKey ? "none" : "2px dashed rgba(16,185,129,0.45)",
-          outlineOffset: "2px",
-          borderRadius: cardProps.raioCantos * scale,
+          cursor,
+          borderRadius: cardProps.raioCantos * cssScale,
+          userSelect: "none",
+          ...outlineStyle,
         }}
-        onMouseDown={handleMouseDown}
-        title="Clique ou arraste para posicionar a chave"
+        onClick={handleClick}
+        onMouseMove={handleMouseMove}
       >
+        {/* Render do card (sem pointer-events para o mouse não parar no card) */}
         <div style={{
-          transform: `scale(${scale})`,
+          transform: `scale(${cssScale})`,
           transformOrigin: "top left",
           position: "absolute",
           pointerEvents: "none",
@@ -221,67 +324,80 @@ function InteractiveCardPreview({
           <CardRenderer {...cardProps} estilo={estilo} />
         </div>
 
-        {/* Hint quando ainda não tem chave */}
-        {!hasKey && (
+        {/* Outline da KeyBadge quando locked ou resizing */}
+        {bounds && keyMode === "locked" && (
           <div style={{
-            position: "absolute", inset: 0,
-            display: "flex", flexDirection: "column",
-            alignItems: "center", justifyContent: "flex-end",
-            paddingBottom: 12, pointerEvents: "none",
-          }}>
-            <div style={{
-              background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)",
-              borderRadius: 8, padding: "4px 10px",
-            }}>
-              <span style={{ color: "#fff", fontSize: 11, fontWeight: 500 }}>
-                Clique para posicionar a chave
-              </span>
-            </div>
-          </div>
+            position: "absolute",
+            left: bounds.left - 2,
+            top: bounds.top - 2,
+            width: bounds.width + 4,
+            height: bounds.height + 4,
+            border: `1px dashed ${cardProps.corPrimaria}88`,
+            borderRadius: 5,
+            pointerEvents: "none",
+            zIndex: 22,
+          }} />
         )}
+
+        {/* Outline de redimensionamento */}
+        {bounds && keyMode === "resizing" && (
+          <div style={{
+            position: "absolute",
+            left: bounds.left - 2,
+            top: bounds.top - 2,
+            width: bounds.width + 4,
+            height: bounds.height + 4,
+            border: `2px dashed ${cardProps.corPrimaria}`,
+            borderRadius: 5,
+            pointerEvents: "none",
+            zIndex: 22,
+          }} />
+        )}
+
+        {/* Handle de redimensionamento — canto inferior-direito */}
+        {bounds && keyMode === "resizing" && (
+          <div
+            style={{
+              position: "absolute",
+              left: bounds.left + bounds.width - 5,
+              top: bounds.top + bounds.height - 5,
+              width: 14,
+              height: 14,
+              background: cardProps.corPrimaria,
+              border: "2px solid #fff",
+              borderRadius: 3,
+              cursor: "nwse-resize",
+              zIndex: 30,
+              boxShadow: "0 1px 6px rgba(0,0,0,0.35)",
+            }}
+            onMouseDown={handleResizeMouseDown}
+          />
+        )}
+
+        {/* Hint flutuante */}
+        <div style={{
+          position: "absolute", bottom: 8, left: 0, right: 0,
+          display: "flex", justifyContent: "center",
+          pointerEvents: "none", zIndex: 25,
+        }}>
+          <span style={{
+            background: hintColor,
+            color: "#fff", fontSize: 10, fontWeight: 500,
+            borderRadius: 7, padding: "3px 10px",
+            maxWidth: "90%", textAlign: "center",
+          }}>
+            {hint}
+          </span>
+        </div>
       </div>
+
+      {/* Linha de status abaixo do card */}
       <p className="text-xs dash-muted text-center">
         {def.mmW}×{def.mmH} mm · {def.perFolha}/folha A4
-        {hasKey && <span className="text-emerald-500 ml-1">· chave posicionada</span>}
+        {keyMode === "tracking"  && <span className="text-emerald-500 ml-1">· movendo</span>}
+        {keyMode === "locked"    && <span className="ml-1" style={{ color: cardProps.corPrimaria }}>· fixada</span>}
+        {keyMode === "resizing"  && <span className="ml-1" style={{ color: cardProps.corPrimaria }}>· redimensionando ({((cardProps.escalaChave ?? 1) * 100).toFixed(0)}%)</span>}
       </p>
-    </div>
-  )
-}
-
-// ─── PREVIEW CARD ESTÁTICO (escalonado) — usado só no SheetPreview interno ──
-
-function ScaledCardPreview({
-  cardProps,
-  estilo,
-  onClick,
-}: {
-  cardProps: CardProps
-  estilo: EstiloCard
-  onClick?: () => void
-}) {
-  const def      = cardProps.size
-  const scale    = PREVIEW_WIDTH / def.preW
-  const displayW = Math.round(def.preW * scale)
-  const displayH = Math.round(def.preH * scale)
-
-  return (
-    <div
-      className={onClick ? "cursor-pointer group relative" : "relative"}
-      style={{ width: displayW, height: displayH, overflow: "hidden" }}
-      onClick={onClick}
-    >
-      <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", position: "absolute", pointerEvents: "none" }}>
-        <CardRenderer {...cardProps} estilo={estilo} />
-      </div>
-      {onClick && (
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl"
-          style={{ background: "rgba(0,0,0,0.45)" }}>
-          <div className="flex flex-col items-center gap-1.5">
-            <Maximize2 className="w-6 h-6 text-white" />
-            <span className="text-white text-xs font-semibold">Ver folha A4</span>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
@@ -440,39 +556,48 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
   const [state, formAction]  = useActionState<LayoutState, FormData>(action, {})
   const [, startTransition]  = useTransition()
 
-  const [tamanho, setTamanho]       = useState<TamanhoCard>(initial?.tamanhoCard ?? "PADRAO")
-  const [estilo, setEstilo]         = useState<EstiloCard>(initial?.estiloCard ?? "CLASSICO")
-  const [corPrimaria, setCorPri]    = useState(initial?.corPrimaria ?? "#c8a96e")
-  const [corFundo, setCorFundo]     = useState(initial?.corFundo ?? "#fffdf7")
-  const [corTexto, setCorTexto]     = useState(initial?.corTexto ?? "#3a2510")
-  const [corSec, setCorSec]         = useState(initial?.corSecundaria ?? "#5a3e28")
-  const [opacidade, setOpacidade]   = useState(initial?.opacidadeFundo ?? 20)
-  const [brilho, setBrilho]         = useState(initial?.brilho ?? 100)
-  const [saturacao, setSaturacao]   = useState(initial?.saturacao ?? 100)
-  const [contraste, setContraste]   = useState(initial?.contraste ?? 100)
-  const [raioCantos, setRaio]       = useState(initial?.raioCantos ?? 8)
-  const [posicaoChave, setPosicao]  = useState<PosicaoChave>(null)
-  const [modoLimpo, setModoLimpo]   = useState(false)
+  const [tamanho, setTamanho]         = useState<TamanhoCard>(initial?.tamanhoCard ?? "PADRAO")
+  const [estilo, setEstilo]           = useState<EstiloCard>(initial?.estiloCard ?? "CLASSICO")
+  const [corPrimaria, setCorPri]      = useState(initial?.corPrimaria ?? "#c8a96e")
+  const [corFundo, setCorFundo]       = useState(initial?.corFundo ?? "#fffdf7")
+  const [corTexto, setCorTexto]       = useState(initial?.corTexto ?? "#3a2510")
+  const [corSec, setCorSec]           = useState(initial?.corSecundaria ?? "#5a3e28")
+  const [opacidade, setOpacidade]     = useState(initial?.opacidadeFundo ?? 20)
+  const [brilho, setBrilho]           = useState(initial?.brilho ?? 100)
+  const [saturacao, setSaturacao]     = useState(initial?.saturacao ?? 100)
+  const [contraste, setContraste]     = useState(initial?.contraste ?? 100)
+  const [raioCantos, setRaio]         = useState(initial?.raioCantos ?? 8)
+  const [posicaoChave, setPosicao]    = useState<PosicaoChave>(null)
+  const [escalaChave, setEscala]      = useState(1.0)
+  const [keyMode, setKeyMode]         = useState<KeyMode>("none")
+  const [modoLimpo, setModoLimpo]     = useState(false)
   const [nomeCampanha, setNomeCampanha] = useState("Campanha Exemplo")
-  const [previewTab, setPreviewTab] = useState<"card" | "folha">("card")
-  const [showModal, setShowModal]   = useState(false)
+  const [previewTab, setPreviewTab]   = useState<"card" | "folha">("card")
+  const [showModal, setShowModal]     = useState(false)
 
   const img1 = useImageUpload(initial?.imagem1Url ?? null)
   const img2 = useImageUpload(initial?.imagem2Url ?? null)
   const img3 = useImageUpload(initial?.imagem3Url ?? null)
 
-  const sizeInfo  = CARD_SIZES[tamanho]
+  const sizeInfo   = CARD_SIZES[tamanho]
   const cardProps: CardProps = {
     size: sizeInfo, corPrimaria, corFundo, corTexto,
     corSecundaria: corSec, img1: img1.url, img2: img2.url,
     opacidade, brilho, saturacao, contraste, raioCantos,
-    nomeLoja, nomeCampanha, posicaoChave, modoLimpo,
+    nomeLoja, nomeCampanha, posicaoChave, escalaChave, modoLimpo,
   }
 
-  // ── Preview Panel (shared entre mobile sticky e desktop sidebar) ──────────
+  // Remover chave + reset completo
+  const removeKey = () => {
+    setPosicao(null)
+    setEscala(1.0)
+    setKeyMode("none")
+  }
+
+  // ── Preview Panel ─────────────────────────────────────────────────────────
   const PreviewContent = () => (
     <div className="flex flex-col gap-3 h-full">
-      {/* Tabs — só Card e Folha A4, sem botão separado de impressão */}
+      {/* Tabs */}
       <div className="flex items-center gap-1 bg-gray-100 dark:bg-white/5 rounded-xl p-1">
         {(["card", "folha"] as const).map(tab => (
           <button key={tab} type="button" onClick={() => setPreviewTab(tab)}
@@ -484,24 +609,27 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
         ))}
       </div>
 
-      {/* Nome preview */}
+      {/* Nome de preview */}
       <input type="text" value={nomeCampanha} onChange={e => setNomeCampanha(e.target.value)}
         placeholder="Nome da campanha (preview)" className="dash-input !text-xs !py-1.5" />
 
-      {/* ── Aba Card: preview interativo, sem modal ao clicar ── */}
+      {/* ── Aba Card: preview interativo, sem click para modal ── */}
       {previewTab === "card" && (
         <div className="flex-1 flex flex-col items-center justify-center overflow-hidden">
           <div className="overflow-auto w-full flex justify-center">
             <InteractiveCardPreview
               cardProps={cardProps}
               estilo={estilo}
+              keyMode={keyMode}
               onSetKeyPos={setPosicao}
+              onSetKeyMode={setKeyMode}
+              onSetKeyScale={setEscala}
             />
           </div>
         </div>
       )}
 
-      {/* ── Aba Folha A4: mini sheet preview com click para modal ── */}
+      {/* ── Aba Folha A4 ── */}
       {previewTab === "folha" && (
         <div className="flex-1 flex justify-center items-start overflow-auto pt-1">
           <SheetPreview {...cardProps} estilo={estilo} tamanho={tamanho} onOpenModal={() => setShowModal(true)} />
@@ -516,16 +644,16 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
         <span className="text-xs dash-muted bg-gray-100 dark:bg-white/5 px-2.5 py-1 rounded-full">
           {sizeInfo.perFolha}×/A4
         </span>
-        <span className={`text-xs px-2.5 py-1 rounded-full ${
-          posicaoChave
-            ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
-            : "bg-gray-100 dark:bg-white/5 dash-muted"
-        }`}>
-          {posicaoChave
-            ? `Chave: ${posicaoChave.x.toFixed(0)}%, ${posicaoChave.y.toFixed(0)}%`
-            : "Chave: não posicionada"
-          }
-        </span>
+        {posicaoChave ? (
+          <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
+            Chave: {posicaoChave.x.toFixed(0)}%, {posicaoChave.y.toFixed(0)}%
+            {escalaChave !== 1 && ` · ${(escalaChave * 100).toFixed(0)}%`}
+          </span>
+        ) : (
+          <span className="text-xs px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/5 dash-muted">
+            Chave: não posicionada
+          </span>
+        )}
       </div>
     </div>
   )
@@ -545,10 +673,8 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
           borderBottom: "1px solid rgba(0,0,0,0.07)",
         }}
       >
-        <div className="dark:hidden absolute inset-0"
-          style={{ background: "rgba(255,255,255,0.96)" }} />
-        <div className="hidden dark:block absolute inset-0"
-          style={{ background: "rgba(17,17,17,0.96)" }} />
+        <div className="dark:hidden absolute inset-0" style={{ background: "rgba(255,255,255,0.96)" }} />
+        <div className="hidden dark:block absolute inset-0" style={{ background: "rgba(17,17,17,0.96)" }} />
         <div className="relative h-full p-4 flex flex-col">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold dash-title flex items-center gap-1.5">
@@ -610,22 +736,19 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
             </div>
           </Section>
 
-          {/* 2+3 — Tamanho + Estilo lado a lado */}
+          {/* 2+3 — Tamanho + Estilo */}
           <div className="grid sm:grid-cols-2 gap-4">
             <Section icon={Maximize2} title="Tamanho" compact>
               <div className="flex flex-wrap gap-1.5">
                 {(Object.entries(CARD_SIZES) as [TamanhoCard, CardSize][]).map(([key, def]) => (
-                  <button
-                    key={key}
-                    type="button"
+                  <button key={key} type="button"
                     title={`${def.mmW}×${def.mmH} mm · ${def.perFolha}/folha`}
                     onClick={() => setTamanho(key)}
                     className={`px-2.5 py-1 rounded-full text-xs font-semibold border transition-all whitespace-nowrap ${
                       tamanho === key
                         ? "border-emerald-500 bg-emerald-500 text-white"
                         : "dash-card border hover:border-emerald-400 dash-subtitle"
-                    }`}
-                  >
+                    }`}>
                     {def.label}
                   </button>
                 ))}
@@ -639,17 +762,13 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
             <Section icon={LayoutGrid} title="Estilo Visual" compact>
               <div className="flex flex-wrap gap-1.5">
                 {(Object.entries(ESTILOS) as [EstiloCard, { label: string; desc: string }][]).map(([key, def]) => (
-                  <button
-                    key={key}
-                    type="button"
-                    title={def.desc}
+                  <button key={key} type="button" title={def.desc}
                     onClick={() => setEstilo(key)}
                     className={`px-2.5 py-1 rounded-full text-xs font-semibold border transition-all whitespace-nowrap ${
                       estilo === key
                         ? "border-emerald-500 bg-emerald-500 text-white"
                         : "dash-card border hover:border-emerald-400 dash-subtitle"
-                    }`}
-                  >
+                    }`}>
                     {def.label}
                   </button>
                 ))}
@@ -665,12 +784,9 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
           <Section icon={ScanLine} title="Posição da Chave">
             {/* Modo arte própria */}
             <label className="flex items-start gap-3 cursor-pointer dash-card border p-3 rounded-xl transition-all hover:border-emerald-400">
-              <input
-                type="checkbox"
-                checked={modoLimpo}
+              <input type="checkbox" checked={modoLimpo}
                 onChange={e => setModoLimpo(e.target.checked)}
-                className="w-4 h-4 mt-0.5 rounded accent-emerald-500 flex-shrink-0"
-              />
+                className="w-4 h-4 mt-0.5 rounded accent-emerald-500 flex-shrink-0" />
               <div>
                 <span className="text-xs font-semibold dash-subtitle">🖼️ Modo arte própria</span>
                 <p className="text-xs dash-muted mt-0.5 leading-relaxed">
@@ -679,27 +795,33 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
               </div>
             </label>
 
-            {/* Instrução de posicionamento */}
-            <div className="rounded-xl border border-emerald-200 dark:border-emerald-500/25 bg-emerald-50 dark:bg-emerald-500/8 p-3">
-              <p className="text-xs text-emerald-700 dark:text-emerald-400 font-medium flex items-center gap-1.5">
-                <span>🎯</span>
-                Clique no card ao vivo (aba Card) para posicionar a chave
+            {/* Instruções */}
+            <div className="rounded-xl border border-emerald-200 dark:border-emerald-500/25 bg-emerald-50 dark:bg-emerald-500/8 p-3 space-y-1">
+              <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                🎯 Interaja com o card ao vivo (aba <strong>Card</strong>):
               </p>
-              <p className="text-xs dash-muted mt-1 leading-relaxed">
-                Arraste para reposicionar livremente. A chave ficará dentro da área do card.
-              </p>
+              <ul className="text-xs dash-muted space-y-0.5 pl-2">
+                <li>• <strong>Clique</strong> — posiciona a chave, ela segue o mouse</li>
+                <li>• <strong>Clique novamente</strong> — fixa a posição</li>
+                <li>• <strong>Duplo-clique</strong> — modo redimensionamento</li>
+                <li>• <strong>Arraste ◢</strong> — estica / encolhe a chave</li>
+              </ul>
             </div>
 
-            {/* Botão remover chave */}
+            {/* Estado atual + botão remover */}
             {posicaoChave && (
-              <button
-                type="button"
-                onClick={() => setPosicao(null)}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
-              >
-                <X className="w-3.5 h-3.5" />
-                Remover chave do preview
-              </button>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs dash-muted">
+                  Posição: <code className="dash-title">{posicaoChave.x.toFixed(0)}%, {posicaoChave.y.toFixed(0)}%</code>
+                  {" · "}
+                  Tamanho: <code className="dash-title">{(escalaChave * 100).toFixed(0)}%</code>
+                </span>
+                <button type="button" onClick={removeKey}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex-shrink-0">
+                  <X className="w-3.5 h-3.5" />
+                  Remover
+                </button>
+              </div>
             )}
           </Section>
 
@@ -757,11 +879,8 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 Preview ao vivo
               </span>
-              <button
-                type="button"
-                onClick={() => setShowModal(true)}
-                className="inline-flex items-center gap-1.5 text-xs dash-muted hover:text-emerald-500 transition-colors border border-gray-200 dark:border-white/[0.08] rounded-lg px-2.5 py-1.5"
-              >
+              <button type="button" onClick={() => setShowModal(true)}
+                className="inline-flex items-center gap-1.5 text-xs dash-muted hover:text-emerald-500 transition-colors border border-gray-200 dark:border-white/[0.08] rounded-lg px-2.5 py-1.5">
                 <Printer className="w-3.5 h-3.5" />
                 Ver Folha A4
               </button>

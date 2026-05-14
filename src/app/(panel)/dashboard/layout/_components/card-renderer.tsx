@@ -55,6 +55,7 @@ export interface CardProps {
   nomeLoja: string
   nomeCampanha: string
   posicaoChave?: PosicaoChave
+  escalaChave?: number   // multiplicador do tamanho da chave (default 1.0)
   modoLimpo?: boolean
 }
 
@@ -80,14 +81,15 @@ export function isSquare(size: CardSize) {
 // ─────────────────────────────────────────────────────────────
 
 export function KeyBadge({
-  posicao, size, corPrimaria, corTexto,
+  posicao, size, corPrimaria, corTexto, escala = 1,
 }: {
   posicao: { x: number; y: number }
   size: CardSize
   corPrimaria: string
   corTexto: string
+  escala?: number
 }) {
-  const fs = size.preH * 0.065
+  const fs = size.preH * 0.065 * escala
   return (
     <div style={{
       position: "absolute",
@@ -126,7 +128,7 @@ export function KeyBadge({
 function CardClassicoLandscape({
   size, corPrimaria, corFundo, corTexto, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
-  raioCantos, nomeLoja, nomeCampanha, posicaoChave,
+  raioCantos, nomeLoja, nomeCampanha, posicaoChave, escalaChave,
 }: CardProps) {
   const letters = ini(nomeLoja)
   const r       = raioCantos
@@ -251,7 +253,7 @@ function CardClassicoLandscape({
       </div>
 
       {posicaoChave && (
-        <KeyBadge posicao={posicaoChave} size={size} corPrimaria={corPrimaria} corTexto={corTexto} />
+        <KeyBadge posicao={posicaoChave} size={size} corPrimaria={corPrimaria} corTexto={corTexto} escala={escalaChave ?? 1} />
       )}
     </div>
   )
@@ -260,7 +262,7 @@ function CardClassicoLandscape({
 function CardClassicoSquare({
   size, corPrimaria, corFundo, corTexto, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
-  raioCantos, nomeLoja, nomeCampanha, posicaoChave,
+  raioCantos, nomeLoja, nomeCampanha, posicaoChave, escalaChave,
 }: CardProps) {
   const letters = ini(nomeLoja)
   const r       = raioCantos
@@ -376,7 +378,7 @@ function CardClassicoSquare({
       </div>
 
       {posicaoChave && (
-        <KeyBadge posicao={posicaoChave} size={size} corPrimaria={corPrimaria} corTexto={corTexto} />
+        <KeyBadge posicao={posicaoChave} size={size} corPrimaria={corPrimaria} corTexto={corTexto} escala={escalaChave ?? 1} />
       )}
     </div>
   )
@@ -389,7 +391,7 @@ function CardClassico(props: CardProps) {
 function CardModerno({
   size, corPrimaria, corFundo, corTexto, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
-  raioCantos, nomeLoja, nomeCampanha, posicaoChave,
+  raioCantos, nomeLoja, nomeCampanha, posicaoChave, escalaChave,
 }: CardProps) {
   const letters = ini(nomeLoja)
   const r       = raioCantos
@@ -501,7 +503,7 @@ function CardModerno({
       </div>
 
       {posicaoChave && (
-        <KeyBadge posicao={posicaoChave} size={size} corPrimaria={corPrimaria} corTexto={corTexto} />
+        <KeyBadge posicao={posicaoChave} size={size} corPrimaria={corPrimaria} corTexto={corTexto} escala={escalaChave ?? 1} />
       )}
     </div>
   )
@@ -510,7 +512,7 @@ function CardModerno({
 function CardMinimalista({
   size, corPrimaria, corFundo, corTexto, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
-  raioCantos, nomeLoja, nomeCampanha, posicaoChave,
+  raioCantos, nomeLoja, nomeCampanha, posicaoChave, escalaChave,
 }: CardProps) {
   const letters = ini(nomeLoja)
   const r       = raioCantos
@@ -614,7 +616,7 @@ function CardMinimalista({
       </div>
 
       {posicaoChave && (
-        <KeyBadge posicao={posicaoChave} size={size} corPrimaria={corPrimaria} corTexto={corTexto} />
+        <KeyBadge posicao={posicaoChave} size={size} corPrimaria={corPrimaria} corTexto={corTexto} escala={escalaChave ?? 1} />
       )}
     </div>
   )
@@ -623,7 +625,7 @@ function CardMinimalista({
 function CardGradiente({
   size, corPrimaria, corFundo, corTexto: _ct, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
-  raioCantos, nomeLoja, nomeCampanha, posicaoChave,
+  raioCantos, nomeLoja, nomeCampanha, posicaoChave, escalaChave,
 }: CardProps) {
   const letters = ini(nomeLoja)
   const r       = raioCantos
@@ -713,7 +715,7 @@ function CardGradiente({
       </div>
 
       {posicaoChave && (
-        <KeyBadge posicao={posicaoChave} size={size} corPrimaria={corPrimaria} corTexto="#1a1a1a" />
+        <KeyBadge posicao={posicaoChave} size={size} corPrimaria={corPrimaria} corTexto="#1a1a1a" escala={escalaChave ?? 1} />
       )}
     </div>
   )
@@ -722,7 +724,7 @@ function CardGradiente({
 function CardNeon({
   size, corPrimaria, corFundo: _cf, corTexto: _ct, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
-  raioCantos, nomeLoja, nomeCampanha, posicaoChave,
+  raioCantos, nomeLoja, nomeCampanha, posicaoChave, escalaChave,
 }: CardProps) {
   const letters = ini(nomeLoja)
   const r       = raioCantos
@@ -822,7 +824,7 @@ function CardNeon({
       </div>
 
       {posicaoChave && (
-        <KeyBadge posicao={posicaoChave} size={size} corPrimaria={corPrimaria} corTexto="#111111" />
+        <KeyBadge posicao={posicaoChave} size={size} corPrimaria={corPrimaria} corTexto="#111111" escala={escalaChave ?? 1} />
       )}
     </div>
   )
@@ -835,7 +837,7 @@ function CardNeon({
 function CardLimpo({
   size, corPrimaria, corFundo, corTexto, img1, opacidade,
   brilho: b, saturacao: s, contraste: c, raioCantos: r,
-  posicaoChave,
+  posicaoChave, escalaChave,
 }: CardProps) {
   return (
     <div style={{
@@ -848,7 +850,7 @@ function CardLimpo({
         pointerEvents: "none",
       }} />}
       {posicaoChave && (
-        <KeyBadge posicao={posicaoChave} size={size} corPrimaria={corPrimaria} corTexto={corTexto} />
+        <KeyBadge posicao={posicaoChave} size={size} corPrimaria={corPrimaria} corTexto={corTexto} escala={escalaChave ?? 1} />
       )}
     </div>
   )
