@@ -8,8 +8,8 @@ import { QRCodeSVG } from "qrcode.react"
 
 export type TamanhoCard  = "MINI" | "CARTAO" | "PADRAO" | "COUPON" | "VOUCHER" | "MEIO_A4" | "MDF"
 export type EstiloCard   = "CLASSICO" | "MODERNO" | "MINIMALISTA" | "GRADIENTE" | "NEON"
-/** null = sem overlay (chave no layout normal do template) */
-export type PosicaoChave = "top" | "bottom" | "left" | "right" | null
+/** null = chave não posicionada | {x, y} = posição em % da área do card */
+export type PosicaoChave = { x: number; y: number } | null
 
 export interface CardSize {
   label: string
@@ -23,7 +23,7 @@ export interface CardSize {
   rows: number
 }
 
-// preW/preH = dimensão interna de renderização (2× a resolução visual para alta definição)
+// preW/preH = dimensão interna de renderização (alta resolução)
 // A escala de exibição é calculada: scale = containerPx / preW
 export const CARD_SIZES: Record<TamanhoCard, CardSize> = {
   MINI:    { label: "Mini",    desc: "63×38 mm · 21/folha",  mmW:  63, mmH:  38, preW:  504, preH:  304, perFolha: 21, cols: 3, rows: 7 },
@@ -66,65 +66,58 @@ export function imgFilter(b: number, s: number, c: number) {
   return `brightness(${b}%) saturate(${s}%) contrast(${c}%)`
 }
 
-/** Overlay da chave centralizado na borda escolhida */
-export function KeyOverlayRenderer({
-  codigo,
-  posicao,
-  corPrimaria,
-  fontSize,
-}: {
-  codigo: string
-  posicao: Exclude<PosicaoChave, null>
-  corPrimaria: string
-  fontSize: number
-}) {
-  // Cada posição centraliza o overlay na respectiva borda
-  const pos: React.CSSProperties = {
-    top:    { top: 8,    left: "50%", transform: "translateX(-50%)" },
-    bottom: { bottom: 8, left: "50%", transform: "translateX(-50%)" },
-    left:   { left: 8,  top:  "50%", transform: "translateY(-50%)" },
-    right:  { right: 8, top:  "50%", transform: "translateY(-50%)" },
-  }[posicao]
+export function ini(nome: string) {
+  return nome.split(/\s+/).slice(0, 2).map(w => w[0]).join("").toUpperCase() || "AB"
+}
 
+export function isSquare(size: CardSize) {
+  return Math.abs(size.mmW / size.mmH - 1) < 0.15
+}
+
+// ─────────────────────────────────────────────────────────────
+// KEY BADGE — overlay de chave posicionável (estático, sem drag)
+// O drag é gerenciado fora deste componente (print-grid / layout-form)
+// ─────────────────────────────────────────────────────────────
+
+export function KeyBadge({
+  posicao, size, corPrimaria, corTexto,
+}: {
+  posicao: { x: number; y: number }
+  size: CardSize
+  corPrimaria: string
+  corTexto: string
+}) {
+  const fs = size.preH * 0.065
   return (
     <div style={{
-      position: "absolute", zIndex: 10, ...pos,
-      background: "rgba(0,0,0,0.75)",
-      borderRadius: Math.round(fontSize * 0.5),
-      padding: `${Math.round(fontSize * 0.3)}px ${Math.round(fontSize * 0.7)}px`,
-      border: `1px solid ${corPrimaria}99`,
-      backdropFilter: "blur(2px)",
+      position: "absolute",
+      left: `${posicao.x}%`,
+      top: `${posicao.y}%`,
+      transform: "translate(-50%, -50%)",
+      zIndex: 20,
+      background: "rgba(255,255,255,0.94)",
+      borderRadius: Math.round(fs * 0.5),
+      padding: `${Math.round(fs * 0.28)}px ${Math.round(fs * 0.65)}px`,
+      border: `1.5px solid ${corPrimaria}`,
+      backdropFilter: "blur(4px)",
+      boxShadow: "0 2px 10px rgba(0,0,0,0.18)",
+      pointerEvents: "none",
     }}>
       <code style={{
-        fontFamily: "monospace", fontSize, fontWeight: "bold",
-        color: "#ffffff", whiteSpace: "nowrap", letterSpacing: 1.4,
-        display: "block", lineHeight: 1,
+        fontFamily: "monospace",
+        fontSize: fs,
+        fontWeight: "bold",
+        color: corTexto,
+        whiteSpace: "nowrap",
+        letterSpacing: 1.2,
+        display: "block",
+        lineHeight: 1,
       }}>
-        {codigo}
+        XXXX-YYYY-ZZZZ-WWWW
       </code>
     </div>
   )
 }
-export function ini(nome: string) {
-  return nome.split(/\s+/).slice(0, 2).map(w => w[0]).join("").toUpperCase() || "AB"
-}
-export function isSquare(size: CardSize) {
-  return Math.abs(size.mmW / size.mmH - 1) < 0.15
-}
-export const codeStyle = (size: CardSize, corTexto: string, corPrimaria: string) => ({
-  fontFamily: "monospace",
-  fontSize: size.preH * 0.07,
-  fontWeight: "bold" as const,
-  color: corTexto,
-  background: corPrimaria + "15",
-  border: `1px solid ${corPrimaria}55`,
-  borderRadius: 3,
-  padding: "1px 5px",
-  display: "inline-block",
-  whiteSpace: "nowrap" as const,
-  overflow: "hidden" as const,
-  maxWidth: "100%",
-})
 
 // ─────────────────────────────────────────────────────────────
 // RENDERERS
@@ -133,18 +126,17 @@ export const codeStyle = (size: CardSize, corTexto: string, corPrimaria: string)
 function CardClassicoLandscape({
   size, corPrimaria, corFundo, corTexto, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
-  raioCantos, nomeLoja, nomeCampanha,
+  raioCantos, nomeLoja, nomeCampanha, posicaoChave,
 }: CardProps) {
   const letters = ini(nomeLoja)
-  const r = raioCantos
-  const logoSz = size.preH * 0.28
-  const qrSz   = size.preH * 0.36
+  const r       = raioCantos
+  const logoSz  = size.preH * 0.28
+  const qrSz    = size.preH * 0.38
   return (
     <div style={{
       width: size.preW, height: size.preH,
-      border: `1.5px solid ${corPrimaria}55`, borderRadius: r,
-      display: "flex", flexDirection: "row", alignItems: "center",
-      padding: `6px 10px 6px 14px`,
+      border: `1.5px solid ${corPrimaria}44`, borderRadius: r,
+      display: "flex", flexDirection: "row", alignItems: "stretch",
       background: corFundo, position: "relative", overflow: "hidden",
       fontFamily: "'Segoe UI', Arial, sans-serif",
     }}>
@@ -153,57 +145,114 @@ function CardClassicoLandscape({
         objectFit: "cover", opacity: opacidade / 100, pointerEvents: "none",
         filter: imgFilter(b, s, c),
       }} />}
-      <div style={{ position: "absolute", top: 0, left: 0, width: 5, height: "100%",
-        background: `linear-gradient(180deg,${corPrimaria},${corPrimaria}88)`,
-        borderRadius: `${r}px 0 0 ${r}px` }} />
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center",
-        justifyContent: "center", width: size.preW * 0.2, paddingLeft: 4,
-        flexShrink: 0, position: "relative", zIndex: 1 }}>
+
+      {/* Faixa esquerda colorida */}
+      <div style={{
+        position: "absolute", top: 0, left: 0, width: 5, height: "100%",
+        background: `linear-gradient(180deg,${corPrimaria},${corPrimaria}77)`,
+        borderRadius: `${r}px 0 0 ${r}px`,
+      }} />
+
+      {/* Coluna da loja */}
+      <div style={{
+        display: "flex", flexDirection: "column", alignItems: "center",
+        justifyContent: "center", width: size.preW * 0.22, paddingLeft: 12,
+        flexShrink: 0, position: "relative", zIndex: 1,
+      }}>
         {img2
-          ? <img src={img2} alt="" style={{ width: logoSz, height: logoSz,
-              borderRadius: "50%", objectFit: "cover",
-              border: `2px solid ${corPrimaria}`, marginBottom: 3 }} />
-          : <div style={{ width: logoSz, height: logoSz, borderRadius: "50%",
+          ? <img src={img2} alt="" style={{
+              width: logoSz, height: logoSz, borderRadius: "50%",
+              objectFit: "cover", border: `2.5px solid ${corPrimaria}`, marginBottom: 5,
+            }} />
+          : <div style={{
+              width: logoSz, height: logoSz, borderRadius: "50%",
               background: `linear-gradient(135deg,${corPrimaria}cc,${corPrimaria})`,
               display: "flex", alignItems: "center", justifyContent: "center",
               color: "#fff", fontSize: logoSz * 0.32, fontWeight: "bold",
-              marginBottom: 3, border: `2px solid ${corPrimaria}` }}>{letters}</div>
+              marginBottom: 5, border: `2.5px solid ${corPrimaria}55`,
+            }}>{letters}</div>
         }
-        <span style={{ fontSize: size.preH * 0.065, color: corPrimaria, fontWeight: "bold",
-          textTransform: "uppercase", letterSpacing: 0.4, textAlign: "center", lineHeight: 1.2,
-          whiteSpace: "nowrap", overflow: "hidden", maxWidth: "100%", textOverflow: "ellipsis" }}>
+        <span style={{
+          fontSize: size.preH * 0.064, color: corPrimaria, fontWeight: "bold",
+          textTransform: "uppercase", letterSpacing: 0.4, textAlign: "center",
+          lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden",
+          maxWidth: "100%", textOverflow: "ellipsis",
+        }}>
           {nomeLoja || "Sua Loja"}
         </span>
       </div>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center",
-        gap: 2, paddingLeft: 8, overflow: "hidden", position: "relative", zIndex: 1 }}>
-        <div style={{ fontSize: size.preH * 0.065, fontWeight: "bold", color: corSecundaria,
-          textTransform: "uppercase", letterSpacing: 0.5,
-          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+
+      {/* Divisória */}
+      <div style={{
+        width: 1, alignSelf: "stretch", margin: `${size.preH * 0.12}px 0`,
+        background: corPrimaria + "22", flexShrink: 0, position: "relative", zIndex: 1,
+      }} />
+
+      {/* Conteúdo central */}
+      <div style={{
+        flex: 1, display: "flex", flexDirection: "column", justifyContent: "center",
+        gap: 5, paddingLeft: 12, paddingRight: 6,
+        overflow: "hidden", position: "relative", zIndex: 1,
+      }}>
+        <div style={{
+          fontSize: size.preH * 0.062, fontWeight: "600", color: corSecundaria,
+          textTransform: "uppercase", letterSpacing: 0.6,
+          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+        }}>
           {nomeCampanha || "Campanha"}
         </div>
-        <div style={{ fontSize: size.preH * 0.14, fontWeight: "bold", color: corPrimaria, lineHeight: 1 }}>
+        <div style={{
+          fontSize: size.preH * 0.17, fontWeight: "bold",
+          color: corPrimaria, lineHeight: 1,
+        }}>
           20% OFF
         </div>
-        <div style={{ fontSize: size.preH * 0.065, color: corSecundaria + "99" }}>Desconto exclusivo</div>
-        <code style={codeStyle(size, corTexto, corPrimaria)}>XXXX-YYYY-ZZZZ-WWWW</code>
-        <div style={{ fontSize: size.preH * 0.055, color: corSecundaria + "66" }}>Válido até 31/12/2025</div>
+        <div style={{
+          fontSize: size.preH * 0.062, color: corSecundaria + "99",
+          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+        }}>
+          Desconto exclusivo
+        </div>
+        <div style={{
+          fontSize: size.preH * 0.052, color: corSecundaria + "55",
+          whiteSpace: "nowrap",
+        }}>
+          Válido até 31/12/2025
+        </div>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center",
-        justifyContent: "center", gap: 3, width: qrSz + 18, flexShrink: 0,
-        position: "relative", zIndex: 1 }}>
-        <div style={{ border: `1.5px solid ${corPrimaria}`, borderRadius: 4, padding: 3, background: "#fff" }}>
+
+      {/* QR Code */}
+      <div style={{
+        display: "flex", flexDirection: "column", alignItems: "center",
+        justifyContent: "center", gap: 4,
+        paddingRight: 10, flexShrink: 0,
+        position: "relative", zIndex: 1,
+      }}>
+        <div style={{
+          border: `1.5px solid ${corPrimaria}`, borderRadius: 5,
+          padding: 4, background: "#fff",
+        }}>
           <QRCodeSVG value="https://courtesyfy.com" size={qrSz}
             bgColor="#fff" fgColor="#111827" level="M" marginSize={0} />
         </div>
-        <span style={{ fontSize: size.preH * 0.055, color: corSecundaria + "88",
-          textAlign: "center", lineHeight: 1.3, whiteSpace: "nowrap" }}>Escaneie e ative</span>
+        <span style={{
+          fontSize: size.preH * 0.052, color: corSecundaria + "77",
+          textAlign: "center", lineHeight: 1.2, whiteSpace: "nowrap",
+        }}>Escaneie e ative</span>
       </div>
-      <div style={{ position: "absolute", bottom: 3, right: 8,
-        fontSize: size.preH * 0.048, color: corSecundaria + "44",
-        letterSpacing: 0.4, whiteSpace: "nowrap" }}>
+
+      {/* Watermark */}
+      <div style={{
+        position: "absolute", bottom: 3, left: 14,
+        fontSize: size.preH * 0.044, color: corSecundaria + "33",
+        letterSpacing: 0.4, whiteSpace: "nowrap", zIndex: 1,
+      }}>
         courtesyfy.com
       </div>
+
+      {posicaoChave && (
+        <KeyBadge posicao={posicaoChave} size={size} corPrimaria={corPrimaria} corTexto={corTexto} />
+      )}
     </div>
   )
 }
@@ -211,13 +260,13 @@ function CardClassicoLandscape({
 function CardClassicoSquare({
   size, corPrimaria, corFundo, corTexto, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
-  raioCantos, nomeLoja, nomeCampanha,
+  raioCantos, nomeLoja, nomeCampanha, posicaoChave,
 }: CardProps) {
   const letters = ini(nomeLoja)
-  const r = raioCantos
-  const pad    = size.preW * 0.055
-  const logoSz = size.preW * 0.20
-  const qrSz   = size.preW * 0.27
+  const r       = raioCantos
+  const pad     = size.preW * 0.055
+  const logoSz  = size.preW * 0.18
+  const qrSz    = size.preW * 0.30
   return (
     <div style={{
       width: size.preW, height: size.preH,
@@ -225,68 +274,110 @@ function CardClassicoSquare({
       background: corFundo, position: "relative",
       fontFamily: "'Segoe UI', Arial, sans-serif",
       display: "flex", flexDirection: "column",
-      border: `1.5px solid ${corPrimaria}55`,
+      border: `1.5px solid ${corPrimaria}44`,
     }}>
       {img1 && <img src={img1} alt="" style={{
         position: "absolute", inset: 0, width: "100%", height: "100%",
         objectFit: "cover", opacity: opacidade / 100,
         pointerEvents: "none", filter: imgFilter(b, s, c),
       }} />}
+
+      {/* Topo colorido */}
       <div style={{ height: 5, background: corPrimaria, flexShrink: 0, position: "relative", zIndex: 1 }} />
-      <div style={{ display: "flex", flexDirection: "row", alignItems: "center",
-        padding: `${pad * 0.6}px ${pad}px ${pad * 0.4}px`, gap: pad * 0.7,
-        position: "relative", zIndex: 1 }}>
+
+      {/* Header: logo + nomes */}
+      <div style={{
+        display: "flex", flexDirection: "row", alignItems: "center",
+        padding: `${pad * 0.55}px ${pad}px ${pad * 0.35}px`,
+        gap: pad * 0.65, position: "relative", zIndex: 1,
+      }}>
         {img2
-          ? <img src={img2} alt="" style={{ width: logoSz, height: logoSz,
-              borderRadius: "50%", objectFit: "cover",
-              border: `2px solid ${corPrimaria}`, flexShrink: 0 }} />
-          : <div style={{ width: logoSz, height: logoSz, borderRadius: "50%",
+          ? <img src={img2} alt="" style={{
+              width: logoSz, height: logoSz, borderRadius: "50%",
+              objectFit: "cover", border: `2px solid ${corPrimaria}`, flexShrink: 0,
+            }} />
+          : <div style={{
+              width: logoSz, height: logoSz, borderRadius: "50%",
               background: `linear-gradient(135deg,${corPrimaria}cc,${corPrimaria})`,
               display: "flex", alignItems: "center", justifyContent: "center",
               color: "#fff", fontSize: logoSz * 0.35, fontWeight: "bold",
-              border: `2px solid ${corPrimaria}`, flexShrink: 0 }}>{letters}</div>
+              border: `2px solid ${corPrimaria}55`, flexShrink: 0,
+            }}>{letters}</div>
         }
         <div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
-          <div style={{ fontSize: size.preW * 0.07, fontWeight: "bold", color: corPrimaria,
+          <div style={{
+            fontSize: size.preW * 0.068, fontWeight: "bold", color: corPrimaria,
             textTransform: "uppercase", letterSpacing: 0.4, lineHeight: 1.1,
-            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+          }}>
             {nomeLoja || "Sua Loja"}
           </div>
-          <div style={{ fontSize: size.preW * 0.062, color: corSecundaria,
-            textTransform: "uppercase", letterSpacing: 0.3, marginTop: 1,
-            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          <div style={{
+            fontSize: size.preW * 0.058, color: corSecundaria,
+            textTransform: "uppercase", letterSpacing: 0.3, marginTop: 2,
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+          }}>
             {nomeCampanha || "Campanha"}
           </div>
         </div>
       </div>
-      <div style={{ height: 1, background: corPrimaria + "30",
-        margin: `0 ${pad}px`, position: "relative", zIndex: 1 }} />
-      <div style={{ flex: 1, display: "flex", flexDirection: "row", alignItems: "center",
-        padding: `${pad * 0.6}px ${pad}px`, gap: pad * 0.8,
-        position: "relative", zIndex: 1 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: size.preW * 0.18, fontWeight: "bold", color: corPrimaria, lineHeight: 1 }}>
+
+      {/* Separador */}
+      <div style={{
+        height: 1, background: corPrimaria + "28",
+        margin: `0 ${pad}px`, position: "relative", zIndex: 1,
+      }} />
+
+      {/* Corpo */}
+      <div style={{
+        flex: 1, display: "flex", flexDirection: "row", alignItems: "center",
+        padding: `${pad * 0.55}px ${pad}px`,
+        gap: pad, position: "relative", zIndex: 1, overflow: "hidden",
+      }}>
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 5 }}>
+          <div style={{
+            fontSize: size.preW * 0.20, fontWeight: "bold",
+            color: corPrimaria, lineHeight: 1,
+          }}>
             20% OFF
           </div>
-          <div style={{ fontSize: size.preW * 0.062, color: corSecundaria + "99", marginTop: 2 }}>
+          <div style={{
+            fontSize: size.preW * 0.060, color: corSecundaria + "99",
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+          }}>
             Desconto exclusivo
           </div>
-          <code style={{ ...codeStyle(size, corTexto, corPrimaria), fontSize: size.preW * 0.065, marginTop: 5 }}>
-            XXXX-YYYY-ZZZZ-WWWW
-          </code>
+          <div style={{
+            fontSize: size.preW * 0.050, color: corSecundaria + "55", whiteSpace: "nowrap",
+          }}>
+            Válido até 31/12/2025
+          </div>
         </div>
-        <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-          <div style={{ border: `1.5px solid ${corPrimaria}`, borderRadius: 4, padding: 3, background: "#fff" }}>
+        <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+          <div style={{
+            border: `1.5px solid ${corPrimaria}`, borderRadius: 5,
+            padding: 3, background: "#fff",
+          }}>
             <QRCodeSVG value="https://courtesyfy.com" size={qrSz}
               bgColor="#fff" fgColor="#111827" level="M" marginSize={0} />
           </div>
-          <span style={{ fontSize: size.preW * 0.052, color: corSecundaria + "77", whiteSpace: "nowrap" }}>Escanear</span>
+          <span style={{
+            fontSize: size.preW * 0.048, color: corSecundaria + "66", whiteSpace: "nowrap",
+          }}>Escanear</span>
         </div>
       </div>
-      <div style={{ position: "absolute", bottom: 3, left: pad,
-        fontSize: size.preW * 0.048, color: corSecundaria + "44", whiteSpace: "nowrap" }}>
-        courtesyfy.com · Válido até 31/12/2025
+
+      {/* Watermark */}
+      <div style={{
+        position: "absolute", bottom: 4, left: pad,
+        fontSize: size.preW * 0.044, color: corSecundaria + "33", whiteSpace: "nowrap", zIndex: 1,
+      }}>
+        courtesyfy.com
       </div>
+
+      {posicaoChave && (
+        <KeyBadge posicao={posicaoChave} size={size} corPrimaria={corPrimaria} corTexto={corTexto} />
+      )}
     </div>
   )
 }
@@ -298,64 +389,120 @@ function CardClassico(props: CardProps) {
 function CardModerno({
   size, corPrimaria, corFundo, corTexto, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
-  raioCantos, nomeLoja, nomeCampanha,
+  raioCantos, nomeLoja, nomeCampanha, posicaoChave,
 }: CardProps) {
   const letters = ini(nomeLoja)
-  const r = raioCantos
-  const topH = Math.round(size.preH * 0.40)
-  const qrSz  = size.preH * 0.28
+  const r       = raioCantos
+  const topH    = Math.round(size.preH * 0.42)
+  const qrSz    = size.preH * 0.29
   return (
     <div style={{
       width: size.preW, height: size.preH, borderRadius: r, overflow: "hidden",
       background: corFundo, fontFamily: "'Segoe UI', Arial, sans-serif",
-      display: "flex", flexDirection: "column", border: `1.5px solid ${corPrimaria}33`,
+      display: "flex", flexDirection: "column", border: `1.5px solid ${corPrimaria}22`,
+      position: "relative",
     }}>
-      <div style={{ height: topH, background: `linear-gradient(135deg,${corPrimaria},${corPrimaria}bb)`,
+      {/* Banner superior */}
+      <div style={{
+        height: topH,
+        background: `linear-gradient(135deg,${corPrimaria} 0%,${corPrimaria}99 100%)`,
         position: "relative", overflow: "hidden",
-        display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        {img1 && <img src={img1} alt="" style={{ position: "absolute", inset: 0, width: "100%",
-          height: "100%", objectFit: "cover", opacity: opacidade / 100,
-          filter: imgFilter(b, s, c), mixBlendMode: "overlay" }} />}
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: `0 ${size.preW * 0.06}px`,
+        flexShrink: 0,
+      }}>
+        {img1 && <img src={img1} alt="" style={{
+          position: "absolute", inset: 0, width: "100%", height: "100%",
+          objectFit: "cover", opacity: opacidade / 100,
+          filter: imgFilter(b, s, c), mixBlendMode: "overlay",
+        }} />}
         {img2
-          ? <img src={img2} alt="" style={{ width: topH * 0.52, height: topH * 0.52,
-              borderRadius: "50%", objectFit: "cover",
-              border: "3px solid rgba(255,255,255,0.8)", position: "relative", zIndex: 1 }} />
-          : <div style={{ width: topH * 0.52, height: topH * 0.52, borderRadius: "50%",
-              background: "rgba(255,255,255,0.25)", border: "3px solid rgba(255,255,255,0.6)",
+          ? <img src={img2} alt="" style={{
+              width: topH * 0.50, height: topH * 0.50, borderRadius: "50%",
+              objectFit: "cover", border: "3px solid rgba(255,255,255,0.8)",
+              position: "relative", zIndex: 1,
+            }} />
+          : <div style={{
+              width: topH * 0.50, height: topH * 0.50, borderRadius: "50%",
+              background: "rgba(255,255,255,0.22)", border: "3px solid rgba(255,255,255,0.6)",
               display: "flex", alignItems: "center", justifyContent: "center",
               color: "#fff", fontSize: topH * 0.22, fontWeight: "bold",
-              position: "relative", zIndex: 1 }}>{letters}</div>
+              position: "relative", zIndex: 1,
+            }}>{letters}</div>
         }
-        <div style={{ position: "absolute", top: 6, left: 8, fontSize: topH * 0.17,
-          fontWeight: "bold", color: "rgba(255,255,255,0.9)", zIndex: 1,
-          whiteSpace: "nowrap", overflow: "hidden", maxWidth: "60%" }}>
-          {nomeLoja || "Sua Loja"}
-        </div>
-      </div>
-      <div style={{ flex: 1, display: "flex", flexDirection: "row",
-        alignItems: "center", padding: "6px 10px", gap: 8 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: size.preH * 0.065, fontWeight: "bold", color: corSecundaria,
-            textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 2,
-            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+        <div style={{
+          position: "relative", zIndex: 1, textAlign: "right",
+          maxWidth: "55%", overflow: "hidden",
+        }}>
+          <div style={{
+            fontSize: topH * 0.18, fontWeight: "bold",
+            color: "rgba(255,255,255,0.95)", lineHeight: 1.1,
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+          }}>
+            {nomeLoja || "Sua Loja"}
+          </div>
+          <div style={{
+            fontSize: topH * 0.13, color: "rgba(255,255,255,0.70)",
+            textTransform: "uppercase", letterSpacing: 0.5,
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+          }}>
             {nomeCampanha || "Campanha"}
           </div>
-          <div style={{ fontSize: size.preH * 0.13, fontWeight: "bold", color: corPrimaria, lineHeight: 1 }}>
+        </div>
+      </div>
+
+      {/* Corpo inferior */}
+      <div style={{
+        flex: 1, display: "flex", flexDirection: "row",
+        alignItems: "center", padding: `${size.preH * 0.05}px ${size.preW * 0.06}px`,
+        gap: size.preW * 0.06,
+      }}>
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 5 }}>
+          <div style={{
+            fontSize: size.preH * 0.17, fontWeight: "bold",
+            color: corPrimaria, lineHeight: 1,
+          }}>
             20% OFF
           </div>
-          <code style={{ ...codeStyle(size, corTexto, corPrimaria), marginTop: 3 }}>
-            XXXX-YYYY-ZZZZ-WWWW
-          </code>
+          <div style={{
+            fontSize: size.preH * 0.064, color: corSecundaria,
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+          }}>
+            Desconto exclusivo
+          </div>
+          <div style={{
+            fontSize: size.preH * 0.052, color: corSecundaria + "55", whiteSpace: "nowrap",
+          }}>
+            Válido até 31/12/2025
+          </div>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center",
-          gap: 2, flexShrink: 0 }}>
-          <div style={{ border: `2px solid ${corPrimaria}`, borderRadius: 5, padding: 3, background: "#fff" }}>
+        <div style={{
+          display: "flex", flexDirection: "column", alignItems: "center",
+          gap: 3, flexShrink: 0,
+        }}>
+          <div style={{
+            border: `2px solid ${corPrimaria}`, borderRadius: 5, padding: 3, background: "#fff",
+          }}>
             <QRCodeSVG value="https://courtesyfy.com" size={qrSz}
               bgColor="#fff" fgColor="#111827" level="M" marginSize={0} />
           </div>
-          <span style={{ fontSize: size.preH * 0.052, color: corSecundaria + "77", whiteSpace: "nowrap" }}>Escanear</span>
+          <span style={{
+            fontSize: size.preH * 0.050, color: corSecundaria + "66", whiteSpace: "nowrap",
+          }}>Escanear</span>
         </div>
       </div>
+
+      {/* Watermark */}
+      <div style={{
+        position: "absolute", bottom: 4, right: size.preW * 0.04,
+        fontSize: size.preH * 0.042, color: corSecundaria + "33", whiteSpace: "nowrap", zIndex: 1,
+      }}>
+        courtesyfy.com
+      </div>
+
+      {posicaoChave && (
+        <KeyBadge posicao={posicaoChave} size={size} corPrimaria={corPrimaria} corTexto={corTexto} />
+      )}
     </div>
   )
 }
@@ -363,58 +510,112 @@ function CardModerno({
 function CardMinimalista({
   size, corPrimaria, corFundo, corTexto, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
-  raioCantos, nomeLoja, nomeCampanha,
+  raioCantos, nomeLoja, nomeCampanha, posicaoChave,
 }: CardProps) {
   const letters = ini(nomeLoja)
-  const r = raioCantos
-  const logoSz = size.preH * 0.26
-  const qrSz   = size.preH * 0.32
+  const r       = raioCantos
+  const logoSz  = size.preH * 0.24
+  const qrSz    = size.preH * 0.33
+  const pad     = size.preW * 0.055
   return (
     <div style={{
       width: size.preW, height: size.preH, borderRadius: r, overflow: "hidden",
       background: corFundo, fontFamily: "'Segoe UI', Arial, sans-serif",
       display: "flex", flexDirection: "column",
-      border: `1px solid ${corTexto}22`, position: "relative",
+      border: `1px solid ${corTexto}1A`, position: "relative",
     }}>
-      {img1 && <img src={img1} alt="" style={{ position: "absolute", inset: 0, width: "100%",
-        height: "100%", objectFit: "cover", opacity: opacidade / 100,
-        filter: imgFilter(b, s, c), pointerEvents: "none" }} />}
-      <div style={{ height: 3, background: corPrimaria, flexShrink: 0, position: "relative", zIndex: 1 }} />
-      <div style={{ flex: 1, display: "flex", flexDirection: "row", alignItems: "center",
-        padding: "8px 12px", gap: 10, position: "relative", zIndex: 1 }}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, flexShrink: 0 }}>
+      {img1 && <img src={img1} alt="" style={{
+        position: "absolute", inset: 0, width: "100%", height: "100%",
+        objectFit: "cover", opacity: opacidade / 100,
+        filter: imgFilter(b, s, c), pointerEvents: "none",
+      }} />}
+
+      {/* Linha de acento superior */}
+      <div style={{
+        height: 3, background: corPrimaria,
+        flexShrink: 0, position: "relative", zIndex: 1,
+      }} />
+
+      {/* Conteúdo */}
+      <div style={{
+        flex: 1, display: "flex", flexDirection: "row", alignItems: "center",
+        padding: `${size.preH * 0.08}px ${pad}px`,
+        gap: pad * 0.9, position: "relative", zIndex: 1,
+      }}>
+        {/* Logo + nome */}
+        <div style={{
+          display: "flex", flexDirection: "column", alignItems: "center",
+          gap: 4, flexShrink: 0, maxWidth: size.preW * 0.22,
+        }}>
           {img2
-            ? <img src={img2} alt="" style={{ width: logoSz, height: logoSz,
-                borderRadius: "50%", objectFit: "cover" }} />
-            : <div style={{ width: logoSz, height: logoSz, borderRadius: "50%",
-                background: corPrimaria + "22", display: "flex", alignItems: "center",
-                justifyContent: "center", color: corPrimaria,
-                fontSize: logoSz * 0.33, fontWeight: "bold" }}>{letters}</div>
+            ? <img src={img2} alt="" style={{
+                width: logoSz, height: logoSz, borderRadius: "50%", objectFit: "cover",
+              }} />
+            : <div style={{
+                width: logoSz, height: logoSz, borderRadius: "50%",
+                background: corPrimaria + "1E",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                color: corPrimaria, fontSize: logoSz * 0.33, fontWeight: "bold",
+              }}>{letters}</div>
           }
-          <span style={{ fontSize: size.preH * 0.057, color: corSecundaria,
-            fontWeight: 600, textAlign: "center", lineHeight: 1.1, whiteSpace: "nowrap" }}>
+          <span style={{
+            fontSize: size.preH * 0.055, color: corSecundaria,
+            fontWeight: 600, textAlign: "center", lineHeight: 1.15,
+            whiteSpace: "nowrap", overflow: "hidden",
+            textOverflow: "ellipsis", maxWidth: "100%",
+          }}>
             {nomeLoja || "Loja"}
           </span>
         </div>
-        <div style={{ width: 1, alignSelf: "stretch", margin: "4px 0",
-          background: corTexto + "15", flexShrink: 0 }} />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: size.preH * 0.062, color: corSecundaria + "aa",
-            textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 3,
-            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+
+        {/* Divisória */}
+        <div style={{
+          width: 1, alignSelf: "stretch", margin: `${size.preH * 0.06}px 0`,
+          background: corTexto + "14", flexShrink: 0,
+        }} />
+
+        {/* Info */}
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 5 }}>
+          <div style={{
+            fontSize: size.preH * 0.059, color: corSecundaria + "aa",
+            textTransform: "uppercase", letterSpacing: 0.7,
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+          }}>
             {nomeCampanha || "Campanha"}
           </div>
-          <div style={{ fontSize: size.preH * 0.16, fontWeight: "300", color: corPrimaria,
-            letterSpacing: -0.5, lineHeight: 1 }}>20% OFF</div>
-          <code style={{ ...codeStyle(size, corTexto, corPrimaria), marginTop: 4, fontSize: size.preH * 0.062 }}>
-            XXXX-YYYY-ZZZZ-WWWW
-          </code>
+          <div style={{
+            fontSize: size.preH * 0.18, fontWeight: "300",
+            color: corPrimaria, letterSpacing: -0.5, lineHeight: 1,
+          }}>
+            20% OFF
+          </div>
+          <div style={{
+            fontSize: size.preH * 0.056, color: corSecundaria + "88",
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+          }}>
+            Desconto exclusivo
+          </div>
         </div>
-        <div style={{ flexShrink: 0, opacity: 0.85 }}>
+
+        {/* QR */}
+        <div style={{ flexShrink: 0, opacity: 0.88 }}>
           <QRCodeSVG value="https://courtesyfy.com" size={qrSz}
             bgColor="transparent" fgColor={corTexto} level="M" marginSize={0} />
         </div>
       </div>
+
+      {/* Watermark */}
+      <div style={{
+        position: "absolute", bottom: 4, right: pad,
+        fontSize: size.preH * 0.042, color: corSecundaria + "33",
+        whiteSpace: "nowrap", zIndex: 1,
+      }}>
+        courtesyfy.com
+      </div>
+
+      {posicaoChave && (
+        <KeyBadge posicao={posicaoChave} size={size} corPrimaria={corPrimaria} corTexto={corTexto} />
+      )}
     </div>
   )
 }
@@ -422,62 +623,98 @@ function CardMinimalista({
 function CardGradiente({
   size, corPrimaria, corFundo, corTexto: _ct, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
-  raioCantos, nomeLoja, nomeCampanha,
+  raioCantos, nomeLoja, nomeCampanha, posicaoChave,
 }: CardProps) {
   const letters = ini(nomeLoja)
-  const r = raioCantos
-  const logoSz = size.preH * 0.36
-  const qrSz   = size.preH * 0.33
+  const r       = raioCantos
+  const logoSz  = size.preH * 0.34
+  const qrSz    = size.preH * 0.34
+  const pad     = size.preW * 0.05
   return (
     <div style={{
       width: size.preW, height: size.preH, borderRadius: r, overflow: "hidden",
       background: `linear-gradient(135deg,${corPrimaria} 0%,${corFundo} 100%)`,
       fontFamily: "'Segoe UI', Arial, sans-serif",
       display: "flex", flexDirection: "row", alignItems: "center",
-      padding: "8px 12px", gap: 10, position: "relative",
+      padding: `${size.preH * 0.1}px ${pad}px`, gap: pad, position: "relative",
     }}>
-      {img1 && <img src={img1} alt="" style={{ position: "absolute", inset: 0, width: "100%",
-        height: "100%", objectFit: "cover", opacity: opacidade / 100,
-        filter: imgFilter(b, s, c), mixBlendMode: "overlay", pointerEvents: "none" }} />}
-      <div style={{ flexShrink: 0, display: "flex", flexDirection: "column",
-        alignItems: "center", gap: 4, position: "relative", zIndex: 1 }}>
+      {img1 && <img src={img1} alt="" style={{
+        position: "absolute", inset: 0, width: "100%", height: "100%",
+        objectFit: "cover", opacity: opacidade / 100,
+        filter: imgFilter(b, s, c), mixBlendMode: "overlay", pointerEvents: "none",
+      }} />}
+
+      {/* Logo + nome da loja */}
+      <div style={{
+        flexShrink: 0, display: "flex", flexDirection: "column",
+        alignItems: "center", gap: 5, position: "relative", zIndex: 1,
+        maxWidth: size.preW * 0.25,
+      }}>
         {img2
-          ? <img src={img2} alt="" style={{ width: logoSz, height: logoSz,
-              borderRadius: "50%", objectFit: "cover",
-              border: "3px solid rgba(255,255,255,0.5)" }} />
-          : <div style={{ width: logoSz, height: logoSz, borderRadius: "50%",
-              background: "rgba(255,255,255,0.25)", border: "3px solid rgba(255,255,255,0.5)",
+          ? <img src={img2} alt="" style={{
+              width: logoSz, height: logoSz, borderRadius: "50%", objectFit: "cover",
+              border: "3px solid rgba(255,255,255,0.55)",
+            }} />
+          : <div style={{
+              width: logoSz, height: logoSz, borderRadius: "50%",
+              background: "rgba(255,255,255,0.22)", border: "3px solid rgba(255,255,255,0.55)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              color: "#fff", fontSize: logoSz * 0.32, fontWeight: "bold" }}>{letters}</div>
+              color: "#fff", fontSize: logoSz * 0.32, fontWeight: "bold",
+            }}>{letters}</div>
         }
-        <span style={{ fontSize: size.preH * 0.068, color: "rgba(255,255,255,0.9)",
-          fontWeight: 600, textAlign: "center", whiteSpace: "nowrap" }}>
+        <span style={{
+          fontSize: size.preH * 0.065, color: "rgba(255,255,255,0.92)",
+          fontWeight: 600, textAlign: "center", whiteSpace: "nowrap",
+          overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%",
+        }}>
           {nomeLoja || "Loja"}
         </span>
       </div>
-      <div style={{ flex: 1, position: "relative", zIndex: 1, paddingLeft: 4, minWidth: 0 }}>
-        <div style={{ fontSize: size.preH * 0.07, color: "rgba(255,255,255,0.75)",
-          textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2,
-          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+
+      {/* Info central */}
+      <div style={{
+        flex: 1, position: "relative", zIndex: 1,
+        paddingLeft: 4, minWidth: 0, display: "flex", flexDirection: "column", gap: 5,
+      }}>
+        <div style={{
+          fontSize: size.preH * 0.067, color: "rgba(255,255,255,0.72)",
+          textTransform: "uppercase", letterSpacing: 0.5,
+          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+        }}>
           {nomeCampanha || "Campanha"}
         </div>
-        <div style={{ fontSize: size.preH * 0.17, fontWeight: "bold",
-          color: "#fff", lineHeight: 1, textShadow: "0 2px 8px rgba(0,0,0,0.25)" }}>
+        <div style={{
+          fontSize: size.preH * 0.19, fontWeight: "bold",
+          color: "#fff", lineHeight: 1, textShadow: "0 2px 8px rgba(0,0,0,0.22)",
+        }}>
           20% OFF
         </div>
-        <div style={{ marginTop: 6, background: "rgba(255,255,255,0.2)",
-          borderRadius: 20, padding: "2px 8px", display: "inline-block" }}>
-          <code style={{ fontFamily: "monospace", fontSize: size.preH * 0.065,
-            color: "#fff", fontWeight: "bold", whiteSpace: "nowrap" }}>
-            XXXX-YYYY-ZZZZ-WWWW
-          </code>
+        <div style={{
+          fontSize: size.preH * 0.060, color: "rgba(255,255,255,0.65)",
+          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+        }}>
+          Desconto exclusivo
+        </div>
+        <div style={{
+          fontSize: size.preH * 0.050, color: "rgba(255,255,255,0.45)", whiteSpace: "nowrap",
+        }}>
+          Válido até 31/12/2025
         </div>
       </div>
-      <div style={{ flexShrink: 0, position: "relative", zIndex: 1,
-        background: "rgba(255,255,255,0.9)", borderRadius: 6, padding: 4 }}>
+
+      {/* QR */}
+      <div style={{
+        flexShrink: 0, position: "relative", zIndex: 1,
+        background: "rgba(255,255,255,0.92)", borderRadius: 7, padding: 5,
+        boxShadow: "0 2px 12px rgba(0,0,0,0.2)",
+      }}>
         <QRCodeSVG value="https://courtesyfy.com" size={qrSz}
           bgColor="transparent" fgColor="#111827" level="M" marginSize={0} />
       </div>
+
+      {posicaoChave && (
+        <KeyBadge posicao={posicaoChave} size={size} corPrimaria={corPrimaria} corTexto="#1a1a1a" />
+      )}
     </div>
   )
 }
@@ -485,76 +722,118 @@ function CardGradiente({
 function CardNeon({
   size, corPrimaria, corFundo: _cf, corTexto: _ct, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
-  raioCantos, nomeLoja, nomeCampanha,
+  raioCantos, nomeLoja, nomeCampanha, posicaoChave,
 }: CardProps) {
   const letters = ini(nomeLoja)
-  const r = raioCantos
-  const logoSz = size.preH * 0.30
-  const qrSz   = size.preH * 0.32
+  const r       = raioCantos
+  const logoSz  = size.preH * 0.30
+  const qrSz    = size.preH * 0.32
+  const pad     = size.preW * 0.045
   return (
     <div style={{
       width: size.preW, height: size.preH, borderRadius: r, overflow: "hidden",
-      background: "#0a0a0a", fontFamily: "'Segoe UI', Arial, sans-serif",
+      background: "#090909", fontFamily: "'Segoe UI', Arial, sans-serif",
       display: "flex", flexDirection: "row", alignItems: "center",
-      padding: "6px 10px", gap: 8, position: "relative",
+      padding: `${size.preH * 0.1}px ${pad}px`, gap: pad, position: "relative",
       border: `1.5px solid ${corPrimaria}`,
-      boxShadow: `0 0 12px ${corPrimaria}55, inset 0 0 30px rgba(0,0,0,0.5)`,
+      boxShadow: `0 0 14px ${corPrimaria}44, inset 0 0 40px rgba(0,0,0,0.4)`,
     }}>
-      {img1 && <img src={img1} alt="" style={{ position: "absolute", inset: 0, width: "100%",
-        height: "100%", objectFit: "cover", opacity: (opacidade / 100) * 0.5,
-        filter: imgFilter(b, s, c), pointerEvents: "none" }} />}
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2,
-        background: `linear-gradient(90deg,transparent,${corPrimaria},transparent)` }} />
-      <div style={{ flexShrink: 0, display: "flex", flexDirection: "column",
-        alignItems: "center", gap: 3, position: "relative", zIndex: 1 }}>
+      {img1 && <img src={img1} alt="" style={{
+        position: "absolute", inset: 0, width: "100%", height: "100%",
+        objectFit: "cover", opacity: (opacidade / 100) * 0.45,
+        filter: imgFilter(b, s, c), pointerEvents: "none",
+      }} />}
+
+      {/* Linha neon no topo */}
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: 2,
+        background: `linear-gradient(90deg,transparent,${corPrimaria},transparent)`,
+      }} />
+
+      {/* Logo + nome */}
+      <div style={{
+        flexShrink: 0, display: "flex", flexDirection: "column",
+        alignItems: "center", gap: 4, position: "relative", zIndex: 1,
+        maxWidth: size.preW * 0.25,
+      }}>
         {img2
-          ? <img src={img2} alt="" style={{ width: logoSz, height: logoSz,
-              borderRadius: "50%", objectFit: "cover",
-              border: `2px solid ${corPrimaria}`, boxShadow: `0 0 8px ${corPrimaria}66` }} />
-          : <div style={{ width: logoSz, height: logoSz, borderRadius: "50%",
-              background: corPrimaria + "22", border: `2px solid ${corPrimaria}`,
-              boxShadow: `0 0 8px ${corPrimaria}55`, display: "flex",
-              alignItems: "center", justifyContent: "center",
-              color: corPrimaria, fontSize: logoSz * 0.33, fontWeight: "bold" }}>{letters}</div>
+          ? <img src={img2} alt="" style={{
+              width: logoSz, height: logoSz, borderRadius: "50%",
+              objectFit: "cover", border: `2px solid ${corPrimaria}`,
+              boxShadow: `0 0 8px ${corPrimaria}66`,
+            }} />
+          : <div style={{
+              width: logoSz, height: logoSz, borderRadius: "50%",
+              background: corPrimaria + "1A", border: `2px solid ${corPrimaria}`,
+              boxShadow: `0 0 10px ${corPrimaria}55`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: corPrimaria, fontSize: logoSz * 0.33, fontWeight: "bold",
+            }}>{letters}</div>
         }
-        <span style={{ fontSize: size.preH * 0.063, color: corPrimaria, fontWeight: 700,
-          textAlign: "center", textShadow: `0 0 6px ${corPrimaria}`,
-          whiteSpace: "nowrap" }}>{nomeLoja || "Loja"}</span>
+        <span style={{
+          fontSize: size.preH * 0.060, color: corPrimaria, fontWeight: 700,
+          textAlign: "center", textShadow: `0 0 7px ${corPrimaria}`,
+          whiteSpace: "nowrap", overflow: "hidden",
+          textOverflow: "ellipsis", maxWidth: "100%",
+        }}>
+          {nomeLoja || "Loja"}
+        </span>
       </div>
-      <div style={{ flex: 1, position: "relative", zIndex: 1, paddingLeft: 6, minWidth: 0 }}>
-        <div style={{ fontSize: size.preH * 0.063, color: "rgba(255,255,255,0.50)",
-          textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 2,
-          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+
+      {/* Info */}
+      <div style={{
+        flex: 1, position: "relative", zIndex: 1, paddingLeft: 6,
+        minWidth: 0, display: "flex", flexDirection: "column", gap: 5,
+      }}>
+        <div style={{
+          fontSize: size.preH * 0.061, color: "rgba(255,255,255,0.48)",
+          textTransform: "uppercase", letterSpacing: 0.7,
+          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+        }}>
           {nomeCampanha || "Campanha"}
         </div>
-        <div style={{ fontSize: size.preH * 0.16, fontWeight: "bold",
-          color: corPrimaria, lineHeight: 1, textShadow: `0 0 12px ${corPrimaria}` }}>
+        <div style={{
+          fontSize: size.preH * 0.18, fontWeight: "bold", color: corPrimaria,
+          lineHeight: 1, textShadow: `0 0 14px ${corPrimaria}`,
+        }}>
           20% OFF
         </div>
-        <code style={{ fontFamily: "monospace", fontSize: size.preH * 0.065,
-          color: "rgba(255,255,255,0.75)", background: corPrimaria + "18",
-          border: `1px solid ${corPrimaria}55`, borderRadius: 4,
-          padding: "1px 5px", display: "inline-block", marginTop: 4,
-          whiteSpace: "nowrap" }}>
-          XXXX-YYYY-ZZZZ-WWWW
-        </code>
+        <div style={{
+          fontSize: size.preH * 0.060, color: "rgba(255,255,255,0.55)",
+          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+        }}>
+          Desconto exclusivo
+        </div>
+        <div style={{
+          fontSize: size.preH * 0.048, color: "rgba(255,255,255,0.28)", whiteSpace: "nowrap",
+        }}>
+          Válido até 31/12/2025
+        </div>
       </div>
-      <div style={{ flexShrink: 0, position: "relative", zIndex: 1,
+
+      {/* QR */}
+      <div style={{
+        flexShrink: 0, position: "relative", zIndex: 1,
         border: `1.5px solid ${corPrimaria}`, borderRadius: 6, padding: 3,
-        background: "#fff", boxShadow: `0 0 10px ${corPrimaria}44` }}>
+        background: "#fff", boxShadow: `0 0 10px ${corPrimaria}44`,
+      }}>
         <QRCodeSVG value="https://courtesyfy.com" size={qrSz}
           bgColor="#fff" fgColor="#111827" level="M" marginSize={0} />
       </div>
+
+      {posicaoChave && (
+        <KeyBadge posicao={posicaoChave} size={size} corPrimaria={corPrimaria} corTexto="#111111" />
+      )}
     </div>
   )
 }
 
 // ─────────────────────────────────────────────────────────────
-// ROUTER — exported
+// MODO LIMPO (arte própria)
 // ─────────────────────────────────────────────────────────────
 
 function CardLimpo({
-  size, corPrimaria, corFundo, img1, opacidade,
+  size, corPrimaria, corFundo, corTexto, img1, opacidade,
   brilho: b, saturacao: s, contraste: c, raioCantos: r,
   posicaoChave,
 }: CardProps) {
@@ -569,43 +848,23 @@ function CardLimpo({
         pointerEvents: "none",
       }} />}
       {posicaoChave && (
-        <KeyOverlayRenderer
-          codigo="XXXX-YYYY-ZZZZ-WWWW"
-          posicao={posicaoChave}
-          corPrimaria={corPrimaria}
-          fontSize={size.preH * 0.082}
-        />
+        <KeyBadge posicao={posicaoChave} size={size} corPrimaria={corPrimaria} corTexto={corTexto} />
       )}
     </div>
   )
 }
 
+// ─────────────────────────────────────────────────────────────
+// ROUTER — exportado
+// ─────────────────────────────────────────────────────────────
+
 export function CardRenderer(props: CardProps & { estilo: EstiloCard }) {
   if (props.modoLimpo) return <CardLimpo {...props} />
-  // Overlay adicional em qualquer estilo
-  const overlay = props.posicaoChave ? (
-    <KeyOverlayRenderer
-      codigo="XXXX-YYYY-ZZZZ-WWWW"
-      posicao={props.posicaoChave}
-      corPrimaria={props.corPrimaria}
-      fontSize={props.size.preH * 0.072}
-    />
-  ) : null
-
-  let card: React.ReactNode
   switch (props.estilo) {
-    case "MODERNO":      card = <CardModerno {...props} />; break
-    case "MINIMALISTA":  card = <CardMinimalista {...props} />; break
-    case "GRADIENTE":    card = <CardGradiente {...props} />; break
-    case "NEON":         card = <CardNeon {...props} />; break
-    default:             card = <CardClassico {...props} />
+    case "MODERNO":      return <CardModerno {...props} />
+    case "MINIMALISTA":  return <CardMinimalista {...props} />
+    case "GRADIENTE":    return <CardGradiente {...props} />
+    case "NEON":         return <CardNeon {...props} />
+    default:             return <CardClassico {...props} />
   }
-
-  if (!overlay) return <>{card}</>
-  return (
-    <div style={{ position: "relative", display: "inline-block" }}>
-      {card}
-      {overlay}
-    </div>
-  )
 }

@@ -4,8 +4,7 @@ import { useActionState, useState, useTransition, useEffect, useRef } from "reac
 import { useFormStatus } from "react-dom"
 import {
   CheckCircle, Loader2, Upload, X, Star, LayoutGrid,
-  Palette, ImageIcon, Sliders, Maximize2, Info, Printer,
-  ArrowUp, ArrowDown, ArrowLeft, ArrowRight, CircleDot, ScanLine,
+  Palette, ImageIcon, Sliders, Maximize2, Info, Printer, ScanLine,
 } from "lucide-react"
 import type { LayoutState } from "../_actions/layout-actions"
 import {
@@ -145,93 +144,111 @@ function SheetPreview({ onOpenModal, tamanho, estilo, ...cardProps }: CardProps 
   )
 }
 
-// ─── D-PAD — Posicionador de chave ───────────────────────────────────────────
+// ─── PREVIEW INTERATIVO — aba "Card" ─────────────────────────────────────────
+// Clique ou arraste para posicionar a chave no card.
+// Não abre modal. Sem overlay de hover.
 
-function DPad({
-  value,
-  onChange,
+const PREVIEW_WIDTH = 520
+
+function InteractiveCardPreview({
+  cardProps,
+  estilo,
+  onSetKeyPos,
 }: {
-  value: PosicaoChave
-  onChange: (v: PosicaoChave) => void
+  cardProps: CardProps
+  estilo: EstiloCard
+  onSetKeyPos: (pos: PosicaoChave) => void
 }) {
-  const btn = (pos: PosicaoChave, icon: React.ReactNode, title: string) => {
-    const active = value === pos
-    return (
-      <button
-        type="button"
-        title={title}
-        onClick={() => onChange(active ? null : pos)}
-        className={`
-          w-10 h-10 rounded-xl flex items-center justify-center transition-all
-          border text-sm font-bold
-          ${active
-            ? "border-emerald-500 bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
-            : "dash-card border hover:border-emerald-400 dash-subtitle hover:text-emerald-500"
-          }
-        `}
-      >
-        {icon}
-      </button>
-    )
+  const def      = cardProps.size
+  const scale    = PREVIEW_WIDTH / def.preW
+  const displayW = Math.round(def.preW * scale)
+  const displayH = Math.round(def.preH * scale)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const hasKey   = cardProps.posicaoChave !== null && cardProps.posicaoChave !== undefined
+
+  const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
+
+  const posFromEvent = (clientX: number, clientY: number): { x: number; y: number } | null => {
+    const rect = wrapperRef.current?.getBoundingClientRect()
+    if (!rect) return null
+    return {
+      x: clamp(((clientX - rect.left) / rect.width)  * 100, 2, 98),
+      y: clamp(((clientY - rect.top)  / rect.height) * 100, 2, 98),
+    }
   }
 
-  const centerActive = value === null
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
+    const pos = posFromEvent(e.clientX, e.clientY)
+    if (pos) onSetKeyPos(pos)
+
+    document.body.style.cursor = "crosshair"
+
+    const onMove = (ev: MouseEvent) => {
+      const p = posFromEvent(ev.clientX, ev.clientY)
+      if (p) onSetKeyPos(p)
+    }
+    const onUp = () => {
+      document.body.style.cursor = ""
+      document.removeEventListener("mousemove", onMove)
+      document.removeEventListener("mouseup", onUp)
+    }
+    document.addEventListener("mousemove", onMove)
+    document.addEventListener("mouseup", onUp)
+  }
 
   return (
-    <div className="flex items-start gap-4 flex-wrap">
-      {/* Grid 3×3 do D-pad */}
-      <div className="grid grid-cols-3 gap-1.5" style={{ width: 136 }}>
-        {/* Linha 1 */}
-        <div />
-        {btn("top",    <ArrowUp    className="w-4 h-4" />, "Topo (centralizado)")}
-        <div />
-        {/* Linha 2 */}
-        {btn("left",   <ArrowLeft  className="w-4 h-4" />, "Esquerda (centralizado)")}
-        <button
-          type="button"
-          title="Centro — sem overlay (usa posição do template)"
-          onClick={() => onChange(null)}
-          className={`
-            w-10 h-10 rounded-xl flex items-center justify-center transition-all border text-sm
-            ${centerActive
-              ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-              : "dash-card border dash-subtitle opacity-50 hover:opacity-100"
-            }
-          `}
-        >
-          <CircleDot className="w-4 h-4" />
-        </button>
-        {btn("right",  <ArrowRight className="w-4 h-4" />, "Direita (centralizado)")}
-        {/* Linha 3 */}
-        <div />
-        {btn("bottom", <ArrowDown  className="w-4 h-4" />, "Base (centralizado)")}
-        <div />
-      </div>
+    <div className="flex flex-col items-center gap-2">
+      <div
+        ref={wrapperRef}
+        style={{
+          width: displayW, height: displayH,
+          overflow: "hidden", position: "relative",
+          cursor: "crosshair",
+          outline: hasKey ? "none" : "2px dashed rgba(16,185,129,0.45)",
+          outlineOffset: "2px",
+          borderRadius: cardProps.raioCantos * scale,
+        }}
+        onMouseDown={handleMouseDown}
+        title="Clique ou arraste para posicionar a chave"
+      >
+        <div style={{
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+          position: "absolute",
+          pointerEvents: "none",
+        }}>
+          <CardRenderer {...cardProps} estilo={estilo} />
+        </div>
 
-      {/* Legenda */}
-      <div className="flex flex-col justify-center gap-1.5">
-        <p className="text-xs font-semibold dash-subtitle">Posição da chave</p>
-        <p className="text-xs dash-muted leading-relaxed max-w-[180px]">
-          {value === null
-            ? "Chave integrada ao template (posição normal)"
-            : `Overlay fixo na borda ${
-                { top: "superior", bottom: "inferior", left: "esquerda", right: "direita" }[value]
-              }, centralizado`
-          }
-        </p>
-        {value !== null && (
-          <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-medium w-fit">
-            ativo
-          </span>
+        {/* Hint quando ainda não tem chave */}
+        {!hasKey && (
+          <div style={{
+            position: "absolute", inset: 0,
+            display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "flex-end",
+            paddingBottom: 12, pointerEvents: "none",
+          }}>
+            <div style={{
+              background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)",
+              borderRadius: 8, padding: "4px 10px",
+            }}>
+              <span style={{ color: "#fff", fontSize: 11, fontWeight: 500 }}>
+                Clique para posicionar a chave
+              </span>
+            </div>
+          </div>
         )}
       </div>
+      <p className="text-xs dash-muted text-center">
+        {def.mmW}×{def.mmH} mm · {def.perFolha}/folha A4
+        {hasKey && <span className="text-emerald-500 ml-1">· chave posicionada</span>}
+      </p>
     </div>
   )
 }
 
-// ─── PREVIEW CARD (escalonado) ────────────────────────────────────────────────
-
-const PREVIEW_WIDTH = 520  // largura alvo do preview em px
+// ─── PREVIEW CARD ESTÁTICO (escalonado) — usado só no SheetPreview interno ──
 
 function ScaledCardPreview({
   cardProps,
@@ -242,8 +259,8 @@ function ScaledCardPreview({
   estilo: EstiloCard
   onClick?: () => void
 }) {
-  const def   = cardProps.size
-  const scale = PREVIEW_WIDTH / def.preW
+  const def      = cardProps.size
+  const scale    = PREVIEW_WIDTH / def.preW
   const displayW = Math.round(def.preW * scale)
   const displayH = Math.round(def.preH * scale)
 
@@ -252,7 +269,6 @@ function ScaledCardPreview({
       className={onClick ? "cursor-pointer group relative" : "relative"}
       style={{ width: displayW, height: displayH, overflow: "hidden" }}
       onClick={onClick}
-      title={onClick ? "Clique para ver a folha A4 completa" : undefined}
     >
       <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", position: "absolute", pointerEvents: "none" }}>
         <CardRenderer {...cardProps} estilo={estilo} />
@@ -456,46 +472,36 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
   // ── Preview Panel (shared entre mobile sticky e desktop sidebar) ──────────
   const PreviewContent = () => (
     <div className="flex flex-col gap-3 h-full">
-      {/* Tabs */}
-      <div className="flex items-center gap-2">
-        <div className="flex gap-1 bg-gray-100 dark:bg-white/5 rounded-xl p-1 flex-1">
-          {(["card", "folha"] as const).map(tab => (
-            <button key={tab} type="button" onClick={() => setPreviewTab(tab)}
-              className={`flex-1 text-xs font-medium py-1.5 px-2 rounded-lg transition-all ${
-                previewTab === tab ? "bg-white dark:bg-white/10 dash-title shadow-sm" : "dash-muted"
-              }`}>
-              {tab === "card" ? "Card" : "Folha A4"}
-            </button>
-          ))}
-        </div>
-        <button type="button" onClick={() => setShowModal(true)}
-          className="inline-flex items-center gap-1 text-xs dash-muted hover:text-emerald-500 transition-colors border border-gray-200 dark:border-white/[0.08] rounded-lg px-2 py-1.5">
-          <Printer className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Impressão</span>
-        </button>
+      {/* Tabs — só Card e Folha A4, sem botão separado de impressão */}
+      <div className="flex items-center gap-1 bg-gray-100 dark:bg-white/5 rounded-xl p-1">
+        {(["card", "folha"] as const).map(tab => (
+          <button key={tab} type="button" onClick={() => setPreviewTab(tab)}
+            className={`flex-1 text-xs font-medium py-1.5 px-2 rounded-lg transition-all ${
+              previewTab === tab ? "bg-white dark:bg-white/10 dash-title shadow-sm" : "dash-muted"
+            }`}>
+            {tab === "card" ? "Card" : "Folha A4"}
+          </button>
+        ))}
       </div>
 
       {/* Nome preview */}
       <input type="text" value={nomeCampanha} onChange={e => setNomeCampanha(e.target.value)}
         placeholder="Nome da campanha (preview)" className="dash-input !text-xs !py-1.5" />
 
-      {/* Card scaled preview */}
+      {/* ── Aba Card: preview interativo, sem modal ao clicar ── */}
       {previewTab === "card" && (
         <div className="flex-1 flex flex-col items-center justify-center overflow-hidden">
           <div className="overflow-auto w-full flex justify-center">
-            <ScaledCardPreview
+            <InteractiveCardPreview
               cardProps={cardProps}
               estilo={estilo}
-              onClick={() => setShowModal(true)}
+              onSetKeyPos={setPosicao}
             />
           </div>
-          <p className="text-xs dash-muted mt-2 text-center">
-            {sizeInfo.mmW}×{sizeInfo.mmH} mm · {sizeInfo.perFolha}/folha A4
-          </p>
         </div>
       )}
 
-      {/* A4 mini preview */}
+      {/* ── Aba Folha A4: mini sheet preview com click para modal ── */}
       {previewTab === "folha" && (
         <div className="flex-1 flex justify-center items-start overflow-auto pt-1">
           <SheetPreview {...cardProps} estilo={estilo} tamanho={tamanho} onOpenModal={() => setShowModal(true)} />
@@ -515,7 +521,10 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
             ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
             : "bg-gray-100 dark:bg-white/5 dash-muted"
         }`}>
-          {posicaoChave ? `Chave: ${posicaoChave}` : "Chave: template"}
+          {posicaoChave
+            ? `Chave: ${posicaoChave.x.toFixed(0)}%, ${posicaoChave.y.toFixed(0)}%`
+            : "Chave: não posicionada"
+          }
         </span>
       </div>
     </div>
@@ -601,10 +610,8 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
             </div>
           </Section>
 
-          {/* 2+3 — Tamanho + Estilo lado a lado (chips compactos) */}
+          {/* 2+3 — Tamanho + Estilo lado a lado */}
           <div className="grid sm:grid-cols-2 gap-4">
-
-            {/* Tamanho */}
             <Section icon={Maximize2} title="Tamanho" compact>
               <div className="flex flex-wrap gap-1.5">
                 {(Object.entries(CARD_SIZES) as [TamanhoCard, CardSize][]).map(([key, def]) => (
@@ -623,14 +630,12 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
                   </button>
                 ))}
               </div>
-              {/* Info do tamanho selecionado */}
               <p className="text-xs dash-muted flex items-center gap-1">
                 <Info className="w-3 h-3" />
                 {sizeInfo.mmW}×{sizeInfo.mmH} mm · {sizeInfo.perFolha}/folha · {sizeInfo.cols}×{sizeInfo.rows}
               </p>
             </Section>
 
-            {/* Estilo */}
             <Section icon={LayoutGrid} title="Estilo Visual" compact>
               <div className="flex flex-wrap gap-1.5">
                 {(Object.entries(ESTILOS) as [EstiloCard, { label: string; desc: string }][]).map(([key, def]) => (
@@ -656,7 +661,7 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
             </Section>
           </div>
 
-          {/* 4 — Posição da Chave (D-pad) */}
+          {/* 4 — Posição da Chave */}
           <Section icon={ScanLine} title="Posição da Chave">
             {/* Modo arte própria */}
             <label className="flex items-start gap-3 cursor-pointer dash-card border p-3 rounded-xl transition-all hover:border-emerald-400">
@@ -674,11 +679,31 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
               </div>
             </label>
 
-            {/* D-pad */}
-            <DPad value={posicaoChave} onChange={setPosicao} />
+            {/* Instrução de posicionamento */}
+            <div className="rounded-xl border border-emerald-200 dark:border-emerald-500/25 bg-emerald-50 dark:bg-emerald-500/8 p-3">
+              <p className="text-xs text-emerald-700 dark:text-emerald-400 font-medium flex items-center gap-1.5">
+                <span>🎯</span>
+                Clique no card ao vivo (aba Card) para posicionar a chave
+              </p>
+              <p className="text-xs dash-muted mt-1 leading-relaxed">
+                Arraste para reposicionar livremente. A chave ficará dentro da área do card.
+              </p>
+            </div>
+
+            {/* Botão remover chave */}
+            {posicaoChave && (
+              <button
+                type="button"
+                onClick={() => setPosicao(null)}
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
+              >
+                <X className="w-3.5 h-3.5" />
+                Remover chave do preview
+              </button>
+            )}
           </Section>
 
-          {/* 5 — Cores (sempre visíveis) */}
+          {/* 5 — Cores */}
           <Section icon={Palette} title="Paleta de Cores">
             <div className="grid sm:grid-cols-2 gap-4">
               <ColorPicker label="Cor de Destaque / Marca"  name="corPrimaria"   value={corPrimaria} onChange={setCorPri} />
@@ -707,7 +732,7 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
             </div>
           </Section>
 
-          {/* 7 — Filtros (sempre visíveis) */}
+          {/* 7 — Filtros */}
           <Section icon={Sliders} title="Filtros Visuais">
             <p className="text-xs dash-muted -mt-1">
               Afetam a imagem de fundo quando carregada. Cores e opacidade alteram o card mesmo sem imagem.
@@ -732,7 +757,14 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 Preview ao vivo
               </span>
-              <span className="text-xs dash-muted">{sizeInfo.label} · {sizeInfo.mmW}×{sizeInfo.mmH}mm</span>
+              <button
+                type="button"
+                onClick={() => setShowModal(true)}
+                className="inline-flex items-center gap-1.5 text-xs dash-muted hover:text-emerald-500 transition-colors border border-gray-200 dark:border-white/[0.08] rounded-lg px-2.5 py-1.5"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                Ver Folha A4
+              </button>
             </div>
             <PreviewContent />
           </div>
