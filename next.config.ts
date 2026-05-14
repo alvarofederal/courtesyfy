@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: projectRoot,
   output: 'standalone',
 
+  // jsPDF precisa rodar no servidor sem bundling do Next.js
+  serverExternalPackages: ['jspdf', 'html2canvas'],
+
   turbopack: {
     root: projectRoot,
   },

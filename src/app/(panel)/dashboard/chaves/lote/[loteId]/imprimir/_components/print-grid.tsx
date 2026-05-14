@@ -1194,7 +1194,7 @@ export function PrintGrid({
             )}
           </div>
 
-          {/* Gerar PDF */}
+          {/* Gerar PDF — chama API route que retorna application/pdf real */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
             <button
               onClick={() => {
@@ -1206,7 +1206,8 @@ export function PrintGrid({
                   p.set("keySize", keyFontSz.toString())
                 }
                 if (modoLimpo) p.set("modoLimpo", "1")
-                window.open(`/print/${loteId}?${p.toString()}`, "_blank")
+                // Abre o PDF real gerado no servidor — sem window.print(), sem dialog
+                window.open(`/api/print/${loteId}?${p.toString()}`, "_blank")
               }}
               style={{ ...btnBase, background: "#111827", color: "#fff" }}
             >
