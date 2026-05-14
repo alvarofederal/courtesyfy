@@ -23,8 +23,31 @@ const openSans = Open_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Courtesyfy",
-  description: "Gestão de campanhas com chaves únicas",
+  metadataBase: new URL("https://courtesyfy.com.br"),
+  title: {
+    default: "Courtesyfy",
+    template: "%s | Courtesyfy",
+  },
+  description: "Gestão de campanhas promocionais com chaves únicas. Crie campanhas, gere QR Codes e valide resgates com facilidade.",
+  keywords: ["cortesias", "campanhas promocionais", "QR Code", "chaves únicas", "gestão de promoções"],
+  authors: [{ name: "Courtesyfy", url: "https://courtesyfy.com.br" }],
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: "https://courtesyfy.com.br",
+    siteName: "Courtesyfy",
+    title: "Courtesyfy — Campanhas com chaves únicas",
+    description: "Crie campanhas, gere QR Codes e valide resgates com facilidade.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Courtesyfy",
+    description: "Gestão de campanhas promocionais com chaves únicas.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 // Script injetado no <head> — executa ANTES do React hidratar.

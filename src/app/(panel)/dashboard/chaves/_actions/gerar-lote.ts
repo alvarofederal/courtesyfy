@@ -113,7 +113,7 @@ export async function gerarLote(
   const baseUrl =
     process.env.NEXTAUTH_URL ??
     process.env.NEXT_PUBLIC_APP_URL ??
-    "http://localhost:3000"
+    "https://courtesyfy.com.br"
 
   const lote = await db.loteChave.create({
     data: {

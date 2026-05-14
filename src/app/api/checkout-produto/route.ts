@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Produto inválido" }, { status: 400 })
   }
 
-  const appUrl = process.env.NEXTAUTH_URL ?? "https://courtesyfy.com"
+  const appUrl = process.env.NEXTAUTH_URL ?? "https://courtesyfy.com.br"
 
   try {
     const session = await stripe.checkout.sessions.create({

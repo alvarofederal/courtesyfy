@@ -277,7 +277,7 @@ function CardClassicoLandscape({
           border: `1.5px solid ${corPrimaria}`, borderRadius: 5,
           padding: 3, background: "#fff", flexShrink: 0,
         }}>
-          <QRCodeSVG value="https://courtesyfy.com" size={qrSz}
+          <QRCodeSVG value="https://courtesyfy.com.br" size={qrSz}
             bgColor="#fff" fgColor="#111827" level="M" marginSize={0} />
         </div>
         <T style={{
@@ -294,7 +294,7 @@ function CardClassicoLandscape({
         fontSize: fTiny, color: corSecundaria + "33",
         whiteSpace: "nowrap", zIndex: 1,
       }}>
-        courtesyfy.com
+        courtesyfy.com.br
       </div>
 
       {posicaoChave && (
@@ -406,7 +406,7 @@ function CardClassicoSquare({
           alignItems: "center", gap: 4 }}>
           <div style={{ border: `1.5px solid ${corPrimaria}`, borderRadius: 5,
             padding: 3, background: "#fff" }}>
-            <QRCodeSVG value="https://courtesyfy.com" size={qrSz}
+            <QRCodeSVG value="https://courtesyfy.com.br" size={qrSz}
               bgColor="#fff" fgColor="#111827" level="M" marginSize={0} />
           </div>
           <T style={{ fontSize: fTiny, color: corSecundaria + "66",
@@ -422,7 +422,7 @@ function CardClassicoSquare({
         fontSize: fTiny, color: corSecundaria + "33",
         whiteSpace: "nowrap", zIndex: 1,
       }}>
-        courtesyfy.com
+        courtesyfy.com.br
       </div>
 
       {posicaoChave && (
@@ -543,7 +543,7 @@ function CardModerno({
           alignItems: "center", gap: 3 }}>
           <div style={{ border: `2px solid ${corPrimaria}`, borderRadius: 5,
             padding: 3, background: "#fff" }}>
-            <QRCodeSVG value="https://courtesyfy.com" size={qrSz}
+            <QRCodeSVG value="https://courtesyfy.com.br" size={qrSz}
               bgColor="#fff" fgColor="#111827" level="M" marginSize={0} />
           </div>
           <T style={{ fontSize: fTiny, color: corSecundaria + "66",
@@ -559,7 +559,7 @@ function CardModerno({
         fontSize: fTiny, color: corSecundaria + "30",
         whiteSpace: "nowrap", zIndex: 1,
       }}>
-        courtesyfy.com
+        courtesyfy.com.br
       </div>
 
       {posicaoChave && (
@@ -679,7 +679,7 @@ function CardMinimalista({
 
         {/* QR */}
         <div style={{ flexShrink: 0, opacity: 0.88 }}>
-          <QRCodeSVG value="https://courtesyfy.com" size={qrSz}
+          <QRCodeSVG value="https://courtesyfy.com.br" size={qrSz}
             bgColor="transparent" fgColor={corTexto} level="M" marginSize={0} />
         </div>
       </div>
@@ -690,7 +690,7 @@ function CardMinimalista({
         fontSize: fTiny, color: corSecundaria + "30",
         whiteSpace: "nowrap", zIndex: 1,
       }}>
-        courtesyfy.com
+        courtesyfy.com.br
       </div>
 
       {posicaoChave && (
@@ -795,7 +795,7 @@ function CardGradiente({
         background: "rgba(255,255,255,0.92)", borderRadius: 7, padding: 5,
         boxShadow: "0 2px 12px rgba(0,0,0,0.2)",
       }}>
-        <QRCodeSVG value="https://courtesyfy.com" size={qrSz}
+        <QRCodeSVG value="https://courtesyfy.com.br" size={qrSz}
           bgColor="transparent" fgColor="#111827" level="M" marginSize={0} />
       </div>
 
@@ -911,7 +911,7 @@ function CardNeon({
         border: `1.5px solid ${corPrimaria}`, borderRadius: 6, padding: 3,
         background: "#fff", boxShadow: `0 0 10px ${corPrimaria}44`,
       }}>
-        <QRCodeSVG value="https://courtesyfy.com" size={qrSz}
+        <QRCodeSVG value="https://courtesyfy.com.br" size={qrSz}
           bgColor="#fff" fgColor="#111827" level="M" marginSize={0} />
       </div>
 

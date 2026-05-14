@@ -10,7 +10,7 @@
 **Courtesyfy** é um SaaS B2B para gestão de campanhas promocionais com chaves únicas (cortesias).
 Lojistas criam campanhas, geram chaves com QR Code, distribuem para clientes e validam resgates.
 Stack: Next.js 15 (App Router) + TypeScript + MySQL (Prisma) + Stripe + Vercel.
-**Versão atual:** 1.0.0-mvp | **Branch ativo:** main | **Status:** MVP em produção (Vercel)
+**Versão atual:** 1.0.2 | **Branch ativo:** main | **Status:** MVP em produção — **[courtesyfy.com.br](https://courtesyfy.com.br)**
 
 ---
 
@@ -99,9 +99,12 @@ if (session?.user?.role !== "SUPER_ADMIN") redirect("/dashboard")
 | `STRIPE_PRICE_MDF_QUADRADO_KIT10` | MDF Quadrado 9×9cm — Kit 10 peças (único) |
 | `STRIPE_PRICE_MDF_QUADRADO_KIT50` | MDF Quadrado 9×9cm — Kit 50 peças (único) |
 
-### Webhook local (desenvolvimento)
+### Webhook
+- **Produção:** `https://courtesyfy.com.br/api/webhook`
+- **Local (desenvolvimento):**
 ```bash
 stripe listen --api-key sk_test_51TWPs2... --forward-to localhost:3000/api/webhook
+# ou: npm run stripe:listen:local
 ```
 
 ---

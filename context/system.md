@@ -9,7 +9,7 @@ clientes (físico ou digital) e validem resgates de forma segura e rastreável.
 **Modelo de negócio:** Assinatura mensal por plano (Essencial / Profissional / Empresarial via Stripe)
 + venda avulsa de kits de impressão física (Offset, Chaveiro MDF, Quadrado MDF)
 **Público-alvo:** Lojistas, marcas e empresas que fazem promoções físicas ou digitais no Brasil
-**Status:** MVP em produção (Vercel)
+**Status:** MVP em produção — **[courtesyfy.com.br](https://courtesyfy.com.br)**
 **Versão atual:** 1.0.0-mvp
 
 ---
@@ -155,9 +155,10 @@ npm run db:push       # Aplicar schema ao banco (dev)
 npm run db:seed       # Popular banco com dados iniciais
 
 # Webhook Stripe local
-stripe listen --api-key sk_test_... --forward-to localhost:3000/api/webhook
+stripe listen --api-key sk_test_... --forward-to localhost:3000/api/webhook   # dev local
+# Produção: https://courtesyfy.com.br/api/webhook
 ```
 
 ---
 
-*Criado em: 2026-05-02 | Atualizado em: 2026-05-13*
+*Criado em: 2026-05-02 | Atualizado em: 2026-05-14*

@@ -544,7 +544,7 @@ function CartaoCard({
             letterSpacing: 0.4,
           }}
         >
-          courtesyfy.com
+          courtesyfy.com.br
         </div>
       </div>
 
@@ -869,7 +869,7 @@ function MdfCard({
             letterSpacing: 0.4,
           }}
         >
-          courtesyfy.com
+          courtesyfy.com.br
         </div>
       </div>
 

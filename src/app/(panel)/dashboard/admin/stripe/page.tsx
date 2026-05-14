@@ -95,7 +95,7 @@ export default async function AdminStripePage() {
   const session = await auth()
   if (session?.user?.role !== "SUPER_ADMIN") redirect("/dashboard")
 
-  const appUrl    = process.env.NEXTAUTH_URL ?? "https://courtesyfy.com"
+  const appUrl    = process.env.NEXTAUTH_URL ?? "https://courtesyfy.com.br"
   const webhookUrl = `${appUrl}/api/webhook`
   const agora     = new Date()
   const setesDias = new Date(agora.getTime() + 7 * 24 * 60 * 60 * 1000)

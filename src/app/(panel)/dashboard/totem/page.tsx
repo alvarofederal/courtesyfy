@@ -56,7 +56,7 @@ export default async function TotemPage() {
   const baseUrl =
     process.env.NEXTAUTH_URL ??
     process.env.NEXT_PUBLIC_APP_URL ??
-    "http://localhost:3000"
+    "https://courtesyfy.com.br"
 
   const totemUrl = `${baseUrl}/r/${loja.id}`
 
