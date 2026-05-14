@@ -62,6 +62,28 @@ function A4PrintModal({ onClose, tamanho, estilo, cardProps }: ModalProps) {
     return () => { document.body.style.overflow = "" }
   }, [])
 
+  function handleGeneratePdf() {
+    const params = new URLSearchParams({
+      tamanho,
+      corPrimaria:  cardProps.corPrimaria,
+      corFundo:     cardProps.corFundo,
+      corTexto:     cardProps.corTexto,
+      nomeLoja:     cardProps.nomeLoja,
+      nomeCampanha: cardProps.nomeCampanha,
+      opacidade:    String(cardProps.opacidade),
+      modoLimpo:    cardProps.modoLimpo ? "1" : "0",
+      keyScale:     String(cardProps.escalaChave ?? 1),
+      keyColor:     cardProps.corPrimaria,
+    })
+    if (cardProps.img2) params.set("logoUrl", cardProps.img2)
+    if (cardProps.img1) params.set("bgUrl",   cardProps.img1)
+    if (cardProps.posicaoChave) {
+      params.set("keyX", String(cardProps.posicaoChave.x))
+      params.set("keyY", String(cardProps.posicaoChave.y))
+    }
+    window.open(`/api/print/layout?${params.toString()}`, "_blank")
+  }
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto"
@@ -79,10 +101,10 @@ function A4PrintModal({ onClose, tamanho, estilo, cardProps }: ModalProps) {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <button type="button" onClick={() => window.print()}
+            <button type="button" onClick={handleGeneratePdf}
               className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
               style={{ background: "rgba(16,185,129,0.15)", color: "#34d399", border: "1px solid rgba(16,185,129,0.28)" }}>
-              <Printer className="w-3.5 h-3.5" /> Imprimir
+              <Printer className="w-3.5 h-3.5" /> Gerar PDF
             </button>
             <button type="button" onClick={onClose}
               className="p-2 rounded-lg" style={{ color: "rgba(255,255,255,0.45)" }}>
