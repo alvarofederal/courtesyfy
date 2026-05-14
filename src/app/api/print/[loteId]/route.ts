@@ -6,7 +6,9 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/prisma"
 import QRCode from "qrcode"
-import { jsPDF } from "jspdf"
+// jsPDF: import type apenas (apagado em runtime) — a instância é criada via dynamic import
+// no handler para evitar erros de DOM globals no carregamento do módulo no servidor.
+import type { jsPDF as JsPDFType } from "jspdf"
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -112,7 +114,7 @@ function buildBenefit(
 
 // ─── Truncate text para não vazar do card ─────────────────────────────────────
 
-function truncate(doc: jsPDF, text: string, maxMm: number): string {
+function truncate(doc: JsPDFType, text: string, maxMm: number): string {
   if (doc.getTextWidth(text) <= maxMm) return text
   let t = text
   while (t.length > 1 && doc.getTextWidth(t + "…") > maxMm) {
@@ -124,7 +126,7 @@ function truncate(doc: jsPDF, text: string, maxMm: number): string {
 // ─── Desenho de CartaoCard (70×35mm) ─────────────────────────────────────────
 
 function drawCartao(
-  doc: jsPDF,
+  doc: JsPDFType,
   cx: number,
   cy: number,
   opts: {
@@ -258,7 +260,7 @@ function drawCartao(
 // ─── Desenho de MdfCard (90×90mm) ────────────────────────────────────────────
 
 function drawMdf(
-  doc: jsPDF,
+  doc: JsPDFType,
   cx: number,
   cy: number,
   opts: {
@@ -387,7 +389,7 @@ function drawMdf(
 // ─── KeyBadge no PDF ──────────────────────────────────────────────────────────
 
 function drawKeyBadge(
-  doc: jsPDF,
+  doc: JsPDFType,
   cx: number,
   cy: number,
   W: number,
@@ -514,6 +516,9 @@ export async function GET(
   )
 
   // ── Montar PDF ───────────────────────────────────────────────────────────
+  // Dynamic import: garante que jsPDF é carregado no contexto Node.js (runtime),
+  // nunca no parse-time — evita ReferenceError de window/document no servidor.
+  const { jsPDF } = await import("jspdf")
   const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" })
 
   const cardW = formato === "cartao" ? CARTAO_W : MDF_W
