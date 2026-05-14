@@ -1,11 +1,23 @@
+// Rota limpa — fora do layout do dashboard (sem sidebar/header).
+// Renderiza os cards em unidades mm (100% vetorial) e auto-dispara window.print().
+
 import { notFound, redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/prisma"
-import { PrintGrid } from "./_components/print-grid"
+import { PrintSheet } from "./_components/print-sheet"
 
-type SearchParams = { auto?: string; formato?: string }
+type SearchParams = {
+  formato?: string
+  keyX?: string
+  keyY?: string
+  keyColor?: string
+  keySize?: string
+  modoLimpo?: string
+}
 
-export default async function ImprimirLotePage({
+export const metadata = { title: "Impressão | Courtesyfy" }
+
+export default async function PrintLotePage({
   params,
   searchParams,
 }: {
@@ -16,7 +28,8 @@ export default async function ImprimirLotePage({
   if (!session?.user?.lojaId) redirect("/login")
 
   const { loteId } = await params
-  const { auto, formato } = await searchParams
+  const { formato, keyX, keyY, keyColor, keySize, modoLimpo } = await searchParams
+
   const printFormat = formato === "mdf" ? "mdf" : "cartao"
 
   const lote = await db.loteChave.findUnique({
@@ -52,7 +65,6 @@ export default async function ImprimirLotePage({
 
   if (!loja) notFound()
 
-  // layout da campanha tem prioridade; fallback para dados da loja
   const layoutAtivo = lote.campanha.layout
 
   const chaves = await db.chave.findMany({
@@ -64,9 +76,16 @@ export default async function ImprimirLotePage({
   const nomeLote = lote.descricao ?? `Lote de ${chaves.length} chaves`
   const geradoEm = new Date(lote.criadoEm).toLocaleDateString("pt-BR")
 
+  // Posição da chave enviada pelo preview (porcentagem 0–100)
+  const keyPos =
+    keyX && keyY
+      ? { x: parseFloat(keyX), y: parseFloat(keyY) }
+      : null
+
+  const corLoja = layoutAtivo?.corPrimaria ?? loja.corPrimaria
+
   return (
-    <PrintGrid
-      loteId={loteId}
+    <PrintSheet
       chaves={chaves}
       campanha={{
         nome: lote.campanha.nome,
@@ -79,15 +98,18 @@ export default async function ImprimirLotePage({
       loja={{
         nome: loja.nomeExibicao ?? loja.nome,
         logoUrl: layoutAtivo?.imagem2Url ?? loja.logoUrl ?? null,
-        corPrimaria: layoutAtivo?.corPrimaria ?? loja.corPrimaria,
+        corPrimaria: corLoja,
         imagemFundoUrl: layoutAtivo?.imagem1Url ?? null,
         opacidadeFundo: layoutAtivo?.opacidadeFundo ?? 20,
       }}
+      formato={printFormat}
+      keyPos={keyPos}
+      keyColor={keyColor ?? corLoja}
+      keySize={keySize ? parseInt(keySize) : 11}
+      modoLimpo={modoLimpo === "1"}
       nomeLote={nomeLote}
       totalChaves={chaves.length}
       geradoEm={geradoEm}
-      formato={printFormat}
-      autoPrint={auto === "1"}
     />
   )
 }
