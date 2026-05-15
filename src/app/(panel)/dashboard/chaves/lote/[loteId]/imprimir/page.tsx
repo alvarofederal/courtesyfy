@@ -33,9 +33,18 @@ export default async function ImprimirLotePage({
           layout: {
             select: {
               corPrimaria: true,
+              corFundo: true,
+              corTexto: true,
+              corSecundaria: true,
               imagem1Url: true,
               imagem2Url: true,
               opacidadeFundo: true,
+              brilho: true,
+              saturacao: true,
+              contraste: true,
+              raioCantos: true,
+              tamanhoCard: true,
+              estiloCard: true,
             },
           },
         },
@@ -55,6 +64,24 @@ export default async function ImprimirLotePage({
   // layout da campanha tem prioridade; fallback para dados da loja
   const layoutAtivo = lote.campanha.layout
 
+  const layoutConfig = layoutAtivo
+    ? {
+        corPrimaria:   layoutAtivo.corPrimaria,
+        corFundo:      layoutAtivo.corFundo,
+        corTexto:      layoutAtivo.corTexto,
+        corSecundaria: layoutAtivo.corSecundaria,
+        imagem1Url:    layoutAtivo.imagem1Url ?? null,
+        imagem2Url:    layoutAtivo.imagem2Url ?? null,
+        opacidadeFundo: layoutAtivo.opacidadeFundo,
+        brilho:        layoutAtivo.brilho,
+        saturacao:     layoutAtivo.saturacao,
+        contraste:     layoutAtivo.contraste,
+        raioCantos:    layoutAtivo.raioCantos,
+        tamanhoCard:   layoutAtivo.tamanhoCard as string,
+        estiloCard:    layoutAtivo.estiloCard  as string,
+      }
+    : undefined
+
   const chaves = await db.chave.findMany({
     where: { loteId },
     orderBy: { criadoEm: "asc" },
@@ -68,6 +95,7 @@ export default async function ImprimirLotePage({
     <PrintGrid
       loteId={loteId}
       chaves={chaves}
+      layout={layoutConfig}
       campanha={{
         nome: lote.campanha.nome,
         tipoBeneficio: lote.campanha.tipoBeneficio,

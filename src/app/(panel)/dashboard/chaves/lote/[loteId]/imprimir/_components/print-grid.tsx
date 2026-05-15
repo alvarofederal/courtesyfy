@@ -2,6 +2,12 @@
 
 import { QRCodeSVG } from "qrcode.react"
 import { useEffect, useRef, useState } from "react"
+import {
+  CardRenderer,
+  CARD_SIZES,
+  type TamanhoCard,
+  type EstiloCard,
+} from "@/app/(panel)/dashboard/layout/_components/card-renderer"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -29,10 +35,27 @@ interface Loja {
   opacidadeFundo?: number
 }
 
+interface LayoutConfig {
+  corPrimaria: string
+  corFundo: string
+  corTexto: string
+  corSecundaria: string
+  imagem1Url: string | null
+  imagem2Url: string | null
+  opacidadeFundo: number
+  brilho: number
+  saturacao: number
+  contraste: number
+  raioCantos: number
+  tamanhoCard: string
+  estiloCard: string
+}
+
 interface Props {
   chaves: Chave[]
   campanha: Campanha
   loja: Loja
+  layout?: LayoutConfig
   nomeLote: string
   totalChaves: number
   geradoEm: string
@@ -880,12 +903,120 @@ function MdfCard({
   )
 }
 
+// ─── LayoutCard ──────────────────────────────────────────────────────────────
+// Renderiza o CardRenderer real da campanha (com estilo, cores, gradientes)
+// e sobrepõe o DraggableKeyOverlay no espaço CSS para arrastar a chave.
+
+function LayoutCard({
+  chave,
+  campanha,
+  loja,
+  layout,
+  keyPos,
+  keyLocked,
+  keyCor,
+  keyFontSz,
+  modoLimpo,
+  onSetKeyPos,
+}: {
+  chave: Chave
+  campanha: Campanha
+  loja: Loja
+  layout: LayoutConfig
+} & KeyOverlayCardProps) {
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const cardSizeDef = CARD_SIZES[layout.tamanhoCard as TamanhoCard] ?? CARD_SIZES["PADRAO"]
+  const displayW = Math.round(cardSizeDef.mmW * MM_TO_PX)
+  const displayH = Math.round(cardSizeDef.mmH * MM_TO_PX)
+  const scale = displayW / cardSizeDef.preW
+
+  const { main, sub } = buildBenefitLabel(campanha)
+  const expiraFmt = `Válido até: ${campanha.expiraEm}`
+
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (keyLocked || !wrapperRef.current) return
+    const rect = wrapperRef.current.getBoundingClientRect()
+    onSetKeyPos({
+      x: clamp(((e.clientX - rect.left) / displayW) * 100, 5, 95),
+      y: clamp(((e.clientY - rect.top) / displayH) * 100, 5, 95),
+    })
+  }
+
+  return (
+    <div
+      ref={wrapperRef}
+      style={{
+        width: displayW,
+        height: displayH,
+        flexShrink: 0,
+        overflow: "hidden",
+        position: "relative",
+        cursor: keyLocked ? "default" : "crosshair",
+      }}
+      onClick={handleClick}
+    >
+      {/* Conteúdo escalado para caber no container mm */}
+      <div
+        style={{
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+          position: "absolute",
+          pointerEvents: "none",
+          width: cardSizeDef.preW,
+          height: cardSizeDef.preH,
+        }}
+      >
+        <CardRenderer
+          estilo={layout.estiloCard as EstiloCard}
+          size={cardSizeDef}
+          corPrimaria={layout.corPrimaria}
+          corFundo={layout.corFundo}
+          corTexto={layout.corTexto}
+          corSecundaria={layout.corSecundaria}
+          img1={layout.imagem1Url ?? ""}
+          img2={layout.imagem2Url ?? ""}
+          opacidade={layout.opacidadeFundo}
+          brilho={layout.brilho}
+          saturacao={layout.saturacao}
+          contraste={layout.contraste}
+          raioCantos={layout.raioCantos}
+          nomeLoja={loja.nome}
+          nomeCampanha={campanha.nome}
+          posicaoChave={null}
+          modoLimpo={modoLimpo}
+          beneficioMain={main}
+          beneficioSub={sub || undefined}
+          validadeTxt={expiraFmt}
+          qrUrl={chave.landingUrl ?? undefined}
+        />
+      </div>
+
+      {/* Overlay da chave — no espaço CSS, arrastável */}
+      {keyPos && (
+        <DraggableKeyOverlay
+          codigo={chave.codigo}
+          pos={keyPos}
+          locked={keyLocked}
+          keyCor={keyCor}
+          keyFontSz={keyFontSz}
+          brand={layout.corPrimaria}
+          onDrag={onSetKeyPos}
+          wrapperRef={wrapperRef}
+          cardW={displayW}
+          cardH={displayH}
+        />
+      )}
+    </div>
+  )
+}
+
 // ─── PrintGrid ────────────────────────────────────────────────────────────────
 
 export function PrintGrid({
   chaves,
   campanha,
   loja,
+  layout,
   nomeLote,
   totalChaves,
   geradoEm,
@@ -899,6 +1030,13 @@ export function PrintGrid({
   const [keyCor, setKeyCor] = useState(loja.corPrimaria)
   const [modoLimpo, setModoLimpo] = useState(false)
   const isCartao = formato === "cartao"
+
+  // Quando há layout associado à campanha, usar o LayoutCard com CardRenderer real
+  const useLayoutCard = !!layout
+  const layoutCardDef = layout
+    ? (CARD_SIZES[layout.tamanhoCard as TamanhoCard] ?? CARD_SIZES["PADRAO"])
+    : null
+  const gridCols = layoutCardDef ? layoutCardDef.cols : 2
 
   const handleSetKeyPos = (pos: KeyPos) => {
     if (!keyLocked) setKeyPos(pos)
@@ -970,14 +1108,14 @@ export function PrintGrid({
       /* Grade em mm para garantir tamanho físico correto no papel */
       .print-grid {
         gap: 4mm !important;
-        grid-template-columns: repeat(2, auto) !important;
+        grid-template-columns: repeat(${gridCols}, auto) !important;
       }
     }
   `
 
   const gridStyle: React.CSSProperties = {
     display: "grid",
-    gridTemplateColumns: "repeat(2, auto)",
+    gridTemplateColumns: `repeat(${gridCols}, auto)`,
     gap: "4mm",
     justifyContent: "start",
     alignContent: "start",
@@ -1274,7 +1412,21 @@ export function PrintGrid({
         >
           <div className="print-grid" style={gridStyle}>
             {chaves.map((chave) =>
-              isCartao ? (
+              useLayoutCard && layout ? (
+                <LayoutCard
+                  key={chave.codigo}
+                  chave={chave}
+                  campanha={campanha}
+                  loja={loja}
+                  layout={layout}
+                  keyPos={keyPos}
+                  keyLocked={keyLocked}
+                  keyCor={keyCor}
+                  keyFontSz={keyFontSz}
+                  modoLimpo={modoLimpo}
+                  onSetKeyPos={handleSetKeyPos}
+                />
+              ) : isCartao ? (
                 <CartaoCard key={chave.codigo} chave={chave} {...sharedProps} />
               ) : (
                 <MdfCard key={chave.codigo} chave={chave} {...sharedProps} />

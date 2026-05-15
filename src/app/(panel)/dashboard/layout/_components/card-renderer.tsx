@@ -55,6 +55,11 @@ export interface CardProps {
   posicaoChave?: PosicaoChave
   escalaChave?: number
   modoLimpo?: boolean
+  // Dados reais da chave/campanha (opcionais — fallback para placeholder)
+  beneficioMain?: string
+  beneficioSub?:  string
+  validadeTxt?:   string
+  qrUrl?:         string
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -149,6 +154,8 @@ function CardClassicoLandscape({
   size, corPrimaria, corFundo, corTexto, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
   raioCantos, nomeLoja, nomeCampanha, posicaoChave, escalaChave,
+  beneficioMain = "20% OFF", beneficioSub = "Desconto exclusivo",
+  validadeTxt = "Válido até 31/12/2025", qrUrl = "https://courtesyfy.com.br",
 }: CardProps) {
   const letters = ini(nomeLoja)
   const r       = raioCantos
@@ -254,13 +261,13 @@ function CardClassicoLandscape({
           fontSize: fBig, fontWeight: "bold", color: corPrimaria,
           lineHeight: 1, whiteSpace: "nowrap",
         }}>
-          20% OFF
+          {beneficioMain}
         </div>
         <T style={{ fontSize: fSmall, color: corSecundaria + "99" }}>
-          Desconto exclusivo
+          {beneficioSub}
         </T>
         <T style={{ fontSize: fTiny, color: corSecundaria + "55" }}>
-          Válido até 31/12/2025
+          {validadeTxt}
         </T>
       </div>
 
@@ -277,7 +284,7 @@ function CardClassicoLandscape({
           border: `1.5px solid ${corPrimaria}`, borderRadius: 5,
           padding: 3, background: "#fff", flexShrink: 0,
         }}>
-          <QRCodeSVG value="https://courtesyfy.com.br" size={qrSz}
+          <QRCodeSVG value={qrUrl} size={qrSz}
             bgColor="#fff" fgColor="#111827" level="M" marginSize={0} />
         </div>
         <T style={{
@@ -310,6 +317,8 @@ function CardClassicoSquare({
   size, corPrimaria, corFundo, corTexto, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
   raioCantos, nomeLoja, nomeCampanha, posicaoChave, escalaChave,
+  beneficioMain = "20% OFF", beneficioSub = "Desconto exclusivo",
+  validadeTxt = "Válido até 31/12/2025", qrUrl = "https://courtesyfy.com.br",
 }: CardProps) {
   const letters = ini(nomeLoja)
   const r       = raioCantos
@@ -392,13 +401,13 @@ function CardClassicoSquare({
         {/* Info — minWidth:0 para truncar */}
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 5 }}>
           <div style={{ fontSize: fBig, fontWeight: "bold", color: corPrimaria, lineHeight: 1 }}>
-            20% OFF
+            {beneficioMain}
           </div>
           <T style={{ fontSize: fSmall, color: corSecundaria + "99" }}>
-            Desconto exclusivo
+            {beneficioSub}
           </T>
           <T style={{ fontSize: fTiny, color: corSecundaria + "55" }}>
-            Válido até 31/12/2025
+            {validadeTxt}
           </T>
         </div>
         {/* QR */}
@@ -406,7 +415,7 @@ function CardClassicoSquare({
           alignItems: "center", gap: 4 }}>
           <div style={{ border: `1.5px solid ${corPrimaria}`, borderRadius: 5,
             padding: 3, background: "#fff" }}>
-            <QRCodeSVG value="https://courtesyfy.com.br" size={qrSz}
+            <QRCodeSVG value={qrUrl} size={qrSz}
               bgColor="#fff" fgColor="#111827" level="M" marginSize={0} />
           </div>
           <T style={{ fontSize: fTiny, color: corSecundaria + "66",
@@ -442,6 +451,8 @@ function CardModerno({
   size, corPrimaria, corFundo, corTexto, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
   raioCantos, nomeLoja, nomeCampanha, posicaoChave, escalaChave,
+  beneficioMain = "20% OFF", beneficioSub = "Desconto exclusivo",
+  validadeTxt = "Válido até 31/12/2025", qrUrl = "https://courtesyfy.com.br",
 }: CardProps) {
   const letters = ini(nomeLoja)
   const r       = raioCantos
@@ -529,13 +540,13 @@ function CardModerno({
           gap: Math.round(size.preH * 0.025),
         }}>
           <div style={{ fontSize: fBig, fontWeight: "bold", color: corPrimaria, lineHeight: 1 }}>
-            20% OFF
+            {beneficioMain}
           </div>
           <T style={{ fontSize: fSmall, color: corSecundaria }}>
-            Desconto exclusivo
+            {beneficioSub}
           </T>
           <T style={{ fontSize: fTiny, color: corSecundaria + "55" }}>
-            Válido até 31/12/2025
+            {validadeTxt}
           </T>
         </div>
         {/* QR */}
@@ -543,7 +554,7 @@ function CardModerno({
           alignItems: "center", gap: 3 }}>
           <div style={{ border: `2px solid ${corPrimaria}`, borderRadius: 5,
             padding: 3, background: "#fff" }}>
-            <QRCodeSVG value="https://courtesyfy.com.br" size={qrSz}
+            <QRCodeSVG value={qrUrl} size={qrSz}
               bgColor="#fff" fgColor="#111827" level="M" marginSize={0} />
           </div>
           <T style={{ fontSize: fTiny, color: corSecundaria + "66",
@@ -575,6 +586,8 @@ function CardMinimalista({
   size, corPrimaria, corFundo, corTexto, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
   raioCantos, nomeLoja, nomeCampanha, posicaoChave, escalaChave,
+  beneficioMain = "20% OFF", beneficioSub = "Desconto exclusivo",
+  validadeTxt = "Válido até 31/12/2025", qrUrl = "https://courtesyfy.com.br",
 }: CardProps) {
   const letters = ini(nomeLoja)
   const r       = raioCantos
@@ -667,19 +680,19 @@ function CardMinimalista({
             color: corPrimaria, letterSpacing: -0.5, lineHeight: 1,
             whiteSpace: "nowrap",
           }}>
-            20% OFF
+            {beneficioMain}
           </div>
           <T style={{ fontSize: fSmall, color: corSecundaria + "88" }}>
-            Desconto exclusivo
+            {beneficioSub}
           </T>
           <T style={{ fontSize: fTiny, color: corSecundaria + "55" }}>
-            Válido até 31/12/2025
+            {validadeTxt}
           </T>
         </div>
 
         {/* QR */}
         <div style={{ flexShrink: 0, opacity: 0.88 }}>
-          <QRCodeSVG value="https://courtesyfy.com.br" size={qrSz}
+          <QRCodeSVG value={qrUrl} size={qrSz}
             bgColor="transparent" fgColor={corTexto} level="M" marginSize={0} />
         </div>
       </div>
@@ -706,6 +719,8 @@ function CardGradiente({
   size, corPrimaria, corFundo, corTexto: _ct, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
   raioCantos, nomeLoja, nomeCampanha, posicaoChave, escalaChave,
+  beneficioMain = "20% OFF", beneficioSub = "Desconto exclusivo",
+  validadeTxt = "Válido até 31/12/2025", qrUrl = "https://courtesyfy.com.br",
 }: CardProps) {
   const letters = ini(nomeLoja)
   const r       = raioCantos
@@ -779,13 +794,13 @@ function CardGradiente({
           fontSize: fBig, fontWeight: "bold", color: "#fff", lineHeight: 1,
           textShadow: "0 2px 8px rgba(0,0,0,0.22)", whiteSpace: "nowrap",
         }}>
-          20% OFF
+          {beneficioMain}
         </div>
         <T style={{ fontSize: fSmall, color: "rgba(255,255,255,0.65)" }}>
-          Desconto exclusivo
+          {beneficioSub}
         </T>
         <T style={{ fontSize: fTiny, color: "rgba(255,255,255,0.42)" }}>
-          Válido até 31/12/2025
+          {validadeTxt}
         </T>
       </div>
 
@@ -795,7 +810,7 @@ function CardGradiente({
         background: "rgba(255,255,255,0.92)", borderRadius: 7, padding: 5,
         boxShadow: "0 2px 12px rgba(0,0,0,0.2)",
       }}>
-        <QRCodeSVG value="https://courtesyfy.com.br" size={qrSz}
+        <QRCodeSVG value={qrUrl} size={qrSz}
           bgColor="transparent" fgColor="#111827" level="M" marginSize={0} />
       </div>
 
@@ -812,6 +827,8 @@ function CardNeon({
   size, corPrimaria, corFundo: _cf, corTexto: _ct, corSecundaria,
   img1, img2, opacidade, brilho: b, saturacao: s, contraste: c,
   raioCantos, nomeLoja, nomeCampanha, posicaoChave, escalaChave,
+  beneficioMain = "20% OFF", beneficioSub = "Desconto exclusivo",
+  validadeTxt = "Válido até 31/12/2025", qrUrl = "https://courtesyfy.com.br",
 }: CardProps) {
   const letters = ini(nomeLoja)
   const r       = raioCantos
@@ -895,13 +912,13 @@ function CardNeon({
           fontSize: fBig, fontWeight: "bold", color: corPrimaria, lineHeight: 1,
           textShadow: `0 0 14px ${corPrimaria}`, whiteSpace: "nowrap",
         }}>
-          20% OFF
+          {beneficioMain}
         </div>
         <T style={{ fontSize: fSmall, color: "rgba(255,255,255,0.55)" }}>
-          Desconto exclusivo
+          {beneficioSub}
         </T>
         <T style={{ fontSize: fTiny, color: "rgba(255,255,255,0.28)" }}>
-          Válido até 31/12/2025
+          {validadeTxt}
         </T>
       </div>
 
@@ -911,7 +928,7 @@ function CardNeon({
         border: `1.5px solid ${corPrimaria}`, borderRadius: 6, padding: 3,
         background: "#fff", boxShadow: `0 0 10px ${corPrimaria}44`,
       }}>
-        <QRCodeSVG value="https://courtesyfy.com.br" size={qrSz}
+        <QRCodeSVG value={qrUrl} size={qrSz}
           bgColor="#fff" fgColor="#111827" level="M" marginSize={0} />
       </div>
 
