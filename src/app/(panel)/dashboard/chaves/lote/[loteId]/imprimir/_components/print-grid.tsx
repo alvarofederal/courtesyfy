@@ -933,13 +933,23 @@ export function PrintGrid({
     }
 
     @media print {
-      .no-print         { display: none !important; }
+      /* ── Forçar modo claro: cancela a classe .dark do layout raiz ── */
+      html, html.dark {
+        background: white !important;
+        color: black !important;
+        color-scheme: light !important;
+      }
+
+      .no-print          { display: none !important; }
       aside, header, nav { display: none !important; }
 
+      /* Dashboard layout: remove paddings e overflow que cortam o conteúdo */
       body, body > div, body > div > div, main {
         overflow: visible !important;
         height: auto !important;
         background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
       }
 
       .screen-wrapper {
@@ -957,7 +967,11 @@ export function PrintGrid({
         min-height: 0 !important;
       }
 
-      .print-grid { gap: 4mm !important; }
+      /* Grade em mm para garantir tamanho físico correto no papel */
+      .print-grid {
+        gap: 4mm !important;
+        grid-template-columns: repeat(2, auto) !important;
+      }
     }
   `
 
@@ -1194,32 +1208,21 @@ export function PrintGrid({
             )}
           </div>
 
-          {/* Gerar PDF — chama API route que retorna application/pdf real */}
+          {/* Imprimir — window.print() no HTML renderizado (qualidade idêntica ao preview) */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
             <button
-              onClick={() => {
-                const p = new URLSearchParams({ formato })
-                if (keyPos && keyLocked) {
-                  p.set("keyX", keyPos.x.toFixed(2))
-                  p.set("keyY", keyPos.y.toFixed(2))
-                  p.set("keyColor", keyCor)
-                  p.set("keySize", keyFontSz.toString())
-                }
-                if (modoLimpo) p.set("modoLimpo", "1")
-                // Abre o PDF real gerado no servidor — sem window.print(), sem dialog
-                window.open(`/api/print/${loteId}?${p.toString()}`, "_blank")
-              }}
+              onClick={() => window.print()}
               style={{ ...btnBase, background: "#111827", color: "#fff" }}
             >
               <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  d="M6 9V2h9l3 3v4M6 9H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2v-9a2 2 0 00-2-2h-1M6 9h8M9 14h6m-6 4h3" />
               </svg>
-              Gerar PDF
+              Imprimir / Salvar PDF
             </button>
             {keyPos && !keyLocked && (
               <span style={{ fontSize: 11, color: "#f59e0b" }}>
-                ⚠️ Trave a chave antes de gerar
+                ⚠️ Trave a chave antes de imprimir
               </span>
             )}
           </div>
