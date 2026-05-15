@@ -65,15 +65,20 @@ function A4PrintModal({ onClose, tamanho, estilo, cardProps }: ModalProps) {
   function handleGeneratePdf() {
     const params = new URLSearchParams({
       tamanho,
-      corPrimaria:  cardProps.corPrimaria,
-      corFundo:     cardProps.corFundo,
-      corTexto:     cardProps.corTexto,
-      nomeLoja:     cardProps.nomeLoja,
-      nomeCampanha: cardProps.nomeCampanha,
-      opacidade:    String(cardProps.opacidade),
-      modoLimpo:    cardProps.modoLimpo ? "1" : "0",
-      keyScale:     String(cardProps.escalaChave ?? 1),
-      keyColor:     cardProps.corPrimaria,
+      estilo,
+      corPrimaria:   cardProps.corPrimaria,
+      corFundo:      cardProps.corFundo,
+      corTexto:      cardProps.corTexto,
+      corSecundaria: cardProps.corSecundaria,
+      nomeLoja:      cardProps.nomeLoja,
+      nomeCampanha:  cardProps.nomeCampanha,
+      opacidade:     String(cardProps.opacidade),
+      brilho:        String(cardProps.brilho),
+      saturacao:     String(cardProps.saturacao),
+      contraste:     String(cardProps.contraste),
+      raioCantos:    String(cardProps.raioCantos),
+      modoLimpo:     cardProps.modoLimpo ? "1" : "0",
+      keyScale:      String(cardProps.escalaChave ?? 1),
     })
     if (cardProps.img2) params.set("logoUrl", cardProps.img2)
     if (cardProps.img1) params.set("bgUrl",   cardProps.img1)
@@ -81,7 +86,8 @@ function A4PrintModal({ onClose, tamanho, estilo, cardProps }: ModalProps) {
       params.set("keyX", String(cardProps.posicaoChave.x))
       params.set("keyY", String(cardProps.posicaoChave.y))
     }
-    window.open(`/api/print/layout?${params.toString()}`, "_blank")
+    // Abre a página de impressão real (renderiza o CardRenderer, não jsPDF)
+    window.open(`/print/layout?${params.toString()}`, "_blank")
   }
 
   return (
