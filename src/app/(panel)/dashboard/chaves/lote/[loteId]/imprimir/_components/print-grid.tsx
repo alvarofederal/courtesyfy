@@ -49,6 +49,9 @@ interface LayoutConfig {
   raioCantos: number
   tamanhoCard: string
   estiloCard: string
+  posicaoChaveX: number | null
+  posicaoChaveY: number | null
+  escalaChave: number
 }
 
 interface Props {
@@ -1024,9 +1027,20 @@ export function PrintGrid({
   loteId,
   autoPrint,
 }: Props) {
-  const [keyPos, setKeyPos] = useState<KeyPos | null>(null)
-  const [keyLocked, setKeyLocked] = useState(false)
-  const [keyFontSz, setKeyFontSz] = useState(11)
+  // Inicializar posição da chave a partir do layout salvo
+  const initialKeyPos: KeyPos | null =
+    layout?.posicaoChaveX != null && layout?.posicaoChaveY != null
+      ? { x: layout.posicaoChaveX, y: layout.posicaoChaveY }
+      : null
+
+  // Converter escalaChave do layout para keyFontSz em px (base 11px × escala)
+  const initialFontSz = layout
+    ? Math.round(Math.min(18, Math.max(7, 11 * (layout.escalaChave ?? 1))))
+    : 11
+
+  const [keyPos, setKeyPos] = useState<KeyPos | null>(initialKeyPos)
+  const [keyLocked, setKeyLocked] = useState(initialKeyPos !== null)
+  const [keyFontSz, setKeyFontSz] = useState(initialFontSz)
   const [keyCor, setKeyCor] = useState(loja.corPrimaria)
   const [modoLimpo, setModoLimpo] = useState(false)
   const isCartao = formato === "cartao"

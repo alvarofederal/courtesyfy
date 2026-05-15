@@ -28,6 +28,12 @@ function extractLayoutFields(formData: FormData) {
   const estiloCard    = (formData.get("estiloCard") as string) || "CLASSICO"
   const raioCantos    = parseInt(formData.get("raioCantos") as string) || 8
   const padrao        = formData.get("padrao") === "on"
+  const rawChaveX     = formData.get("posicaoChaveX") as string | null
+  const rawChaveY     = formData.get("posicaoChaveY") as string | null
+  const rawEscala     = formData.get("escalaChave")   as string | null
+  const posicaoChaveX = rawChaveX ? parseFloat(rawChaveX) : null
+  const posicaoChaveY = rawChaveY ? parseFloat(rawChaveY) : null
+  const escalaChave   = rawEscala ? parseFloat(rawEscala) : 1
 
   return {
     nome, corPrimaria, corFundo, corTexto, corSecundaria,
@@ -39,6 +45,9 @@ function extractLayoutFields(formData: FormData) {
     tamanhoCard, estiloCard,
     raioCantos: Math.min(24, Math.max(0, raioCantos)),
     padrao,
+    posicaoChaveX: posicaoChaveX !== null && !isNaN(posicaoChaveX) ? posicaoChaveX : null,
+    posicaoChaveY: posicaoChaveY !== null && !isNaN(posicaoChaveY) ? posicaoChaveY : null,
+    escalaChave:   !isNaN(escalaChave) ? escalaChave : 1,
   }
 }
 
@@ -75,6 +84,9 @@ export async function criarLayout(_prev: LayoutState, formData: FormData): Promi
       estiloCard: fields.estiloCard as "CLASSICO" | "MODERNO" | "MINIMALISTA" | "GRADIENTE" | "NEON",
       raioCantos: fields.raioCantos,
       padrao: fields.padrao,
+      posicaoChaveX: fields.posicaoChaveX,
+      posicaoChaveY: fields.posicaoChaveY,
+      escalaChave:   fields.escalaChave,
     },
   })
 
@@ -120,6 +132,9 @@ export async function atualizarLayout(_prev: LayoutState, formData: FormData): P
       estiloCard: fields.estiloCard as "CLASSICO" | "MODERNO" | "MINIMALISTA" | "GRADIENTE" | "NEON",
       raioCantos: fields.raioCantos,
       padrao: fields.padrao,
+      posicaoChaveX: fields.posicaoChaveX,
+      posicaoChaveY: fields.posicaoChaveY,
+      escalaChave:   fields.escalaChave,
     },
   })
 

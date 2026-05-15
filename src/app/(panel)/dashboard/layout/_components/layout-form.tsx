@@ -570,6 +570,9 @@ export interface LayoutData {
   estiloCard: EstiloCard
   raioCantos: number
   padrao: boolean
+  posicaoChaveX?: number | null
+  posicaoChaveY?: number | null
+  escalaChave?:   number | null
 }
 
 interface Props {
@@ -595,9 +598,15 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
   const [saturacao, setSaturacao]     = useState(initial?.saturacao ?? 100)
   const [contraste, setContraste]     = useState(initial?.contraste ?? 100)
   const [raioCantos, setRaio]         = useState(initial?.raioCantos ?? 8)
-  const [posicaoChave, setPosicao]    = useState<PosicaoChave>(null)
-  const [escalaChave, setEscala]      = useState(1.0)
-  const [keyMode, setKeyMode]         = useState<KeyMode>("none")
+  const [posicaoChave, setPosicao]    = useState<PosicaoChave>(
+    initial?.posicaoChaveX != null && initial?.posicaoChaveY != null
+      ? { x: initial.posicaoChaveX, y: initial.posicaoChaveY }
+      : null
+  )
+  const [escalaChave, setEscala]      = useState(initial?.escalaChave ?? 1.0)
+  const [keyMode, setKeyMode]         = useState<KeyMode>(
+    initial?.posicaoChaveX != null ? "locked" : "none"
+  )
   const [modoLimpo, setModoLimpo]     = useState(false)
   const [nomeCampanha, setNomeCampanha] = useState("Campanha Exemplo")
   const [previewTab, setPreviewTab]   = useState<"card" | "folha">("card")
@@ -726,6 +735,10 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
           <input type="hidden" name="imagem1Url"  value={img1.url} />
           <input type="hidden" name="imagem2Url"  value={img2.url} />
           <input type="hidden" name="imagem3Url"  value={img3.url} />
+          {/* Posição da chave — salva quando o usuário posiciona no preview */}
+          <input type="hidden" name="posicaoChaveX" value={posicaoChave?.x ?? ""} />
+          <input type="hidden" name="posicaoChaveY" value={posicaoChave?.y ?? ""} />
+          <input type="hidden" name="escalaChave"   value={escalaChave} />
 
           {state.success && (
             <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-xl p-4 flex items-center gap-2 text-emerald-700 dark:text-emerald-400 text-sm">

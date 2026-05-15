@@ -195,6 +195,9 @@ model Layout {
   estiloCard     EstiloCard  @default(CLASSICO)
   raioCantos     Int         @default(8)
   padrao         Boolean     @default(false)
+  posicaoChaveX  Float?
+  posicaoChaveY  Float?
+  escalaChave    Float       @default(1)
 
   loja                  Loja                   @relation(fields: [lojaId], references: [id])
   campanhas             Campanha[]

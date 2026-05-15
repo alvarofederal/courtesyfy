@@ -62,6 +62,9 @@ export default async function EditarLayoutPage({
           estiloCard:    (layout.estiloCard   as EstiloCard)   ?? "CLASSICO",
           raioCantos:    layout.raioCantos    ?? 8,
           padrao:        layout.padrao,
+          posicaoChaveX: layout.posicaoChaveX ?? null,
+          posicaoChaveY: layout.posicaoChaveY ?? null,
+          escalaChave:   layout.escalaChave   ?? 1,
         }}
         nomeLoja={loja?.nomeExibicao ?? loja?.nome ?? "Sua Loja"}
       />

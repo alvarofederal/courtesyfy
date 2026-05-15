@@ -45,6 +45,9 @@ export default async function ImprimirLotePage({
               raioCantos: true,
               tamanhoCard: true,
               estiloCard: true,
+              posicaoChaveX: true,
+              posicaoChaveY: true,
+              escalaChave: true,
             },
           },
         },
@@ -79,6 +82,9 @@ export default async function ImprimirLotePage({
         raioCantos:    layoutAtivo.raioCantos,
         tamanhoCard:   layoutAtivo.tamanhoCard as string,
         estiloCard:    layoutAtivo.estiloCard  as string,
+        posicaoChaveX: layoutAtivo.posicaoChaveX ?? null,
+        posicaoChaveY: layoutAtivo.posicaoChaveY ?? null,
+        escalaChave:   layoutAtivo.escalaChave  ?? 1,
       }
     : undefined
 
