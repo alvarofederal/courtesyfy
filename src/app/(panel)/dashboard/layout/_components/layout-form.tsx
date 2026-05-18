@@ -459,19 +459,70 @@ function useImageUpload(initial: string | null) {
   return { url, setUrl, uploading, error, handleFile }
 }
 
-function ColorPicker({ label, name, value, onChange }: {
-  label: string; name: string; value: string; onChange: (v: string) => void
+function ColorPicker({ label, name, value, onChange, allowTransparent = false }: {
+  label: string; name: string; value: string; onChange: (v: string) => void; allowTransparent?: boolean
 }) {
+  const isTransp = value === "transparent"
+  // <input type="color"> não aceita "transparent" — usar fallback branco
+  const colorInputVal = isTransp ? "#ffffff" : value
+
   return (
     <div>
-      <label className="block text-xs font-medium dash-muted mb-1.5">{label}</label>
+      <div className="flex items-center justify-between mb-1.5">
+        <label className="block text-xs font-medium dash-muted">{label}</label>
+        {allowTransparent && (
+          <button
+            type="button"
+            onClick={() => onChange(isTransp ? "#fffdf7" : "transparent")}
+            className={`flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full border transition-all ${
+              isTransp
+                ? "bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-300 dark:border-violet-500/40"
+                : "dash-muted border-gray-200 dark:border-white/10 hover:border-violet-300 dark:hover:border-violet-500/30"
+            }`}
+          >
+            {isTransp ? "✓ Transparente" : "◻ Transparente"}
+          </button>
+        )}
+      </div>
       <div className="flex items-center gap-2">
-        <input type="color" value={value} onChange={e => onChange(e.target.value)}
-          className="w-9 h-9 rounded-lg cursor-pointer border border-gray-200 dark:border-white/10 p-0.5 flex-shrink-0" />
-        <input name={name} type="text" value={value} onChange={e => onChange(e.target.value)}
-          className="dash-input font-mono w-28 !py-1.5 !px-3 !text-xs" />
-        <div className="flex-1 h-9 rounded-xl border border-gray-100 dark:border-white/5"
-          style={{ backgroundColor: value }} />
+        {isTransp ? (
+          <>
+            {/* campo oculto envia "transparent" no submit do form */}
+            <input type="hidden" name={name} value="transparent" />
+            {/* Xadrez clássico de transparência (repeating-conic-gradient) */}
+            <div
+              className="flex-1 h-9 rounded-xl border-2 border-dashed border-violet-200 dark:border-violet-500/30 flex items-center justify-center gap-2"
+              style={{
+                background:
+                  "repeating-conic-gradient(#e5e7eb 0% 25%, #fff 0% 50%) 0 0 / 14px 14px",
+              }}
+            >
+              <span className="text-xs font-semibold text-violet-600 dark:text-violet-400 bg-white/80 dark:bg-black/40 px-2 py-0.5 rounded-full">
+                Sem fundo — transparente
+              </span>
+            </div>
+          </>
+        ) : (
+          <>
+            <input
+              type="color"
+              value={colorInputVal}
+              onChange={e => onChange(e.target.value)}
+              className="w-9 h-9 rounded-lg cursor-pointer border border-gray-200 dark:border-white/10 p-0.5 flex-shrink-0"
+            />
+            <input
+              name={name}
+              type="text"
+              value={value}
+              onChange={e => onChange(e.target.value)}
+              className="dash-input font-mono w-28 !py-1.5 !px-3 !text-xs"
+            />
+            <div
+              className="flex-1 h-9 rounded-xl border border-gray-100 dark:border-white/5"
+              style={{ backgroundColor: value }}
+            />
+          </>
+        )}
       </div>
     </div>
   )
@@ -870,7 +921,7 @@ export function LayoutForm({ action, initial, nomeLoja }: Props) {
           <Section icon={Palette} title="Paleta de Cores">
             <div className="grid sm:grid-cols-2 gap-4">
               <ColorPicker label="Cor de Destaque / Marca"  name="corPrimaria"   value={corPrimaria} onChange={setCorPri} />
-              <ColorPicker label="Cor de Fundo do Card"     name="corFundo"      value={corFundo}   onChange={setCorFundo} />
+              <ColorPicker label="Cor de Fundo do Card"     name="corFundo"      value={corFundo}   onChange={setCorFundo} allowTransparent />
               <ColorPicker label="Cor do Texto Principal"   name="corTexto"      value={corTexto}   onChange={setCorTexto} />
               <ColorPicker label="Cor do Texto Secundário"  name="corSecundaria" value={corSec}     onChange={setCorSec} />
             </div>
