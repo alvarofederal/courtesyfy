@@ -189,9 +189,11 @@ export function VerifyEmailForm({ initialEmail }: VerifyEmailFormProps) {
             autoFocus
           />
           <p className="text-xs text-gray-500 mt-2">
-            {countdown > 0 
-              ? `Código expira em ${countdown}s` 
-              : "Código expirado - solicite um novo"
+            {countdown > 0
+              ? countdown >= 60
+                ? `Código expira em ${Math.floor(countdown / 60)}min ${countdown % 60}s`
+                : `Código expira em ${countdown}s`
+              : "Código expirado — solicite um novo"
             }
           </p>
         </div>
@@ -234,6 +236,8 @@ export function VerifyEmailForm({ initialEmail }: VerifyEmailFormProps) {
             </>
           ) : canResend ? (
             "Reenviar Código"
+          ) : countdown >= 60 ? (
+            `Reenviar em ${Math.floor(countdown / 60)}min ${countdown % 60}s`
           ) : (
             `Reenviar em ${countdown}s`
           )}

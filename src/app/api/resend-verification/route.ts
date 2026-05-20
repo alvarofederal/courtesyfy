@@ -61,10 +61,10 @@ export async function POST(request: NextRequest) {
 
     // ✅ Gerar novo código
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
-    
-    // ✅ Criar novo token (5 minutos - mais razoável que 30s)
+
+    // ✅ Criar novo token (15 minutos — tempo suficiente para o email chegar)
     const expiresAt = new Date()
-    expiresAt.setSeconds(expiresAt.getSeconds() + 45)
+    expiresAt.setMinutes(expiresAt.getMinutes() + 15)
 
     await prisma.authToken.create({
       data: {
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
 
     // ✅ Enviar email
     try {
-      await sendVerificationEmail(email, verificationCode, 0.75) // 0.75 minutos = 45 segundos
+      await sendVerificationEmail(email, verificationCode, 15)
     } catch (emailError) {
       console.error("Erro ao enviar email:", emailError)
       return NextResponse.json(

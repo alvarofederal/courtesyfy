@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
 
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
     const expiresAt = new Date()
-    expiresAt.setSeconds(expiresAt.getSeconds() + 45)
+    expiresAt.setMinutes(expiresAt.getMinutes() + 15)
 
     await prisma.authToken.create({
       data: {
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     })
 
     try {
-      await sendVerificationEmail(email, verificationCode, 0.75)
+      await sendVerificationEmail(email, verificationCode, 15)
     } catch (emailError) {
       console.error("Erro ao enviar email:", emailError)
     }
