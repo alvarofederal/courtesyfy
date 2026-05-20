@@ -1,7 +1,19 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
+const CANONICAL_HOST = "courtesyfy.com.br"
+
 export function middleware(request: NextRequest) {
+  // ✅ Redireciona o domínio Vercel para o domínio canônico em produção
+  // Evita que o usuário fique preso em courtesyfy.vercel.app
+  const host = request.headers.get("host") ?? ""
+  if (host.includes("vercel.app") && process.env.NODE_ENV === "production") {
+    const url = request.nextUrl.clone()
+    url.protocol = "https:"
+    url.host = CANONICAL_HOST
+    return NextResponse.redirect(url, { status: 301 })
+  }
+
   const { pathname } = request.nextUrl
 
   const publicRoutes = [
