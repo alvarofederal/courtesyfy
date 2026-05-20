@@ -14,7 +14,13 @@ export async function POST(request: NextRequest) {
       request.headers.get("x-real-ip") ||
       "unknown"
 
-    await checkRateLimit(`register:${ip}`, 3, 60 * 60 * 1000)
+    const { allowed } = await checkRateLimit(`register:${ip}`, 3, 60 * 60 * 1000)
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Muitas tentativas. Tente novamente em 1 hora." },
+        { status: 429 }
+      )
+    }
 
     const body = await request.json()
     const validation = registerSchema.safeParse(body)

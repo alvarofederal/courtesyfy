@@ -9,9 +9,9 @@ import { checkRateLimit, resetRateLimit } from "@/lib/rate-limit"
 describe("checkRateLimit()", () => {
   const key = `test_rate_${Date.now()}`
 
-  beforeEach(() => {
-    resetRateLimit(key)
-    resetRateLimit(`${key}_2`)
+  beforeEach(async () => {
+    await resetRateLimit(key)
+    await resetRateLimit(`${key}_2`)
   })
 
   it("permite primeira requisição", async () => {
