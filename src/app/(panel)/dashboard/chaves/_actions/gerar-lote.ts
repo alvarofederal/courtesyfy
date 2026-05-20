@@ -7,7 +7,10 @@ import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/prisma"
 
-const CHARSET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789" // sem 0,O,1,I,L
+// Caracteres permitidos: excluídos 0,O,1,I,L (confusão visual) e S (≈5)
+// Correto: A-Z menos {I,L,O,S} = 22 letras + 2-9 menos {5} = 7 dígitos = 29 chars
+// Obs: 5 mantido pois S foi removido; total 30 chars para entropy balanceada
+const CHARSET = "ABCDEFGHJKMNPQRTUVWXYZ23456789" // 30 chars, sem 0,O,1,I,L,S
 
 function gerarCodigo(): string {
   const bytes = crypto.randomBytes(16)
