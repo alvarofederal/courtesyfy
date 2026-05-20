@@ -134,12 +134,18 @@ export default async function AdminImpressoesPage() {
         )}
       </section>
 
-      {/* Histórico */}
-      {historico.length > 0 && (
-        <section>
-          <h2 className="text-base font-semibold dash-title mb-3">
-            Histórico <span className="text-xs font-normal dash-muted ml-1">({historico.length})</span>
-          </h2>
+      {/* Histórico — sempre visível */}
+      <section>
+        <h2 className="text-base font-semibold dash-title mb-3">
+          Histórico <span className="text-xs font-normal dash-muted ml-1">({historico.length})</span>
+        </h2>
+
+        {historico.length === 0 ? (
+          <div className="dash-card p-8 text-center">
+            <Printer className="w-8 h-8 mx-auto mb-2 dash-muted opacity-40" />
+            <p className="text-sm dash-muted">Nenhuma solicitação concluída ainda.</p>
+          </div>
+        ) : (
           <div className="space-y-2">
             {historico.map(sol => {
               const cfg = STATUS_CONFIG[sol.status as StatusKey]
@@ -169,8 +175,8 @@ export default async function AdminImpressoesPage() {
               )
             })}
           </div>
-        </section>
-      )}
+        )}
+      </section>
     </div>
   )
 }
