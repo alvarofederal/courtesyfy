@@ -86,8 +86,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log("✅ Código reenviado para:", email, "Novo código:", verificationCode)
-
     return NextResponse.json(
       { 
         success: true,

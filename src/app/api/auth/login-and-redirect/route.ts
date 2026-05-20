@@ -4,10 +4,26 @@ import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import prisma from "@/lib/prisma"
 import crypto from "crypto"
+import { checkRateLimit } from "@/lib/rate-limit"
 
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json()
+
+    // ✅ Rate limiting — 10 tentativas por IP a cada 15 minutos (brute-force protection)
+    const ip =
+      request.headers.get("x-forwarded-for") ||
+      request.headers.get("x-real-ip") ||
+      "unknown"
+
+    const { allowed } = await checkRateLimit(`login:${ip}`, 10, 15 * 60 * 1000)
+
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Muitas tentativas de login. Tente novamente em 15 minutos." },
+        { status: 429 }
+      )
+    }
 
     const user = await prisma.user.findUnique({
       where: { email },
