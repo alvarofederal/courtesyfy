@@ -5,6 +5,7 @@ import { db } from "@/lib/prisma"
 import {
   ChevronLeft, Store, Megaphone, Layers, Key, Printer, Calendar,
   Mail, Phone, Globe, MapPin, Clock, CheckCircle2, XCircle, Search, Truck, Banknote,
+  ExternalLink,
 } from "lucide-react"
 import { AdminStatusForm } from "./_components/admin-status-form"
 import { adminAtualizarSolicitacao } from "../../../impressao/_actions/impressao-actions"
@@ -221,6 +222,22 @@ export default async function AdminImpressaoDetalhe({ params }: { params: Promis
             )
           })}
         </div>
+      </div>
+
+      {/* Botão de visualização do arquivo de impressão */}
+      <div className="mb-6 flex flex-wrap gap-3 items-center">
+        <Link
+          href={`/dashboard/admin/impressoes/${id}/imprimir`}
+          target="_blank"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
+        >
+          <Printer className="w-4 h-4" />
+          Ver arquivo de impressão
+          <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+        </Link>
+        <p className="text-xs dash-muted">
+          Visualize exatamente como o lojista vê o arquivo — com todos os cards e QR codes prontos para impressão.
+        </p>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
