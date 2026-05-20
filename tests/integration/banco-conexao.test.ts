@@ -45,9 +45,9 @@ describe("Conectividade do banco de dados", () => {
     const indexes = await testDb.$queryRaw<{ Non_unique: bigint | number; Key_name: string; Column_name: string }[]>`
       SHOW INDEX FROM chaves WHERE Column_name = 'codigo'
     `
-    // BigInt comparison (MySQL retorna BigInt para Non_unique)
+    // BigInt comparison (MySQL retorna BigInt para Non_unique — converter para Number)
     const unicoIdx = indexes.find(
-      (i) => i.Column_name === "codigo" && (i.Non_unique === 0 || i.Non_unique === 0n)
+      (i) => i.Column_name === "codigo" && Number(i.Non_unique) === 0
     )
     expect(unicoIdx).toBeDefined()
     console.log(`[banco] Índice único em codigo: ${unicoIdx?.Key_name}`)

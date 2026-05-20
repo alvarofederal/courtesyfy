@@ -3,8 +3,10 @@
  * Testa regras de segurança, isolamento entre lojas e comportamentos críticos.
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest"
+import crypto from "crypto"
 import {
   testDb,
+  testEmail,
   criarLojaTest,
   criarCampanhaTest,
   criarLoteTest,
@@ -142,7 +144,7 @@ describe("Tokens de verificação de email", () => {
   beforeAll(async () => {
     const user = await testDb.user.create({
       data: {
-        email: `TEST_verif_${Date.now()}@test.courtesyfy.internal`,
+        email: testEmail("verif"),   // usa TEST_PREFIX para garantir limpeza
         role:  "LOJISTA",
       },
     })
@@ -153,10 +155,13 @@ describe("Tokens de verificação de email", () => {
     const expiresAt = new Date()
     expiresAt.setMinutes(expiresAt.getMinutes() + 15)
 
+    // Token único por execução para evitar violação de unique constraint entre runs
+    const tokenUnico = crypto.randomBytes(4).toString("hex")
+
     await testDb.authToken.create({
       data: {
         userId,
-        token:    "123456",
+        token:    tokenUnico,
         type:     "EMAIL_VERIFICATION",
         expiresAt,
       },
@@ -188,11 +193,12 @@ describe("Tokens de verificação de email", () => {
   })
 
   it("não retorna token expirado na query de validação", async () => {
-    // Cria token expirado
+    // Cria token expirado com valor único
+    const tokenExpirado = `exp_${crypto.randomBytes(4).toString("hex")}`
     await testDb.authToken.create({
       data: {
         userId,
-        token:    "999999",
+        token:    tokenExpirado,
         type:     "EMAIL_VERIFICATION",
         expiresAt: new Date(Date.now() - 1_000), // expirado 1s atrás
       },

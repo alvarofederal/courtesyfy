@@ -21,8 +21,59 @@ O Courtesyfy usa dois padrões de comunicação servidor-cliente:
 ### Chaves e Validação
 | Endpoint | Método | Auth | Descrição |
 |----------|--------|------|-----------|
-| `/api/chaves/validar` | POST | API Key | Validação pública via QR/código — **a implementar** |
-| `/api/cron/expirar-chaves` | GET | CRON_SECRET | Expiração automática de chaves — **a implementar** |
+| `/api/chaves/validar` | POST | Bearer API Key | Validação pública via QR/código (consultar ou resgatar) |
+| `/api/cron/expirar-chaves` | GET | CRON_SECRET | Expiração automática de chaves — rodando diariamente às 03h UTC |
+
+#### `/api/chaves/validar`
+Permite que sistemas externos (PDVs, apps) consultem e resgatem chaves.
+
+**Autenticação:** Bearer token no formato `cfy.<lojaId>.<HMAC-sig>`
+O token é gerado deterministicamente via `computeApiKey(lojaId)` usando `API_KEY_SECRET`.
+O lojista visualiza sua API key em **Configurações > API Key**.
+
+```typescript
+// Body
+{
+  codigo:     string,                           // "XXXX-XXXX-XXXX-XXXX"
+  acao?:      "consultar" | "resgatar",        // default: "consultar"
+  observacao?: string                           // opcional, apenas para acao=resgatar
+}
+
+// Resposta sucesso — consultar
+{
+  ok: true, acao: "consultar",
+  chave: { codigo, status, campanha, beneficio, expiraEm, clienteNome,
+           clienteTelefone, clienteEmail, ativadaEm }
+}
+
+// Resposta sucesso — resgatar
+{
+  ok: true, acao: "resgatar",
+  chave: { codigo, status: "RESGATADA", campanha, beneficio, resgatadaEm,
+           clienteNome, clienteTelefone, clienteEmail }
+}
+
+// Resposta erro
+{ ok: false, error: string, status?: string }  // status HTTP: 400/401/403/404/409/410/422
+```
+
+**Regras:**
+- `consultar`: leitura pura — não grava nada no banco
+- `resgatar`: só funciona se status for `ATIVADA`; marca `RESGATADA` + cria `Resgate` + `LogEvento`
+- A chave deve pertencer à loja da API key (isolamento por `lojaId`)
+
+#### `/api/cron/expirar-chaves`
+Executado automaticamente pelo Vercel Cron todos os dias às 03:00 UTC.
+Configurado em `vercel.json`. Autenticado via `Authorization: Bearer <CRON_SECRET>`.
+
+```bash
+# Teste manual (dev sem auth, produção com header)
+curl https://courtesyfy.com.br/api/cron/expirar-chaves \
+  -H "Authorization: Bearer $CRON_SECRET"
+
+# Resposta
+{ ok: true, chavesExpiradas: 42, campanhasEncerradas: 3, executadoEm: "2026-05-20T03:00:00.000Z" }
+```
 
 ### Stripe e Pagamentos
 | Endpoint | Método | Auth | Descrição |

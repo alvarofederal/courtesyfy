@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/prisma"
+import { computeApiKey } from "@/lib/api-key"
 import { ConfiguracoesForm } from "./_components/configuracoes-form"
 import { TotemLinkCard } from "./_components/totem-link-card"
+import { ApiKeyCard } from "./_components/api-key-card"
 import { Sparkles, Settings } from "lucide-react"
 
 const PLANO_LABELS = {
@@ -20,6 +22,9 @@ const PLANO_LABELS_LIGHT = {
 export default async function ConfiguracoesPage() {
   const session = await auth()
   if (!session?.user?.lojaId) redirect("/login")
+
+  const lojaId = session.user.lojaId!
+  const apiKey = computeApiKey(lojaId)
 
   const loja = await db.loja.findUnique({
     where: { id: session.user.lojaId! },
@@ -98,9 +103,12 @@ export default async function ConfiguracoesPage() {
       </div>
 
       {/* ── Form ── */}
-      <div className="dash-card p-4 sm:p-6">
+      <div className="dash-card p-4 sm:p-6 mb-4">
         <ConfiguracoesForm loja={loja} tipoImpressao={loja.tipoImpressao} />
       </div>
+
+      {/* ── API Key ── */}
+      <ApiKeyCard apiKey={apiKey} />
     </div>
   )
 }

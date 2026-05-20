@@ -60,10 +60,11 @@ export async function criarLojaTest(override?: Partial<Parameters<typeof testDb.
 export async function criarCampanhaTest(
   lojaId:   string,
   userId:   string,
-  override?: Partial<Parameters<typeof testDb.campanha.create>[0]["data"]>
+  override?: Record<string, unknown>
 ) {
   const suffix = uniqueId()
   return testDb.campanha.create({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: {
       lojaId,
       criadoPorId:     userId,
@@ -75,7 +76,7 @@ export async function criarCampanhaTest(
       expiraEm:        new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // +30 dias
       status:          "ATIVA",
       ...override,
-    },
+    } as any,
   })
 }
 
