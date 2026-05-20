@@ -1,90 +1,165 @@
-# Basemedical - Melhorias Técnicas
+# Courtesyfy — Melhorias Técnicas Planejadas
 
 ## O que é este arquivo?
 
-Diferente de features (novas funcionalidades) e bugs (correções), este arquivo lista melhorias técnicas — refactorings, otimizações de performance, segurança, DX (developer experience) e qualidade de código.
+Diferente de features (novas funcionalidades) e bugs (correções), este arquivo lista melhorias
+técnicas — refactorings, otimizações de performance, segurança, DX e qualidade de código.
 
 ---
 
-## Melhorias Prioritárias
+## 🔴 Críticas (fazer logo)
 
-### 🟠 Cache de Páginas Públicas (ISR)
-**Tipo:** Performance
-**Descrição:** As páginas `/profissional/[id]` são públicas e poderiam se beneficiar de cache estático com revalidação.
-**Benefício:** Redução de carga no banco e latência para pacientes que buscam profissionais.
-**Como implementar:**
+### Headers de Segurança HTTP
+**Tipo:** Segurança (OWASP A05)
+**Status:** Identificado na auditoria OWASP — 2026-05-20
+**Descrição:** O `next.config.ts` não define nenhum header de segurança. Sem CSP, XSS pode
+executar scripts. Sem X-Frame-Options, a aplicação pode ser embutida em iframe (clickjacking).
+
 ```typescript
-// page.tsx
-export const revalidate = 300 // 5 minutos
+// next.config.ts
+async headers() {
+  return [{
+    source: "/(.*)",
+    headers: [
+      { key: "X-Frame-Options",           value: "SAMEORIGIN" },
+      { key: "X-Content-Type-Options",    value: "nosniff" },
+      { key: "Referrer-Policy",           value: "strict-origin-when-cross-origin" },
+      { key: "Permissions-Policy",        value: "camera=(), microphone=(), geolocation=()" },
+      { key: "Content-Security-Policy",   value: "default-src 'self'; ..." },
+    ]
+  }]
+}
 ```
 
-### 🟠 Rate Limiting por Endpoint
-**Tipo:** Segurança
-**Descrição:** Endpoints críticos (login, register, send-email) precisam de rate limiting mais robusto.
-**Arquivo atual:** `src/lib/rate-limit.ts`
-**Melhorar:** Aplicar em todos os endpoints públicos de mutação.
+### Rate Limit no Login
+**Tipo:** Segurança (OWASP A07)
+**Status:** Pendente
+**Descrição:** `POST /api/auth/login-and-redirect` permite brute-force sem limitação.
+**Ação:** Adicionar `checkRateLimit(`login:${ip}`, 10, 15 * 60 * 1000)`.
 
-### 🟡 Queries Prisma com `select` explícito
+---
+
+## 🟠 Alta Prioridade
+
+### Cache de Páginas Públicas (ISR)
 **Tipo:** Performance
-**Descrição:** Algumas queries buscam o objeto inteiro quando só precisam de alguns campos.
-**Benefício:** Menos dados trafegados, queries mais rápidas.
-**Padrão:** Sempre usar `select: { campo1: true, campo2: true }` nas queries.
+**Descrição:** `/c/[codigo]` é pública e muito acessada. Cada acesso bate no banco.
+ISR com revalidação curta reduziria latência e carga.
 
-### 🟡 Tratamento de Erros Padronizado
-**Tipo:** DX / Qualidade
-**Descrição:** Criar um padrão único de tratamento e retorno de erros nas Server Actions.
-**Proposta:**
 ```typescript
-type ActionResult<T> =
-  | { success: true; data: T }
-  | { success: false; error: string; code?: string }
+// page.tsx da chave pública
+export const revalidate = 60 // revalida a cada 60s
 ```
 
-### 🟡 Variáveis de Ambiente com Validação
+**Atenção:** Chaves mudam de status (GERADA → ATIVADA → RESGATADA). Revalidação curta
+(30-60s) é aceitável — o risco de servir status desatualizado por 1 minuto é baixo.
+
+### Validação de Variáveis de Ambiente no Startup
 **Tipo:** Segurança / DX
-**Descrição:** Validar todas as variáveis de ambiente no startup usando Zod.
-**Benefício:** Falha rápida e mensagem clara se falta uma env var.
-**Referência:** Padrão T3 Stack (`env.mjs`)
+**Descrição:** Falha silenciosa quando env var ausente. Zod pode validar no startup.
+
+```typescript
+// src/lib/env.ts
+import { z } from "zod"
+
+const envSchema = z.object({
+  DATABASE_URL:            z.string().url(),
+  AUTH_SECRET:             z.string().min(32),
+  API_KEY_SECRET:          z.string().min(32),
+  CRON_SECRET:             z.string().min(32),
+  STRIPE_SECRET_KEY:       z.string().startsWith("sk_"),
+  STRIPE_SECRET_WEBHOOK_KEY: z.string().startsWith("whsec_"),
+  RESEND_API_KEY:          z.string().startsWith("re_"),
+})
+
+export const env = envSchema.parse(process.env)
+```
+
+### Paginação Real nas Listagens
+**Tipo:** Performance / UX
+**Descrição:** Resgates tem `take: 50` hardcoded. Com crescimento, listagens de chaves e
+clientes podem ficar lentas. Implementar paginação cursor-based.
+
+### Logging Estruturado de Eventos de Segurança
+**Tipo:** Segurança (OWASP A09) / Observabilidade
+**Descrição:** Não há registro de: logins com falha, tentativas de acesso negado, uso
+inválido de API keys. Fundamental para detectar ataques.
+**Sugestão:** Logar em `LogEvento` com `tipoEvento: "AUTH_FAILED"` | `"ACCESS_DENIED"` | `"API_KEY_INVALID"`.
 
 ---
 
-## Melhorias de Developer Experience
+## 🟡 Média Prioridade
 
-### Testes Automatizados
+### Queries Prisma com `select` explícito
+**Tipo:** Performance
+**Descrição:** Algumas queries buscam o objeto inteiro quando precisam de poucos campos.
+**Padrão:** Sempre usar `select: { campo1: true }` ou `include` com `select` aninhado.
+
+### Tratamento de Erros Padronizado
 **Tipo:** DX / Qualidade
-**Prioridade:** 🟡 Médio
-**Situação atual:** Sem testes
-**Sugestão inicial:**
-- Testes unitários para utils/permissions (crítico para billing)
-- Testes E2E básicos para fluxo de agendamento (Playwright)
+**Descrição:** Server Actions retornam objetos diferentes (`{ error }`, `{ fieldErrors }`, `{ ok }`).
+Padronizar melhora previsibilidade.
 
-### Documentação de API
+```typescript
+type ActionResult<T = void> =
+  | { success: true; data?: T }
+  | { success: false; error: string; fieldErrors?: Record<string, string[]> }
+```
+
+### LGPD — Export e Delete de Dados do Cliente
+**Tipo:** Legal / Segurança
+**Descrição:** Clientes têm direito de solicitar exportação e exclusão de seus dados.
+Implementar endpoints ou fluxo admin para atender solicitações LGPD.
+
+### 2FA para Lojistas (TOTP)
+**Tipo:** Segurança
+**Descrição:** Segundo fator de autenticação via app autenticador (Google Authenticator, Authy).
+Biblioteca: `otplib`.
+
+### Upstash Redis configurado em produção
+**Tipo:** Infraestrutura / Segurança
+**Descrição:** Rate limiting atual usa fallback in-memory — não persiste entre instâncias serverless.
+Em produção com múltiplas instâncias, o limite pode ser contornado.
+**Ação:** Criar banco Redis no Upstash e configurar `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` na Vercel.
+
+---
+
+## 🟢 Baixa Prioridade
+
+### Documentação OpenAPI da API pública
 **Tipo:** DX
-**Prioridade:** 🟢 Baixo
-**Descrição:** Documentar os endpoints da API pública para futura abertura.
+**Descrição:** Documentar `/api/chaves/validar` com swagger/OpenAPI para facilitar integração
+por lojistas técnicos e parceiros.
+
+### Testes E2E (Playwright)
+**Tipo:** Qualidade
+**Descrição:** Testes unitários e de integração existem (77 testes). Adicionar E2E cobrindo:
+fluxo de ativação de chave pelo cliente, login + criar campanha + gerar lote.
+
+### Otimização de Queries N+1
+**Tipo:** Performance
+**Descrição:** Listagem de chaves com clientes pode gerar N+1. Monitorar com Prisma query log
+em dev e adicionar `include` otimizados conforme necessário.
 
 ---
 
-## Melhorias de Segurança
+## Auditoria de Segurança OWASP (2026-05-20)
 
-| Item | Prioridade | Status |
-|------|-----------|--------|
-| 2FA (TOTP) | 🟠 Alta | Backlog |
-| LGPD - Export/Delete de dados | 🟡 Média | Backlog |
-| Headers de segurança (CSP) | 🟡 Média | Não iniciado |
-| Audit log de ações admin | 🟢 Baixa | Backlog |
-| Sanitização de inputs no cliente | 🟠 Alta | Parcialmente feito (Zod) |
+Resultado completo da auditoria contra OWASP Top 10 2021 + ASVS v4 + CWE/SANS Top 25:
 
----
-
-## Refactorings Identificados
-
-| Área | Descrição | Esforço |
-|------|-----------|---------|
-| `_data_access/` | Algumas features não têm DAL separado | Médio |
-| Forms | Padronizar uso de Server Actions vs API Routes | Médio |
-| Types | Consolidar tipos duplicados em `type/` | Pequeno |
+| Categoria | Status | Observação |
+|-----------|--------|-----------|
+| A01 Broken Access Control | ✅ Bom | Tenant isolation correto em todas as actions |
+| A02 Cryptographic Failures | ✅ Bom | bcrypt custo 12, HMAC-SHA256, timingSafeEqual |
+| A03 Injection | ✅ Excelente | Prisma ORM, Zod em todos os inputs, sem SQL raw |
+| A04 Insecure Design | ⚠️ Atenção | Enumeração de e-mail em verify/resend |
+| A05 Security Misconfiguration | ⚠️ Médio | Faltam headers HTTP; console.log de debug |
+| A06 Vulnerable Components | ✅ OK | Dependências atuais; rodar `npm audit` periodicamente |
+| A07 Auth Failures | ⚠️ Atenção | **Sem rate limit no login** |
+| A08 Data Integrity | ✅ Bom | Webhook Stripe assinado; allowlist de priceId |
+| A09 Logging & Monitoring | ⚠️ Atenção | Sem log de eventos de segurança |
+| A10 SSRF | ✅ OK | fetch externo apenas em PDF (URLs do banco) |
 
 ---
 
-*Atualizado em: 2026-03-10*
+*Atualizado em: 2026-05-20*

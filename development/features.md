@@ -9,43 +9,87 @@ Quando concluir, mova o item para `releases.md`.
 
 ## 🔴 Em Andamento
 
-### API pública `/api/chaves/validar`
-**Início:** —
+### Headers de segurança HTTP
 **Prioridade:** Alta
-
 **Contexto:**
-Endpoint REST para lojistas que têm totem ou PDV próprio integrarem a validação de chaves
-sem usar o dashboard do Courtesyfy.
+Auditoria OWASP identificou ausência de CSP, X-Frame-Options, X-Content-Type-Options, etc.
+Adicionar no `next.config.ts` via função `headers()`.
 
 **Progresso:**
-- [ ] `POST /api/chaves/validar` — recebe código, retorna status + benefício
-- [ ] Autenticação via API Key da loja
-- [ ] Rate limiting por loja
-- [ ] Documentação básica do endpoint
+- [ ] `Content-Security-Policy`
+- [ ] `X-Frame-Options: SAMEORIGIN`
+- [ ] `X-Content-Type-Options: nosniff`
+- [ ] `Referrer-Policy: strict-origin-when-cross-origin`
+- [ ] `Permissions-Policy`
 
----
-
-### Expiração automática de chaves (cron)
-**Início:** —
+### Rate limit no login
 **Prioridade:** Alta
-
 **Contexto:**
-Chaves de campanhas encerradas devem mudar automaticamente para status EXPIRADA.
-Hoje depende de ação manual ou trigger no acesso.
-
+`POST /api/auth/login-and-redirect` não tem rate limiting — vulnerável a brute-force.
 **Progresso:**
-- [ ] `GET /api/cron/expirar-chaves` — atualiza chaves GERADA/ATIVADA de campanhas vencidas
-- [ ] Proteger endpoint com `CRON_SECRET` no header
-- [ ] Configurar Vercel Cron Job (diário, madrugada)
+- [ ] Adicionar `checkRateLimit` em `login-and-redirect/route.ts`
+- [ ] Limite sugerido: 10 tentativas / 15 min por IP
+
+### Remover log de código de verificação
+**Prioridade:** Alta
+**Contexto:**
+`resend-verification/route.ts:89` loga o código OTP em texto puro nos logs do Vercel.
+- [ ] Remover `console.log("Novo código:", verificationCode)`
+
+### Limpar console.log de debug em produção
+**Prioridade:** Média
+**Contexto:**
+`criar-campanha.ts` tem 12 console.log de debug com IDs de sessão e dados do formulário.
+- [ ] Remover todos os logs de debug ou trocar por `console.error` apenas no catch
 
 ---
 
 ## ✅ Concluídas Recentemente
 
+### Rate limiting com Upstash Redis
+**Concluído:** Maio 2026
+**Descrição:** Refatorado `src/lib/rate-limit.ts` para usar Upstash Redis sliding window quando
+`UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` estão configurados. Fallback in-memory
+preservado para dev/testes. Register retorna 429 corretamente.
+**Arquivos:** `src/lib/rate-limit.ts`, `src/lib/upstash.ts`, `src/app/api/register/route.ts`
+
+### Admin — visualização do arquivo de impressão
+**Concluído:** Maio 2026
+**Descrição:** Admin pode ver exatamente o arquivo de impressão do lojista (cards + QR codes)
+em `/dashboard/admin/impressoes/[id]/imprimir` sem restrição de lojaId. Botão "Ver arquivo
+de impressão" no detalhe da solicitação. Histórico sempre visível na lista admin.
+**Arquivos:** `src/app/(panel)/dashboard/admin/impressoes/[id]/imprimir/page.tsx`
+
+### API pública `/api/chaves/validar`
+**Concluído:** Maio 2026
+**Descrição:** Endpoint REST para PDV/totem externo validar e resgatar chaves sem usar o dashboard.
+Autenticação via Bearer HMAC-SHA256 (`cfy.<lojaId>.<sig>`). Ações: `consultar` (leitura pura)
+e `resgatar` (ATIVADA → RESGATADA em transação). API key visível em Configurações.
+**Arquivos:** `src/app/api/chaves/validar/route.ts`, `src/lib/api-key.ts`,
+`src/app/(panel)/dashboard/configuracoes/_components/api-key-card.tsx`
+
+### Cron de expiração automática
+**Concluído:** Maio 2026
+**Descrição:** `GET /api/cron/expirar-chaves` protegido com `CRON_SECRET`. Roda todos os dias
+às 03:00 UTC via Vercel Cron (configurado em `vercel.json`). Expira chaves e encerra campanhas vencidas.
+**Arquivos:** `src/app/api/cron/expirar-chaves/route.ts`, `vercel.json`
+
+### Suite de testes de integração (Vitest)
+**Concluído:** Maio 2026
+**Descrição:** 77 testes cobrindo banco de dados, geração de chaves, ativação, segurança e rate limit.
+Testes isolados por `TEST_PREFIX` único por run. `fileParallelism: false` para evitar contaminação.
+**Arquivos:** `tests/`, `vitest.config.ts`
+
+### Fix: nome do cliente não atualizava (bug "Zé da Manga")
+**Concluído:** Maio 2026
+**Descrição:** `ativar-chave.ts` só atualizava o nome se `!cliente.nome`. Corrigido para sempre
+atualizar nome quando fornecido, preservando telefone/email como chaves de busca.
+**Arquivo:** `src/app/c/[codigo]/_actions/ativar-chave.ts`
+
 ### Gerenciamento de produtos Stripe no dashboard
 **Concluído:** Maio 2026
-**Descrição:** Tela `/dashboard/admin/stripe/produtos` permite editar nome/descrição de produtos,
-editar nickname de preços, arquivar preço/produto e criar novos — tudo via Stripe API sem sair do Courtesyfy.
+**Descrição:** Tela `/dashboard/admin/stripe/produtos` com edição inline de nome/descrição,
+nickname de preços, arquivar e criar produtos/preços.
 **Arquivos:** `src/app/(panel)/dashboard/admin/stripe/produtos/`
 
 ### Tela de Clientes
@@ -54,49 +98,12 @@ editar nickname de preços, arquivar preço/produto e criar novos — tudo via S
 com histórico completo de chaves, stats e campanhas participadas.
 **Arquivos:** `src/app/(panel)/dashboard/clientes/`
 
-### Produtos físicos (kits de impressão) + landing page CTAs
-**Concluído:** Maio 2026
-**Descrição:** 3 linhas de produtos físicos (Offset, Chaveiro, Quadrado) com 6 price IDs no Stripe.
-Checkout público via `/api/checkout-produto` com allowlist. Landing page com preços e botões de compra.
-**Arquivos:** `src/app/api/checkout-produto/route.ts`, `src/app/page.tsx`
-
-### Admin Stripe expandido
-**Concluído:** Maio 2026
-**Descrição:** Painel Stripe com MRR calculado por plano, renovações nos próximos 7 dias,
-lojas suspensas, lista completa de assinantes (até 100) e histórico de eventos.
-**Arquivos:** `src/app/(panel)/dashboard/admin/stripe/page.tsx`
-
-### Stripe — nova conta Courtesyfy
-**Concluído:** Maio 2026
-**Descrição:** Migração para conta `acct_1TWPs2ADOPgqdFsc`. Planos Profissional (R$99) e Empresarial (R$199)
-criados. Webhook configurado. Todos os price IDs no `.env`.
-
-### Email de confirmação ao cliente na ativação
-**Concluído:** Maio 2026
-**Descrição:** Ao ativar uma chave, dispara email com código, benefício, validade e instruções. Fire-and-forget.
-
-### Página /c/[codigo] com layout da campanha
-**Concluído:** Maio 2026
-**Descrição:** A página pública carrega o layout vinculado à campanha (cores, imagem, estilo).
-
-### Migração de chaves entre campanhas
-**Concluído:** Maio 2026
-**Descrição:** Lojista pode migrar chaves não resgatadas para campanhas ativas.
-
-### Vigência de campanhas + trava de geração
-**Concluído:** Maio 2026
-**Descrição:** Indicadores visuais de campanha expirada. Bloqueio de geração para campanhas expiradas.
-
-### Dark mode completo + separação admin vs lojista
-**Concluído:** Maio 2026
-**Descrição:** Design system com tokens dark mode em todas as páginas.
-
 ---
 
 ## ⏸️ Pausadas / Em Espera
 
-*Nenhuma no momento*
+*Nenhuma no momento.*
 
 ---
 
-*Atualizado em: 2026-05-13*
+*Atualizado em: 2026-05-20*

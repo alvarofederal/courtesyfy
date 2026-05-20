@@ -2,90 +2,106 @@
 
 ## Visão de Longo Prazo
 
-Tornar o Courtesyfy a plataforma de referência para gestão de campanhas promocionais com chaves únicas no Brasil — do pequeno lojista ao grande varejista com múltiplas unidades.
+Tornar o Courtesyfy a plataforma de referência para gestão de campanhas promocionais com
+chaves únicas no Brasil — do pequeno lojista ao grande varejista com múltiplas unidades.
 
 ---
 
-## MVP (v1.0.0 — Concluído, Maio 2026)
+## MVP + P0 (v1.0.x — Concluído, Maio 2026) ✅
 
-### P0 — Essenciais para o MVP ✅ TODOS ENTREGUES
+### Infraestrutura
+- [x] Autenticação (email + Google OAuth + verificação)
+- [x] Schema Prisma completo para o domínio
+- [x] Design system dark mode
+- [x] Suite de testes Vitest (77 testes)
 
-**Infraestrutura:**
-- [x] Autenticação (email, Google)
-- [x] Verificação de email
-- [x] Schema Prisma para o domínio Courtesyfy
-
-**Loja:**
-- [x] Cadastro de loja com dados básicos e logo
+### Loja & Planos
+- [x] Onboarding de loja com logo
 - [x] Planos: Essencial / Profissional / Empresarial
-- [x] Cobrança via Stripe (assinatura mensal)
-- [x] Webhook Stripe (ativar/suspender assinatura)
+- [x] Stripe: assinatura com trial 14 dias + webhook
+- [x] Landing page com CTAs para planos e kits físicos
 
-**Campanhas:**
-- [x] Criação de campanha (nome, tipo de benefício, validade, quantidade)
-- [x] Tipos: desconto percentual, desconto fixo, brinde, sorteio, frete grátis, cashback
-- [x] Listagem e gestão de campanhas com indicadores de vigência
+### Campanhas & Chaves
+- [x] Criação de campanha (6 tipos de benefício)
+- [x] Geração de lote de chaves únicas com QR Code
+- [x] Exportação impressão A4 + CSV
+- [x] Designer visual de layout (cores, imagens, estilos, tamanhos)
 - [x] Migração de chaves entre campanhas
 
-**Chaves:**
-- [x] Geração de lote de chaves únicas (`XXXX-XXXX-XXXX-XXXX`)
-- [x] QR Code por chave apontando para `/c/[codigo]`
-- [x] Exportação para impressão em A4 e CSV
-
-**Landing page pública:**
-- [x] Página `/c/[codigo]` com identidade visual da campanha/loja
-- [x] Formulário de ativação (coleta tel/email do cliente)
-- [x] Email de confirmação ao cliente (Resend)
-
-**Validação e Resgate:**
-- [x] Tela de validação rápida para operador
-- [x] Ciclo completo: GERADA → ATIVADA → RESGATADA
-- [x] Modo totem para auto-atendimento
+### Fluxo do Cliente
+- [x] Landing pública `/c/[codigo]` com identidade da campanha
+- [x] Ativação com tel/email + email de confirmação (Resend)
+- [x] Validação no balcão + modo totem
 - [x] Histórico de resgates
 
-**Clientes:**
-- [x] Listagem de clientes com busca
-- [x] Detalhe do cliente com histórico de chaves
+### Clientes
+- [x] Listagem com busca + detalhe com histórico
 
-**Produtos físicos:**
-- [x] Kits de impressão (Offset, Chaveiro MDF, Quadrado MDF)
-- [x] Checkout público sem autenticação
-- [x] Landing page com CTAs conectados ao Stripe
+### Produtos Físicos
+- [x] 3 linhas de kits; checkout público com allowlist
 
-**Super Admin:**
-- [x] Painel Stripe com MRR, assinantes, renovações, eventos
-- [x] Gerenciamento de produtos/preços Stripe no dashboard
+### Super Admin
+- [x] Painel Stripe completo (MRR, assinantes, eventos, produtos)
+- [x] Gerenciamento de solicitações de impressão (lista + preview do arquivo)
 
----
-
-## P1 — Pós-MVP (Q3 2026)
-
-- [ ] **API pública `/api/chaves/validar`** — endpoint REST com API Key para PDV/totem externo
-- [ ] **Cron de expiração automática** — `GET /api/cron/expirar-chaves` via Vercel Cron
-- [ ] **Dashboard com gráficos** — taxa de ativação, conversão, chaves por campanha (Recharts)
-- [ ] **Cancelamento manual de chaves** em lote pelo lojista
-- [ ] **Portal do cliente Stripe** — lojista gerencia própria assinatura (upgrade/downgrade/cancelar)
-- [ ] **Layouts de impressão** adicionais (adesivo, etiqueta, cartão de visita)
-- [ ] **Filtros avançados** por status, campanha, período e lote nas listagens
+### API & Automação
+- [x] `POST /api/chaves/validar` — API pública para PDV/totem (HMAC-SHA256)
+- [x] `GET /api/cron/expirar-chaves` — expiração automática via Vercel Cron (03:00 UTC)
+- [x] Rate limiting com Upstash Redis (fallback in-memory)
 
 ---
 
-## P2 — Expansão Comercial (Q4 2026+)
+## P1 — Segurança & Estabilidade (v1.1.0 — Próximo)
+
+- [ ] **Headers de segurança HTTP** — CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy
+- [ ] **Rate limit no login** — brute-force protection em `/api/auth/login-and-redirect`
+- [ ] **Remover logs de debug** — `criar-campanha.ts` e código OTP em `resend-verification`
+- [ ] **Upstash Redis em produção** — configurar nas vars da Vercel para rate limit distribuído
+- [ ] **Validação de env vars no startup** — Zod schema em `src/lib/env.ts`
+- [ ] **Enumeração de e-mail** — padronizar respostas de verify/resend para não vazar existência
+
+---
+
+## P2 — Crescimento de Produto (v1.2.0 — Q3 2026)
+
+- [ ] **Gráficos no dashboard** — taxa de ativação, conversão, resgates por período (Recharts)
+- [ ] **Filtros avançados** — por status, campanha, período, lote nas listagens de chaves
+- [ ] **Portal Stripe do lojista** — autogestão de assinatura (upgrade/downgrade/cancelar)
+- [ ] **Cache ISR nas páginas públicas** — `/c/[codigo]` com `revalidate: 60`
+- [ ] **Paginação cursor-based** — resgates, chaves, clientes
+- [ ] **Email de boas-vindas** ao novo lojista pós-onboarding
+- [ ] **Notificação ao lojista** quando chave é resgatada (email ou push)
+- [ ] **Cancelamento em lote** de chaves pelo lojista
+
+---
+
+## P3 — Expansão (Q4 2026+)
+
+- [ ] **LGPD** — exportação e exclusão de dados do cliente
+- [ ] **2FA TOTP** para lojistas (Google Authenticator / Authy)
+- [ ] **Logging estruturado de segurança** — falhas de auth, API key inválida, acesso negado
+- [ ] **Documentação OpenAPI** da API pública
+- [ ] **Testes E2E** com Playwright
+- [ ] **Duplicar campanha** (clonar configurações)
+- [ ] **Importação de lotes via CSV**
+- [ ] **QR Code customizado** com logo da loja
+
+---
+
+## P4 — Escala & White-label (2027+)
 
 - [ ] White-label por loja (domínio customizado)
-- [ ] Múltiplos benefícios por campanha
-- [ ] API de integração com ecommerce e PDV
-- [ ] Sorteio automatizado no fechamento do período
-- [ ] Regras avançadas (produto, categoria, valor mínimo, período)
-- [ ] Multi-unidade e franquias
+- [ ] Multi-unidade e franquias (uma conta, várias lojas)
+- [ ] API de integração com ecommerce (WooCommerce, Shopify)
+- [ ] Sorteio automatizado no fechamento da campanha
 - [ ] App mobile para operadores (PWA ou React Native)
-- [ ] LGPD — export/delete de dados do cliente
+- [ ] Relatórios com BI embutido
 
 ---
 
 ## KPIs a Monitorar
 
-- Número de lojas cadastradas e ativas (com assinatura paga)
+- Lojas cadastradas e ativas (assinatura paga)
 - MRR (receita recorrente mensal)
 - Campanhas ativas no período
 - Taxa de ativação: chaves ativadas / geradas
@@ -95,4 +111,4 @@ Tornar o Courtesyfy a plataforma de referência para gestão de campanhas promoc
 
 ---
 
-*Atualizado em: 2026-05-13*
+*Atualizado em: 2026-05-20*

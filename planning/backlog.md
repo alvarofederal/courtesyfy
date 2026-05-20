@@ -1,38 +1,39 @@
-# Courtesyfy - Backlog de Funcionalidades
+# Courtesyfy — Backlog de Funcionalidades
 
 ## Como usar este arquivo
 
-Adicione itens neste backlog quando surgir uma nova ideia ou necessidade.
+Adicione itens aqui quando surgir nova ideia ou necessidade.
 Mova para `features.md` quando iniciar o desenvolvimento.
-Use prioridades: 🔴 Crítico | 🟠 Alta | 🟡 Média | 🟢 Baixa
+Prioridades: 🔴 Crítico | 🟠 Alta | 🟡 Média | 🟢 Baixa
 
 ---
 
 ## Em Andamento Agora
 
-### 🔴 Stripe / Cobrança
-**Descrição:** Cobrança recorrente por plano. Sem isso não há receita.
-→ ver `features.md`
-
-### 🔴 API pública `/api/chaves/validar`
-**Descrição:** Endpoint REST para integração com totem/PDV externo.
-→ ver `features.md`
+→ ver `development/features.md`
 
 ---
 
-## Próximos a Iniciar
+## Próximos a Iniciar (P1 — Segurança)
 
-### 🟠 Email de boas-vindas ao novo lojista
-**Descrição:** Ao concluir o onboarding, enviar email com links rápidos (criar campanha, gerar chaves, tutorial).
+### 🔴 Rate limit no endpoint de login
+**Descrição:** `POST /api/auth/login-and-redirect` sem proteção contra brute-force.
+Adicionar `checkRateLimit` com limite de 10 tentativas/15 min por IP.
+**Arquivo:** `src/app/api/auth/login-and-redirect/route.ts`
 
-### 🟠 Notificação ao lojista quando chave é resgatada
-**Descrição:** Email ou push para o lojista cada vez que uma chave é resgatada na sua loja.
+### 🔴 Remover log de código OTP em texto puro
+**Descrição:** `resend-verification/route.ts:89` loga o código de verificação nos logs do Vercel.
+**Arquivo:** `src/app/api/resend-verification/route.ts`
 
-### 🟠 Cancelamento manual de chaves pelo lojista
-**Descrição:** Botão para cancelar chaves individuais ou lotes inteiros no dashboard.
+### 🟠 Headers de segurança HTTP
+**Descrição:** Adicionar CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy no `next.config.ts`.
 
-### 🟠 Filtros avançados na lista de chaves
-**Descrição:** Filtrar por status, campanha, período, lote. Busca por código.
+### 🟠 Upstash Redis em produção
+**Descrição:** Configurar `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` na Vercel para
+rate limit distribuído funcionar entre instâncias serverless.
+
+### 🟠 Limpar console.log de debug em produção
+**Descrição:** `criar-campanha.ts` tem 12 logs com dados de sessão e formulário visíveis nos logs da Vercel.
 
 ---
 
@@ -41,38 +42,53 @@ Use prioridades: 🔴 Crítico | 🟠 Alta | 🟡 Média | 🟢 Baixa
 ### UX/UI
 - 🟡 Onboarding interativo com tour guiado para novos lojistas
 - 🟡 Melhorar responsividade mobile do dashboard
+- 🟡 Notificação ao lojista quando chave é resgatada (email/push)
+- 🟡 Email de boas-vindas pós-onboarding com links rápidos
 - 🟢 Animações de transição entre páginas
 
 ### Campanhas e Chaves
+- 🟡 Cancelamento em lote de chaves pelo lojista
 - 🟡 Duplicar campanha (clonar configurações)
+- 🟡 Filtros avançados: por status, campanha, período, lote
+- 🟡 Paginação real cursor-based (resgates, chaves, clientes)
 - 🟡 Múltiplos layouts por campanha (A/B)
 - 🟡 Importação de lotes via CSV
 - 🟢 QR Code customizado com logo da loja
 
-### Relatórios
+### Relatórios e Métricas
+- 🟡 Gráficos: taxa de ativação, conversão, resgates por período (Recharts já instalado)
 - 🟡 Filtros por período nos relatórios
 - 🟡 Export CSV dos relatórios
 - 🟡 Gráfico de resgates por hora do dia
 
 ### Clientes
-- 🟡 Área do cliente com histórico de chaves ativadas
 - 🟡 Re-envio de email com código para o cliente
-- 🟢 Integração com WhatsApp Business API (envio de código por mensagem)
+- 🟡 Área do cliente com histórico de chaves (portal público)
+- 🟢 Integração WhatsApp Business API (envio de código por mensagem)
+
+### Faturamento
+- 🟡 Portal Stripe do lojista — upgrade/downgrade/cancelar assinatura sem sair do dashboard
 
 ### Administrativo
-- 🟡 Logs de auditoria por usuário
+- 🟡 Logs de auditoria de segurança (falhas de auth, API key inválida)
 - 🟡 Sistema de suporte/tickets integrado
 - 🟢 Métricas de uso por plano (para calibrar pricing)
 
-### Performance e Escala
-- 🟡 Paginação cursor-based nas listas
-- 🟡 Cache das páginas públicas /c/[codigo] com ISR
-- 🟢 Otimização de queries N+1
+### Performance
+- 🟡 Cache ISR em `/c/[codigo]` (`revalidate: 60`)
+- 🟡 Paginação cursor-based nas listagens longas
+- 🟢 Otimização de queries N+1 monitoradas
 
 ### Segurança
-- 🟠 Rate limiting no endpoint /c/[codigo] (anti-bruteforce)
-- 🟡 LGPD — exportação e exclusão de dados de clientes
-- 🟡 2FA para lojistas
+- 🟠 Validação de env vars no startup (Zod em `src/lib/env.ts`)
+- 🟠 LGPD — exportação e exclusão de dados de clientes
+- 🟡 2FA para lojistas (TOTP — `otplib`)
+- 🟡 Padronizar respostas de verify/resend (evitar enumeração de e-mail)
+- 🟡 Avaliar remoção de `allowDangerousEmailAccountLinking`
+
+### Documentação e Qualidade
+- 🟡 Documentação OpenAPI da API pública `/api/chaves/validar`
+- 🟡 Testes E2E com Playwright (fluxo ativação + login + criar campanha)
 
 ---
 
@@ -80,12 +96,12 @@ Use prioridades: 🔴 Crítico | 🟠 Alta | 🟡 Média | 🟢 Baixa
 
 - White-label por loja (domínio customizado: cortesias.minhaloja.com.br)
 - Multi-unidade e franquias (uma conta, várias lojas)
-- API para integração com ecommerce (WooCommerce, Shopify)
+- API de integração com ecommerce (WooCommerce, Shopify)
 - Sorteio automatizado no fechamento da campanha
 - Programa de indicação entre lojistas
-- App mobile para operadores (validação offline)
+- App mobile para operadores (validação offline — PWA ou React Native)
 - Relatórios avançados com BI embutido
 
 ---
 
-*Atualizado em: 2026-05-12*
+*Atualizado em: 2026-05-20*
