@@ -105,8 +105,18 @@ export async function ativarChave(
     cliente = await db.cliente.create({
       data: { nome: nome || null, telefone: telefone || null, email: email || null, canalOrigem: "WEB" },
     })
-  } else if (nome && !cliente.nome) {
-    await db.cliente.update({ where: { id: cliente.id }, data: { nome } })
+  } else {
+    // Atualiza os dados do cliente com as informações mais recentes:
+    // - nome: sempre atualiza se fornecido (cliente pode corrigir o próprio nome)
+    // - telefone/email: preenche apenas se estiver vazio (são chaves de busca)
+    const updates: Record<string, string> = {}
+    if (nome) updates.nome = nome
+    if (telefone && !cliente.telefone) updates.telefone = telefone
+    if (email && !cliente.email) updates.email = email
+
+    if (Object.keys(updates).length > 0) {
+      cliente = await db.cliente.update({ where: { id: cliente.id }, data: updates })
+    }
   }
 
   // ── Ativar chave ─────────────────────────────────────────────
